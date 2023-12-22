@@ -1,0 +1,33 @@
+@import 'material-icons/iconfont/material-icons.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Afacad';
+  font-weight: 100 200 300 400 500 600 700 800 900;
+  src: url('/fonts/Afacad-VariableFont_wght.ttf') format('truetype');
+}
+
+@layer base {
+  html {
+    @apply bg-blue-50 font-['Afacad'] text-blue-950;
+  }
+
+  h1 {
+    @apply text-3xl;
+  }
+
+  h2 {
+    @apply text-2xl;
+  }
+
+  h3 {
+    @apply text-xl;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
