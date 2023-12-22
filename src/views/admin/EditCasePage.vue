@@ -68,7 +68,7 @@ function save() {
 
 <template>
   <div class="pt-4 text-center">
-    <h1>Case Scenario {{ $route.params.id }}</h1>
+    <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.id }}</h1>
   </div>
 
   <div class="flex flex-col gap-6 px-64 pb-32">

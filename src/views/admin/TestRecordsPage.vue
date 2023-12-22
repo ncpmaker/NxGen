@@ -10,7 +10,7 @@ const rows = {
   category: 'Neuro',
   caseNo: '3',
   timesTaken: '4',
-  dateHandled: 'Dec 25, 2023 @ 7:00pm'
+  dateHandled: '12/25/2023 @ 7:00pm'
 }
 
 function generatePDF(name, category, caseNo, timesTaken, dateHandled) {
@@ -73,9 +73,19 @@ function generatePDF(name, category, caseNo, timesTaken, dateHandled) {
 </script>
 
 <template>
+  <div class="sticky top-[61px] flex flex-row items-center gap-2 bg-blue-50 px-4 py-2">
+    <VFormTextbox placeholder="Name, category etc." class="w-72" />
+
+    <VSelect name="class_section" :options="['1A', '1B', '1C', '1D']" class="w-20" />
+
+    <VButton>
+      <span class="material-icons"> search </span>
+      Search
+    </VButton>
+  </div>
   <table class="w-full table-fixed">
-    <tr class="sticky top-[61px] bg-blue-200">
-      <th class="w-16"></th>
+    <tr class="sticky top-[119px] bg-blue-200">
+      <th class="w-16">#</th>
       <th class="px-6 py-4 text-start">Name</th>
       <th class="px-6 py-4 text-start">Section</th>
       <th class="px-6 py-4 text-start">Category</th>
@@ -93,12 +103,16 @@ function generatePDF(name, category, caseNo, timesTaken, dateHandled) {
       <td class="px-6 py-1 text-start">{{ rows.timesTaken }}</td>
       <td class="px-6 py-1 text-start">{{ rows.dateHandled }}</td>
       <td class="px-6 py-1">
-        <VButton @click="generatePDF(rows.name, rows.category, rows.caseNo, rows.timesTaken, rows.dateHandled)" color="success">View NCP</VButton>
+        <VButton @click="generatePDF(rows.name, rows.category, rows.caseNo, rows.timesTaken, rows.dateHandled)" color="success">
+          <span class="material-icons"> print </span>
+          NCP
+        </VButton>
       </td>
     </tr>
   </table>
 
-  <table class="hidden w-full table-fixed border-collapse border border-black bg-white text-[14px] text-black" id="table">
+  <!-- for pdf generation -->
+  <table class="hidden w-full table-fixed border-collapse border border-black bg-white font-['Times'] text-[15px] text-black" id="table">
     <tr>
       <th class="border border-black px-2 pb-6 pt-2 text-center">Assessment</th>
       <th class="border border-black px-2 pb-6 pt-2 text-center">Nursing Diagnosis</th>

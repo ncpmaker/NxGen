@@ -12,15 +12,15 @@ const props = defineProps({
 </script>
 
 <template>
-  <label class="relative flex cursor-pointer flex-col justify-center gap-1">
+  <label class="relative flex cursor-pointer select-none flex-col justify-center gap-1">
     <span v-if="props.label" class="text-sm text-neutral-600">{{ props.label }}</span>
     <select
       v-bind="$attrs"
-      class="select-tag rounded-full border border-neutral-400 bg-transparent px-4 py-2 outline-none transition-colors hover:border-neutral-500 focus:border-neutral-950"
+      class="select-tag cursor-pointer rounded-full border border-neutral-400 bg-transparent px-4 py-2 outline-none transition-colors hover:border-neutral-500 focus:border-neutral-950"
     >
       <option v-for="(option, index) in props.options" :key="index" value="">{{ option }}</option>
     </select>
-    <span class="material-icons absolute right-4 translate-y-1/2"> expand_more </span>
+    <span :class="{ 'translate-y-1/2': props.label }" class="material-icons pointer-events-none absolute right-4"> expand_more </span>
   </label>
 </template>
 

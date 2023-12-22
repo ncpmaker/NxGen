@@ -16,13 +16,16 @@
       </button>
     </div>
 
-    <router-link
+    <div
       v-for="x in 5"
       :key="x"
-      :to="{ name: 'admin edit case', params: { id: x, category: 'neuro' } }"
-      class="rounded-2xl border border-neutral-400 px-10 py-4 text-xl font-medium transition-colors hover:bg-neutral-400/20"
-      >Case {{ x }}</router-link
+      class="flex flex-row items-center rounded-2xl border border-neutral-400 py-4 pr-5 transition-colors hover:bg-neutral-400/20"
     >
+      <router-link :to="{ name: 'admin edit case', params: { id: x, category: 'neuro' } }" class="grow pl-10 text-xl font-medium"
+        >Case {{ x }}</router-link
+      >
+      <VIconButton variant="ghost" color="error" size="lg" icon="delete" class="shrink-0" />
+    </div>
   </div>
 </template>
 
