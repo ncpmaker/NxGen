@@ -1,8 +1,22 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
+import axios from 'axios'
 
 const isStarting = ref(false)
-const showCases = ref(false)
+const cases = ref(null)
+
+const modals = reactive({
+  categoryModal: false,
+  category: '',
+  categoryToggle(category) {
+    this.categoryModal = !this.categoryModal
+    this.category = category
+
+    axios.get(`http://localhost:3000/case-scenarios/get-all/${category}`).then((res) => {
+      cases.value = res.data
+    })
+  }
+})
 </script>
 
 <template>
@@ -23,9 +37,9 @@ const showCases = ref(false)
 
     <div class="flex flex-col gap-2 px-2 pb-2">
       <button
-        v-for="x in 10"
+        v-for="x in 1"
         :key="x"
-        @click="showCases = !showCases"
+        @click="modals.categoryToggle('neuro')"
         class="flex h-64 flex-col rounded-2xl border bg-blue-50 text-start shadow-lg transition-colors hover:border-blue-400 hover:bg-blue-200"
       >
         <div
@@ -39,14 +53,19 @@ const showCases = ref(false)
     </div>
   </div>
 
-  <VBottomSheet v-model:go-up="showCases">
+  <VBottomSheet v-model:go-up="modals.categoryModal">
     <div class="w-full bg-blue-50 p-4 text-center">
-      <h2>Category Name</h2>
+      <h2>{{ modals.category.charAt(0).toUpperCase() + modals.category.slice(1) }}</h2>
     </div>
 
     <div class="flex grow flex-col gap-2 px-2 pb-2">
-      <VButton v-for="y in 5" :key="y" @click="$router.push({ name: 'case scenario', params: { id: y } })" class="justify-center">
-        Case {{ y }}
+      <VButton
+        v-for="(item, index) in cases"
+        :key="item"
+        @click="$router.push({ name: 'case scenario', params: { number: index + 1, id: item.id, category: 'neuro' } })"
+        class="justify-center"
+      >
+        Case {{ index + 1 }}
       </VButton>
     </div>
   </VBottomSheet>

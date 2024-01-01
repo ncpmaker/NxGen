@@ -102,7 +102,7 @@ function btnStyle() {
 <template>
   <button
     :class="btnStyle()"
-    class="flex h-fit w-fit select-none items-center justify-center rounded-full border outline-none disabled:cursor-not-allowed disabled:opacity-50"
+    class="flex select-none items-center justify-center rounded-full border outline-none disabled:cursor-not-allowed disabled:opacity-50"
   >
     <span
       :class="{

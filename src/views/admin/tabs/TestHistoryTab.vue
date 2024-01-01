@@ -1,85 +1,94 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onMounted, ref, reactive, watchEffect } from 'vue'
 import generatePDF from '@/assets/scripts/pdf'
+import debounce from '@/assets/scripts/debounce'
 import axios from 'axios'
 
-const route = useRoute()
-const router = useRouter()
-const scores = ref([])
+const histories = ref(null)
 const userHistory = ref(null)
-const stepLabel = ['Assessment', 'Nursing Diagnosis', 'Planning', 'Intervention', 'Evaluation']
+const search = reactive({
+  value: '',
+  section: 'All',
+  category: 'All'
+})
 
-function goHome() {
-  router.push({
-    name: 'home',
-    params: {
-      userId: localStorage.getItem('ncp_user_id')
-    }
-  })
+function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
+  axios
+    .get(`http://localhost:3000/test-history/${id}/get/`)
+    .then((res) => {
+      userHistory.value = res.data
+    })
+    .then(() => {
+      generatePDF(name, category, caseId, timesTaken, new Date(dateTaken).toLocaleString())
+    })
 }
 
+const getHistory = debounce((value, section, category) => {
+  console.log(value)
+  axios
+    .post(`http://localhost:3000/test-history/search`, {
+      search: value,
+      section: section,
+      category: category
+    })
+    .then((res) => {
+      histories.value = res.data
+    })
+})
+
 onMounted(() => {
-  axios.get(`http://localhost:3000/test-history/${route.params.id}/get`).then((res) => {
-    userHistory.value = res.data
-    scores.value.push(userHistory.value.score.assessment)
-    scores.value.push(userHistory.value.score.nursingDiagnosis)
-    scores.value.push(userHistory.value.score.planning)
-    scores.value.push(userHistory.value.score.intervention)
-    scores.value.push(userHistory.value.score.evaluation)
-    scores.value.push(userHistory.value.score.overall)
+  watchEffect(() => {
+    getHistory(search.value, search.section, search.category)
   })
 })
 </script>
 
 <template>
-  <div class="flex h-[100svh] flex-col">
-    <div class="grow overflow-y-auto px-4 pb-4">
-      <div class="sticky top-0 z-10 bg-blue-50 pb-4 pt-6">
-        <h1>Evaluation</h1>
-      </div>
-
-      <div class="flex flex-col items-center gap-2">
-        <h3 class="pb-2 font-medium">Total Score</h3>
-        <div class="flex w-full justify-center">
-          <VRadialProgress size="100px" color="success" thickness="12px" :progress="scores[5]" :max-value="100" class="text-xl font-semibold" />
-        </div>
-        <VButton
-          @click="
-            generatePDF(
-              userHistory.fullName,
-              userHistory.category,
-              userHistory.caseId,
-              userHistory.timesTaken,
-              new Date(userHistory.dateTaken).toLocaleString()
-            )
-          "
-          start-icon="print"
-          class="w-fit"
-        >
-          Nursing Care Plan
-        </VButton>
-      </div>
-
-      <hr class="mx-2 my-2 border-neutral-300" />
-
-      <div class="flex flex-col gap-2">
-        <template v-for="(step, index) in stepLabel" :key="index">
-          <div class="flex flex-row items-center gap-2">
-            <VRadialProgress size="72px" color="warning" thickness="8px" :progress="scores[index]" :max-value="20" class="text-base font-medium" />
-            <div class="flex flex-col">
-              <span class="font-medium">{{ step }}</span>
-              <span class="text-sm">Unmet</span>
-            </div>
-          </div>
-        </template>
-      </div>
+  <div class="sticky top-[61px] flex flex-row items-center gap-6 bg-blue-50 px-4 py-2">
+    <VFormTextbox v-model="search.value" placeholder="Search for Name or Case ID" class="w-72" />
+    <div class="flex flex-row items-center gap-2">
+      <span class="text-sm text-neutral-600 lg:text-base">Section</span>
+      <VSelect v-model="search.section" :options="['All', '1A', '1B', '1C', '1D']" class="w-20" />
     </div>
 
-    <div class="shrink-0 p-4">
-      <VButton @click="goHome()" class="w-full justify-center"> Back to Home </VButton>
+    <div class="flex flex-row items-center gap-2">
+      <span class="text-sm text-neutral-600 lg:text-base">Category</span>
+      <VSelect v-model="search.category" :options="['All', 'Neuro', 'Etc.']" class="w-40" />
     </div>
   </div>
+  <table class="w-full table-fixed">
+    <tr class="sticky top-[119px] bg-blue-200">
+      <th class="w-16">#</th>
+      <th class="px-6 py-4 text-start">Name</th>
+      <th class="px-6 py-4 text-start">Section</th>
+      <th class="px-6 py-4 text-start">Category</th>
+      <th class="px-6 py-4 text-start">Case ID</th>
+      <th class="px-6 py-4 text-start">Times Taken</th>
+      <th class="px-6 py-4 text-start">Date Taken</th>
+      <th class="px-6 py-4">Nursing Care Plan</th>
+    </tr>
+    <tr v-for="(student, index) in histories" :key="index" class="text-center odd:bg-blue-100">
+      <td class="w-16 text-center">{{ index + 1 }}</td>
+      <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ student.fullName }}</td>
+      <td class="px-6 py-1 text-start">{{ student.section }}</td>
+      <td class="px-6 py-1 text-start">{{ student.category }}</td>
+      <td class="px-6 py-1 text-start">{{ student.caseId }}</td>
+      <td class="px-6 py-1 text-start">{{ student.timesTaken }}</td>
+      <td class="px-6 py-1 text-start">{{ new Date(student.dateTaken).toLocaleString() }}</td>
+      <td class="px-6 py-1">
+        <div class="flex h-full w-full flex-row items-center justify-center">
+          <VButton
+            @click="beforeGeneratePDF(student.id, student.fullName, student.category, student.caseId, student.timesTaken, student.dateTaken)"
+            variant="filled"
+            start-icon="print"
+            color="success"
+          >
+            Print
+          </VButton>
+        </div>
+      </td>
+    </tr>
+  </table>
 
   <!-- for pdf generation -->
   <table
@@ -186,4 +195,3 @@ onMounted(() => {
 </template>
 
 <style scoped></style>
-../../../public/scripts/pdf

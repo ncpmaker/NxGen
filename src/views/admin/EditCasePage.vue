@@ -1,43 +1,81 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { toastStore } from '@/store'
+import axios from 'axios'
 
+const route = useRoute()
 const router = useRouter()
 
-const subjectives = ref([{ id: 0, text: '', isCorrect: 0 }])
-const objectives = ref([{ id: 0, text: '', isCorrect: false }])
-const nursingDiagnosis = ref([{ id: 0, text: '', isCorrect: false }])
-const shortTermGoals = ref([{ id: 0, text: '', isCorrect: false }])
-const longTermGoals = ref([{ id: 0, text: '', isCorrect: false }])
-const independents = ref([{ id: 0, text: '', rationale: '', isCorrect: false }])
-const dependents = ref([{ id: 0, text: '', rationale: '', isCorrect: false }])
+//introduction
+const scenario = ref('')
+const imageLink = ref('')
+const audioLink = ref('')
 
-function addTextbox(step, section) {
+//assessment
+const subjectives = ref({ texts: [{ text: '' }], correctValue: '' })
+const objectives = ref([{ text: '', isCorrect: false }])
+
+//nursing diagnosis
+const nursingDiagnosis = ref({ texts: [{ text: '' }], correctValue: '' })
+
+//planning
+const shortTermGoalsDesc = ref('')
+const shortTermGoals = ref([{ text: '', isCorrect: false }])
+const longTermGoalsDesc = ref('')
+const longTermGoals = ref([{ text: '', isCorrect: false }])
+
+//intervention
+const independents = ref([{ text: '', rationale: '', isCorrect: false }])
+const dependents = ref([{ text: '', rationale: '', isCorrect: false }])
+
+onMounted(() => {
+  axios.get(`http://localhost:3000/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
+    scenario.value = res.data.scenario
+    imageLink.value = res.data.image_link
+    audioLink.value = res.data.audio_link
+
+    subjectives.value = res.data.assessment.subjectives
+    objectives.value = res.data.assessment.objectives
+
+    nursingDiagnosis.value = res.data.nursing_diagnosis
+
+    shortTermGoalsDesc.value = res.data.planning.shortTermGoalsDesc
+    shortTermGoals.value = res.data.planning.shortTermGoals
+
+    longTermGoalsDesc.value = res.data.planning.longTermGoalsDesc
+    longTermGoals.value = res.data.planning.longTermGoals
+
+    independents.value = res.data.intervention.independents
+    dependents.value = res.data.intervention.dependents
+  })
+})
+
+function addTextbox(section) {
   if (section === 'subjective') {
-    subjectives.value.push({ id: subjectives.value.length, step: step, isCorrect: subjectives.value.length, text: '' })
+    subjectives.value.texts.push({ text: '' })
   } else if (section === 'objective') {
-    objectives.value.push({ id: objectives.value.length, step: step, isCorrect: objectives.value.length, text: '' })
+    objectives.value.push({ isCorrect: false, text: '' })
   } else if (section === 'nursing diagnosis') {
-    nursingDiagnosis.value.push({ id: nursingDiagnosis.value.length, step: step, isCorrect: nursingDiagnosis.value.length, text: '' })
+    nursingDiagnosis.value.texts.push({ text: '' })
   } else if (section === 'short term goal') {
-    shortTermGoals.value.push({ id: shortTermGoals.value.length, step: step, isCorrect: shortTermGoals.value.length, text: '' })
+    shortTermGoals.value.push({ isCorrect: false, text: '' })
   } else if (section === 'long term goal') {
-    longTermGoals.value.push({ id: longTermGoals.value.length, step: step, isCorrect: longTermGoals.value.length, text: '' })
+    longTermGoals.value.push({ isCorrect: false, text: '' })
   } else if (section === 'independent') {
-    independents.value.push({ id: independents.value.length, step: step, isCorrect: independents.value.length, text: '', rationale: '' })
+    independents.value.push({ isCorrect: false, text: '', rationale: '' })
   } else if (section === 'dependent') {
-    dependents.value.push({ id: dependents.value.length, step: step, isCorrect: dependents.value.length, text: '', rationale: '' })
+    dependents.value.push({ isCorrect: false, text: '', rationale: '' })
   }
 }
 
 function removeTextbox(index, section) {
   if (section === 'subjective') {
-    subjectives.value.splice(index, 1)
+    subjectives.value.texts.splice(index, 1)
   } else if (section === 'objective') {
     objectives.value.splice(index, 1)
   } else if (section === 'nursing diagnosis') {
-    nursingDiagnosis.value.splice(index, 1)
+    nursingDiagnosis.value.texts.splice(index, 1)
   } else if (section === 'short term goal') {
     shortTermGoals.value.splice(index, 1)
   } else if (section === 'long term goal') {
@@ -50,38 +88,89 @@ function removeTextbox(index, section) {
 }
 
 function create() {
-  toastStore.add({
-    msg: 'Case created.',
-    duration: 4000
-  })
-  router.push({ name: 'admin case scenarios', params: { category: 'neuro' } })
+  axios
+    .post('http://localhost:3000/case-scenarios/create', {
+      category: route.params.category,
+      scenario: scenario.value,
+      image_link: imageLink.value,
+      audio_link: audioLink.value,
+      assessment: {
+        subjectives: subjectives.value,
+        objectives: objectives.value
+      },
+      nursing_diagnosis: nursingDiagnosis.value,
+      planning: {
+        shortTermGoalsDesc: shortTermGoalsDesc.value,
+        shortTermGoals: shortTermGoals.value,
+        longTermGoalsDesc: longTermGoalsDesc.value,
+        longTermGoals: longTermGoals.value
+      },
+      intervention: {
+        independents: independents.value,
+        dependents: dependents.value
+      }
+    })
+    .then(() => {
+      router.push({ name: 'admin case scenarios', params: { category: 'neuro' } })
+      toastStore.add({
+        msg: 'Case created.',
+        duration: 4000
+      })
+    })
+    .catch((err) => console.log(err))
 }
 
 function save() {
-  toastStore.add({
-    msg: 'Case saved.',
-    duration: 4000
-  })
-  router.push({ name: 'admin case scenarios', params: { category: 'neuro' } })
+  axios
+    .put(`http://localhost:3000/case-scenarios/edit/${route.params.category}/${route.params.id}`, {
+      category: route.params.category,
+      scenario: scenario.value,
+      image_link: imageLink.value,
+      audio_link: audioLink.value,
+      assessment: {
+        subjectives: subjectives.value,
+        objectives: objectives.value
+      },
+      nursing_diagnosis: nursingDiagnosis.value,
+      planning: {
+        shortTermGoalsDesc: shortTermGoalsDesc.value,
+        shortTermGoals: shortTermGoals.value,
+        longTermGoalsDesc: longTermGoalsDesc.value,
+        longTermGoals: longTermGoals.value
+      },
+      intervention: {
+        independents: independents.value,
+        dependents: dependents.value
+      }
+    })
+    .then(() => {
+      toastStore.add({
+        msg: 'Case updated.',
+        duration: 4000
+      })
+    })
+
+  console.log(subjectives.value)
 }
 </script>
 
 <template>
+  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[88px]" />
   <div class="pt-4 text-center">
-    <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.id }}</h1>
+    <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.number }}</h1>
   </div>
 
   <div class="flex flex-col gap-6 px-64 pb-32">
     <div>
-      <h2 class="sticky top-[65px] bg-blue-50 pt-4">Scenario Section</h2>
+      <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Scenario Section</h2>
       <hr class="m-2 border-neutral-300" />
-      <VFormTextbox textarea label="Scenario *" placeholder="Put any scenario description here" />
-      <VFormTextbox label="Image Link" placeholder="URL" />
-      <VFormTextbox label="Audio Link" placeholder="URL" />
+      <VFormTextbox v-model="scenario" textarea label="Scenario *" placeholder="Put any scenario description here" />
+      <VFormTextbox v-model="imageLink" label="Image Link" placeholder="URL" />
+      <VFormTextbox v-model="audioLink" label="Audio Link" placeholder="URL" />
     </div>
 
     <div>
-      <h2 class="sticky top-[65px] bg-blue-50 pt-4">Assessment Section</h2>
+      <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Assessment Section</h2>
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
         <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
@@ -91,16 +180,16 @@ function save() {
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
-          <div v-for="(choice, index) in subjectives" :key="choice.id" class="flex w-full flex-row items-center gap-2">
+          <div v-for="(choice, index) in subjectives.texts" :key="index" class="flex w-full flex-row items-center gap-2">
             <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
 
             <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
-              <input v-model="choice.isCorrect" :value="choice.isCorrect" name="subjective" type="radio" class="cursor-pointer" />
+              <input v-model="subjectives.correctValue" :value="choice.text" name="subjective" type="radio" class="cursor-pointer" />
             </label>
 
             <VIconButton
               @click.prevent="removeTextbox(index, 'subjective')"
-              :disabled="subjectives.length <= 1"
+              :disabled="subjectives.texts.length <= 1"
               variant="ghost"
               color="error"
               size="lg"
@@ -108,7 +197,7 @@ function save() {
             />
           </div>
 
-          <VIconButton @click.prevent="addTextbox('assessment', 'subjective')" variant="ghost" icon="add" size="lg" />
+          <VIconButton @click.prevent="addTextbox('subjective')" variant="ghost" icon="add" size="lg" />
         </div>
       </div>
 
@@ -121,7 +210,7 @@ function save() {
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
-          <div v-for="(choice, index) in objectives" :key="choice.id" class="flex w-full flex-row items-center gap-2">
+          <div v-for="(choice, index) in objectives" :key="index" class="flex w-full flex-row items-center gap-2">
             <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
@@ -138,13 +227,13 @@ function save() {
             />
           </div>
 
-          <VIconButton @click.prevent="addTextbox('assessment', 'objective')" variant="ghost" icon="add" size="lg" />
+          <VIconButton @click.prevent="addTextbox('objective')" variant="ghost" icon="add" size="lg" />
         </div>
       </div>
     </div>
 
     <div>
-      <h2 class="sticky top-[65px] bg-blue-50 pt-4">Nursing Diagnosis Section</h2>
+      <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Nursing Diagnosis Section</h2>
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
         <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
@@ -154,16 +243,16 @@ function save() {
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
-          <div v-for="(choice, index) in nursingDiagnosis" :key="choice.id" class="flex w-full flex-row items-center gap-2">
+          <div v-for="(choice, index) in nursingDiagnosis.texts" :key="index" class="flex w-full flex-row items-center gap-2">
             <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
 
             <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
-              <input v-model="choice.isCorrect" :value="choice.isCorrect" name="nursing_diagnosis" type="radio" class="cursor-pointer" />
+              <input v-model="nursingDiagnosis.correctValue" :value="choice.text" name="nursing_diagnosis" type="radio" class="cursor-pointer" />
             </label>
 
             <VIconButton
               @click.prevent="removeTextbox(index, 'nursing diagnosis')"
-              :disabled="nursingDiagnosis.length <= 1"
+              :disabled="nursingDiagnosis.texts.length <= 1"
               variant="ghost"
               color="error"
               size="lg"
@@ -171,16 +260,17 @@ function save() {
             />
           </div>
 
-          <VIconButton @click.prevent="addTextbox('nursing diagnosis', 'nursing diagnosis')" variant="ghost" icon="add" size="lg" />
+          <VIconButton @click.prevent="addTextbox('nursing diagnosis')" variant="ghost" icon="add" size="lg" />
         </div>
       </div>
     </div>
 
     <div>
-      <h2 class="sticky top-[65px] bg-blue-50 pt-4">Planning Section</h2>
+      <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Planning Section</h2>
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
         <VFormTextbox
+          v-model="shortTermGoalsDesc"
           label="Short Term Goal Description *"
           type="text"
           class="w-full"
@@ -194,7 +284,7 @@ function save() {
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
-          <div v-for="(choice, index) in shortTermGoals" :key="choice.id" class="flex w-full flex-row items-center gap-2">
+          <div v-for="(choice, index) in shortTermGoals" :key="index" class="flex w-full flex-row items-center gap-2">
             <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Goal ' + (index + 1)" />
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
@@ -211,13 +301,14 @@ function save() {
             />
           </div>
 
-          <VIconButton @click.prevent="addTextbox('planning', 'short term goal')" variant="ghost" icon="add" size="lg" />
+          <VIconButton @click.prevent="addTextbox('short term goal')" variant="ghost" icon="add" size="lg" />
         </div>
       </div>
 
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
         <VFormTextbox
+          v-model="longTermGoalsDesc"
           label="Long Term Goal Description *"
           type="text"
           class="w-full"
@@ -230,7 +321,7 @@ function save() {
           <span class="basis-[32px]"></span>
         </div>
 
-        <div v-for="(choice, index) in longTermGoals" :key="choice.id" class="flex w-full flex-row items-center gap-2">
+        <div v-for="(choice, index) in longTermGoals" :key="index" class="flex w-full flex-row items-center gap-2">
           <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Goal ' + (index + 1)" />
 
           <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
@@ -247,12 +338,12 @@ function save() {
           />
         </div>
 
-        <VIconButton @click.prevent="addTextbox('planning', 'long term goal')" variant="ghost" icon="add" size="lg" />
+        <VIconButton @click.prevent="addTextbox('long term goal')" variant="ghost" icon="add" size="lg" />
       </div>
     </div>
 
     <div>
-      <h2 class="sticky top-[65px] bg-blue-50 pt-4">Implementation and Rationale Section</h2>
+      <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Invervention and Rationale Section</h2>
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
         <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
@@ -262,10 +353,10 @@ function save() {
         </div>
 
         <div class="flex w-full flex-col items-center gap-4">
-          <div v-for="(choice, index) in independents" :key="choice.id" class="flex w-full flex-row items-center gap-2">
+          <div v-for="(choice, index) in independents" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
               <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
-              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Rationale ' + (index + 1)" />
+              <VTextbox v-model="choice.rationale" type="text" class="w-full" :placeholder="'Rationale ' + (index + 1)" />
             </div>
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
@@ -281,9 +372,9 @@ function save() {
               icon="close"
             />
           </div>
-
-          <VIconButton @click.prevent="addTextbox('implementation', 'independent')" variant="ghost" icon="add" size="lg" />
         </div>
+
+        <VIconButton @click.prevent="addTextbox('independent')" variant="ghost" icon="add" size="lg" />
       </div>
 
       <hr class="m-2 border-neutral-300" />
@@ -294,11 +385,11 @@ function save() {
           <span class="basis-[32px]"></span>
         </div>
 
-        <div class="flex w-full flex-col items-center gap-2">
-          <div v-for="(choice, index) in dependents" :key="choice.id" class="flex w-full flex-row items-center gap-2">
+        <div class="flex w-full flex-col items-center gap-4">
+          <div v-for="(choice, index) in dependents" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
               <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
-              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Rationale ' + (index + 1)" />
+              <VTextbox v-model="choice.rationale" type="text" class="w-full" :placeholder="'Rationale ' + (index + 1)" />
             </div>
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
@@ -314,9 +405,8 @@ function save() {
               icon="close"
             />
           </div>
-
-          <VIconButton @click.prevent="addTextbox('implementation', 'dependent')" variant="ghost" icon="add" size="lg" />
         </div>
+        <VIconButton @click.prevent="addTextbox('dependent')" variant="ghost" icon="add" size="lg" />
       </div>
     </div>
   </div>

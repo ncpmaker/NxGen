@@ -1,11 +1,42 @@
 <script setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { toastStore } from '@/store'
 
 const router = useRouter()
 
-function onSubmit() {
-  console.log('user logged in')
-  router.push({ name: 'introduction' })
+const formRef = ref(null)
+
+function submit() {
+  const formData = new FormData(formRef.value)
+  const formDataObj = {}
+
+  formData.forEach((value, key) => {
+    formDataObj[key] = value
+  })
+
+  axios
+    .post('http://localhost:3000/user/login', formDataObj)
+    .then((res) => {
+      localStorage.setItem('ncp_user_id', res.data.userId)
+      localStorage.setItem('ncp_token', res.data.token)
+
+      router.push({ name: 'introduction' })
+
+      toastStore.add({
+        msg: 'Successfully logged in.',
+        duration: 4000
+      })
+    })
+    .catch((err) => {
+      if (err.response.status === 401) {
+        toastStore.add({
+          msg: 'Account not yet approved.',
+          duration: 4000
+        })
+      }
+    })
 }
 </script>
 
@@ -14,9 +45,9 @@ function onSubmit() {
     <h1 class="px-4">Login Page</h1>
 
     <!-- login form -->
-    <form @submit.prevent="onSubmit()" class="flex w-screen flex-col gap-2 rounded-t-2xl bg-blue-50 px-4 py-4">
-      <VFormTextbox label="Email" type="email" />
-      <VFormTextbox label="Password" type="password" />
+    <form @submit.prevent="submit()" ref="formRef" class="flex w-screen flex-col gap-2 rounded-t-2xl bg-blue-50 px-4 py-4">
+      <VFormTextbox label="Email" type="email" name="email" required />
+      <VFormTextbox label="Password" type="password" name="password" required />
 
       <VButton class="justify-center"> Login </VButton>
       <div class="text-right text-sm">

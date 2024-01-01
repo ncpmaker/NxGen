@@ -11,14 +11,19 @@ const props = defineProps({
   textarea: {
     type: Boolean,
     default: false
-  }
+  },
+  modelValue: String
 })
+
+defineEmits(['update:modelValue'])
 </script>
 
 <template>
   <textarea
     v-if="props.textarea"
     v-bind="$attrs"
+    :value="props.modelValue"
+    @input="$emit('update:modelValue', $event.target.value)"
     :class="{
       'border-transparent bg-neutral-950/5 transition-colors hover:border-neutral-500 focus:border-neutral-950': props.variant === 'filled',
       'border-neutral-400 transition-colors hover:border-neutral-500 focus:border-neutral-950': props.variant === 'outlined',
@@ -26,11 +31,13 @@ const props = defineProps({
       'h-[168px] px-4 py-2 text-base': props.variant !== 'ghost' && props.size === 'base',
       'h-[216px] px-6 py-3 text-xl': props.variant !== 'ghost' && props.size === 'lg'
     }"
-    class="resize-none truncate rounded-2xl border font-medium outline-none"
+    class="resize-none rounded-2xl border font-medium outline-none"
   ></textarea>
   <input
     v-else
     v-bind="$attrs"
+    :value="props.modelValue"
+    @input="$emit('update:modelValue', $event.target.value)"
     :class="{
       'border-transparent bg-neutral-950/5 transition-colors hover:border-neutral-500 focus:border-neutral-950': props.variant === 'filled',
       'border-neutral-400 transition-colors hover:border-neutral-500 focus:border-neutral-950': props.variant === 'outlined',

@@ -8,7 +8,14 @@ export const toastStore = reactive({
   }
 })
 
-export const pageStore = reactive({
+export const studentTabStore = reactive({
+  index: 0,
+  set(number = 0) {
+    this.index = number
+  }
+})
+
+export const adminTabStore = reactive({
   index: 0,
   set(number = 0) {
     this.index = number

@@ -1,18 +1,18 @@
 <script setup>
-import TheNavbar from '@/components/TheNavbar.vue'
+import TheBottomNavbar from '@/components/TheBottomNavbar.vue'
 import DashboardTab from '@/views/tabs/DashboardTab.vue'
 import TestHistoryTab from '@/views/tabs/TestHistoryTab.vue'
-import { pageStore } from '@/store'
+import { studentTabStore } from '@/store'
 
 const tabs = [DashboardTab, TestHistoryTab]
 </script>
 
 <template>
-  <TheNavbar>
+  <TheBottomNavbar>
     <KeepAlive>
-      <component :is="tabs[pageStore.index]" />
+      <component :is="tabs[studentTabStore.index]" />
     </KeepAlive>
-  </TheNavbar>
+  </TheBottomNavbar>
 </template>
 
 <style scoped></style>
