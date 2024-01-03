@@ -2,7 +2,6 @@
 import { ref, reactive } from 'vue'
 import axios from 'axios'
 
-const isStarting = ref(false)
 const cases = ref(null)
 
 const modals = reactive({
@@ -12,7 +11,7 @@ const modals = reactive({
     this.categoryModal = !this.categoryModal
     this.category = category
 
-    axios.get(`http://localhost:3000/case-scenarios/get-all/${category}`).then((res) => {
+    axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get-all/${category}`).then((res) => {
       cases.value = res.data
     })
   }
@@ -20,19 +19,9 @@ const modals = reactive({
 </script>
 
 <template>
-  <div v-if="!isStarting" class="flex h-[100svh] w-screen flex-col items-center justify-center bg-blue-50">
-    <div class="text-center">
-      <h1>Important note</h1>
-      <p>Please watch this video first before proceeding</p>
-      <div class="h-20 w-full bg-blue-200"></div>
-    </div>
-
-    <VButton @click="isStarting = !isStarting" class="absolute bottom-4 w-[calc(100%-32px)] justify-center"> Start </VButton>
-  </div>
-  <div v-else class="h-[100svh] w-screen overflow-y-auto">
-    <div class="sticky top-0 flex w-full flex-row items-center gap-2 bg-blue-50 pb-4 pl-3 pr-2 pt-6 text-center">
-      <VIconButton icon="close" variant="ghost" size="lg" @click="$router.go(-1)" />
-      <h1>Select a Category</h1>
+  <div class="h-[100svh] w-screen overflow-y-auto">
+    <div class="sticky top-0 flex w-full flex-row items-center gap-2 bg-blue-50 px-4 pb-4 pt-6 text-center">
+      <h1>Category</h1>
     </div>
 
     <div class="flex flex-col gap-2 px-2 pb-2">
@@ -65,7 +54,7 @@ const modals = reactive({
         @click="$router.push({ name: 'case scenario', params: { number: index + 1, id: item.id, category: 'neuro' } })"
         class="justify-center"
       >
-        Case {{ index + 1 }}
+        Case Scenario {{ index + 1 }}
       </VButton>
     </div>
   </VBottomSheet>

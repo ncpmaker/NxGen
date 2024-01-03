@@ -43,7 +43,7 @@ const caseScenario = reactive({
 })
 
 onMounted(() => {
-  axios.get(`http://localhost:3000/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
+  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
     //introduction
     caseScenario.introduction.scenario = res.data.scenario
     caseScenario.introduction.imageLink = res.data.image_link
@@ -67,64 +67,6 @@ onMounted(() => {
     caseScenario.intervention.dependents = res.data.intervention.dependents
   })
 })
-
-function nextStep() {
-  let headerHeight = 76
-  let bottomEdge = scenarioRef.value.getBoundingClientRect().bottom + scrollableDiv.value.scrollTop - headerHeight
-
-  scrollableDiv.value.scrollTo(0, bottomEdge)
-  step.count++
-}
-
-function submit() {
-  const formData = new FormData(formRef.value)
-  const formDataObj = {}
-
-  formData.forEach((value, key) => {
-    if (key === 'objective' || key === 'short_term_goal' || key === 'long_term_goal' || key === 'independent' || key === 'dependent') {
-      formDataObj[key] = formData.getAll(key)
-    } else {
-      formDataObj[key] = value
-    }
-  })
-
-  let score1 = assessmentScore({
-    subjective: formDataObj.subjective,
-    objective: formDataObj.objective
-  })
-
-  let score2 = nursingDiagScore(formDataObj.nursing_diagnosis)
-
-  let score3 = planningScore({
-    shortTermGoal: formDataObj.short_term_goal,
-    longTermGoal: formDataObj.long_term_goal
-  })
-
-  let score4 = interventionScore({
-    independent: formDataObj.independent,
-    dependent: formDataObj.dependent
-  })
-
-  let score5 = evaluationScore(score1, score2, score3, score4)
-
-  let totalScore = score1 + score2 + score3 + score4 + score5
-
-  axios
-    .post('http://localhost:3000/test-history/create', {
-      userId: localStorage.getItem('ncp_user_id'),
-      caseId: route.params.id,
-      answers: formDataObj,
-      assessmentScore: score1,
-      nursingDiagScore: score2,
-      planningScore: score3,
-      interventionScore: score4,
-      evaluationScore: score5,
-      overallScore: totalScore
-    })
-    .then((res) => {
-      router.push({ name: 'evaluation', params: { id: res.data.historyId } })
-    })
-}
 
 function assessmentScore(userAnswers) {
   let totalCorrectItems = 1 //initial value because subjective correct answer is always 1
@@ -237,6 +179,64 @@ function interventionScore(userAnswers) {
 function evaluationScore(score1, score2, score3, score4) {
   let sumScores = score1 + score2 + score3 + score4
   return sumScores === 0 ? 0 : (sumScores / 80) * 100 * 0.2
+}
+
+function nextStep() {
+  let headerHeight = 76
+  let bottomEdge = scenarioRef.value.getBoundingClientRect().bottom + scrollableDiv.value.scrollTop - headerHeight
+
+  scrollableDiv.value.scrollTo(0, bottomEdge)
+  step.count++
+}
+
+function submit() {
+  const formData = new FormData(formRef.value)
+  const formDataObj = {}
+
+  formData.forEach((value, key) => {
+    if (key === 'objective' || key === 'short_term_goal' || key === 'long_term_goal' || key === 'independent' || key === 'dependent') {
+      formDataObj[key] = formData.getAll(key)
+    } else {
+      formDataObj[key] = value
+    }
+  })
+
+  let score1 = assessmentScore({
+    subjective: formDataObj.subjective,
+    objective: formDataObj.objective
+  })
+
+  let score2 = nursingDiagScore(formDataObj.nursing_diagnosis)
+
+  let score3 = planningScore({
+    shortTermGoal: formDataObj.short_term_goal,
+    longTermGoal: formDataObj.long_term_goal
+  })
+
+  let score4 = interventionScore({
+    independent: formDataObj.independent,
+    dependent: formDataObj.dependent
+  })
+
+  let score5 = evaluationScore(score1, score2, score3, score4)
+
+  let totalScore = score1 + score2 + score3 + score4 + score5
+
+  axios
+    .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/create`, {
+      userId: localStorage.getItem('ncp_user_id'),
+      caseId: route.params.id,
+      answers: formDataObj,
+      assessmentScore: score1,
+      nursingDiagScore: score2,
+      planningScore: score3,
+      interventionScore: score4,
+      evaluationScore: score5,
+      overallScore: totalScore
+    })
+    .then((res) => {
+      router.push({ name: 'evaluation', params: { id: res.data.historyId } })
+    })
 }
 </script>
 

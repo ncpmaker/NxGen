@@ -8,13 +8,13 @@ const route = useRoute()
 const cases = ref(null)
 
 onMounted(() => {
-  axios.get(`http://localhost:3000/case-scenarios/get-all/${route.params.category}`).then((res) => {
+  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get-all/${route.params.category}`).then((res) => {
     cases.value = res.data
   })
 })
 
 function onDelete(id, index) {
-  axios.delete(`http://localhost:3000/case-scenarios/delete/${route.params.category}/${id}`).then(() => {
+  axios.delete(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/delete/${route.params.category}/${id}`).then(() => {
     cases.value.splice(index, 1)
     toastStore.add({
       msg: 'Case deleted.',
@@ -26,7 +26,7 @@ function onDelete(id, index) {
 
 <template>
   <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[88px]" />
-  <div class="flex flex-col gap-2 px-64">
+  <div class="flex w-full flex-col gap-2 px-64">
     <div class="my-4 flex h-96 flex-row items-end justify-between rounded-2xl bg-gradient-to-b from-blue-300 to-blue-400 p-8 shadow-xl">
       <div class="flex flex-col">
         <span class="text-4xl font-semibold leading-none">Neuro</span>

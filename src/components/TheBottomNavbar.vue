@@ -14,16 +14,20 @@ const modals = reactive({
 
 function logout() {
   axios
-    .delete('http://localhost:3000/user/logout-account', {
+    .delete('http://localhost:3000/user/logout', {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('ncp_token')}`
       }
     })
     .then(() => {
-      localStorage.setItem('ncp_user_id', '')
-      localStorage.setItem('ncp_token', '')
+      localStorage.setItem('ncp_user_id', undefined)
+      localStorage.setItem('ncp_token', undefined)
+      localStorage.setItem('ncp_finished_pre_test', undefined)
+      localStorage.setItem('ncp_finished_post_test', undefined)
 
       router.push({ name: 'login' })
+
+      studentTabStore.set(0)
 
       toastStore.add({
         msg: 'Logged out successfully.',
@@ -31,13 +35,6 @@ function logout() {
       })
     })
     .catch((err) => console.log(err))
-
-  router.push({ name: 'login' })
-
-  toastStore.add({
-    msg: 'Logged out successfully.',
-    duration: 4000
-  })
 }
 </script>
 
@@ -51,12 +48,16 @@ function logout() {
       <div class="flex w-full flex-row items-center justify-around">
         <div class="mt-0 flex w-full flex-row items-center justify-around gap-4">
           <button @click="studentTabStore.set(0)" :class="[studentTabStore.index === 0 ? 'active' : '']" class="nav-points">
-            <span class="material-icons"> space_dashboard </span>
-            <span>Dashboard</span>
+            <span class="material-icons"> task </span>
+            <span>Post Test</span>
           </button>
           <button @click="studentTabStore.set(1)" :class="[studentTabStore.index === 1 ? 'active' : '']" class="nav-points">
+            <span class="material-icons"> category </span>
+            <span>Cases</span>
+          </button>
+          <button @click="studentTabStore.set(2)" :class="[studentTabStore.index === 2 ? 'active' : '']" class="nav-points">
             <span class="material-icons"> timeline </span>
-            <span>Test History</span>
+            <span>Case History</span>
           </button>
           <button @click="modals.profileToggle()" class="nav-points">
             <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-400">UA</div>

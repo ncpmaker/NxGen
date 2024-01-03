@@ -17,10 +17,12 @@ function submit() {
   })
 
   axios
-    .post('http://localhost:3000/user/login', formDataObj)
+    .post(`${import.meta.env.VITE_API_DOMAIN}/user/login`, formDataObj)
     .then((res) => {
       localStorage.setItem('ncp_user_id', res.data.userId)
       localStorage.setItem('ncp_token', res.data.token)
+      localStorage.setItem('ncp_finished_pre_test', res.data.finishedPreTest)
+      localStorage.setItem('ncp_finished_post_test', res.data.finishedPostTest)
 
       router.push({ name: 'introduction' })
 

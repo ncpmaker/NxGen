@@ -18,9 +18,16 @@ function onSubmit() {
     formDataObj[key] = value
   })
 
+  console.log(formDataObj)
+
   if (formDataObj.password === formDataObj.confirm_password) {
     axios
-      .post('http://localhost:3000/user/create', formDataObj)
+      .post(`${import.meta.env.VITE_API_DOMAIN}/user/create`, {
+        email: formDataObj.email,
+        password: formDataObj.password,
+        name: formDataObj.first_name + ' ' + formDataObj.last_name,
+        section: formDataObj.section
+      })
       .then(() => {
         toastStore.add({
           msg: 'Account created successfully.',

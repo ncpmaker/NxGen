@@ -5,7 +5,7 @@ import { onMounted, ref } from 'vue'
 const histories = ref(null)
 
 onMounted(() => {
-  axios.get(`http://localhost:3000/test-history/${localStorage.getItem('ncp_user_id')}/get-all`).then((res) => {
+  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${localStorage.getItem('ncp_user_id')}/get-all`).then((res) => {
     histories.value = res.data
   })
 })
@@ -14,7 +14,7 @@ onMounted(() => {
 <template>
   <div class="grow overflow-y-auto px-4 pb-4">
     <div class="sticky top-0 z-10 border-b border-b-neutral-200 bg-blue-50 pb-4 pt-6">
-      <h1>Test History</h1>
+      <h1>Case Scenario History</h1>
     </div>
 
     <div class="flex flex-col">

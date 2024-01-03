@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import axios from 'axios'
 
-import LoginPage from '@/views/LoginPage.vue'
-import SignupPage from '@/views/SignupPage.vue'
-import IntroductionPage from '@/views/IntroductionPage.vue'
-import HomePage from '@/views/HomePage.vue'
-import PostTestPage from '@/views/PostTestPage.vue'
-import AdminPage from '@/views/AdminPage.vue'
+import LoginPage from '@/views/student/LoginPage.vue'
+import SignupPage from '@/views/student/SignupPage.vue'
+import IntroductionPage from '@/views/student/IntroductionPage.vue'
+import HomePage from '@/views/student/HomePage.vue'
+import CaseScenarioPage from '@/views/student/CaseScenarioPage.vue'
+import TestsPageVue from '@/views/student/TestsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,20 +26,28 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      meta: { auth: { isRequired: false } },
+      meta: { auth: { isRequired: false, role: 'student' } },
       component: LoginPage
     },
     {
       path: '/signup',
       name: 'signup',
-      meta: { auth: { isRequired: false } },
+      meta: { auth: { isRequired: false, role: 'student' } },
       component: SignupPage
     },
     {
       path: '/introduction',
       name: 'introduction',
       meta: { auth: { isRequired: true, role: 'student' } },
-      component: IntroductionPage
+      component: IntroductionPage,
+      beforeEnter: () => {
+        const userId = localStorage.getItem('ncp_user_id')
+        const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
+
+        if (finishedPreTest) {
+          return { name: 'home', params: { userId: userId }, replace: true }
+        }
+      }
     },
     {
       path: '/home/:userId?',
@@ -48,35 +56,61 @@ const router = createRouter({
       component: HomePage,
       beforeEnter: (to) => {
         const userId = localStorage.getItem('ncp_user_id')
+        const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
+
+        console.log(finishedPreTest)
 
         if (to.params.userId !== userId) {
           return { name: 'home', params: { userId: userId }, replace: true }
+        }
+
+        if (!finishedPreTest) {
+          return { name: 'introduction' }
         }
       }
     },
     {
       path: '/post-test',
+      name: 'post-test',
       meta: { auth: { isRequired: true, role: 'student' } },
-      component: PostTestPage,
+      component: TestsPageVue,
+      beforeEnter: () => {
+        const userId = localStorage.getItem('ncp_user_id')
+        const finishedPostTest = JSON.parse(localStorage.getItem('ncp_finished_post_test'))
+
+        if (finishedPostTest) {
+          return { name: 'home', params: { userId: userId }, replace: true }
+        }
+      }
+    },
+    {
+      path: '/pre-test',
+      name: 'pre-test',
+      meta: { auth: { isRequired: true, role: 'student' } },
+      component: TestsPageVue,
+      beforeEnter: () => {
+        const userId = localStorage.getItem('ncp_user_id')
+        const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
+
+        if (finishedPreTest) {
+          return { name: 'home', params: { userId: userId }, replace: true }
+        }
+      }
+    },
+    {
+      path: '/case-scenario',
+      meta: { auth: { isRequired: true, role: 'student' } },
+      component: CaseScenarioPage,
       children: [
-        {
-          path: '',
-          redirect: { name: 'categories' }
-        },
-        {
-          path: 'categories',
-          name: 'categories',
-          component: () => import('@/views/posttest/CategoriesPage.vue')
-        },
         {
           path: ':category/:number/:id',
           name: 'case scenario',
-          component: () => import('@/views/posttest/CaseScenarioPage.vue')
+          component: () => import('@/views/student/caseScenario/CaseScenarioPage.vue')
         },
         {
           path: 'evaluation/:id',
           name: 'evaluation',
-          component: () => import('@/views/posttest/EvaluationPage.vue')
+          component: () => import('@/views/student/caseScenario/EvaluationPage.vue')
         }
       ]
     },
@@ -84,7 +118,6 @@ const router = createRouter({
     //admin pages here
     {
       path: '/admin',
-      component: AdminPage,
       children: [
         {
           path: '',
@@ -93,13 +126,13 @@ const router = createRouter({
         {
           path: 'login',
           name: 'admin login',
-          meta: { auth: { isRequired: true, role: 'admin' } },
+          meta: { auth: { isRequired: false, role: 'admin' } },
           component: () => import('@/views/admin/LoginPage.vue')
         },
         {
           path: 'home',
           name: 'admin home',
-          meta: { auth: { isRequired: true, role: 'admin' } },
+          meta: { auth: { isRequired: false, role: 'admin' } },
           component: () => import('@/views/admin/HomePage.vue'),
           children: [
             {
@@ -134,44 +167,79 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  const userId = localStorage.getItem('ncp_user_id')
-  const isAuthenticated = await checkAuthentication()
+  if (to.meta.auth.role === 'student') {
+    const userId = localStorage.getItem('ncp_user_id')
+    const isAuth = await checkAuth('student')
 
-  if (to.meta.auth.isRequired && to.meta.auth.role === 'student') {
-    if (!isAuthenticated && to.path !== '/login') {
-      return { name: 'login', replace: true }
+    if (to.meta.auth.isRequired) {
+      if (!isAuth && to.path !== '/login') {
+        return { name: 'login', replace: true }
+      }
+    } else {
+      if (isAuth) {
+        return { name: 'home', params: { userId: userId }, replace: true }
+      }
     }
-  } else {
-    if (isAuthenticated) {
-      return { name: 'home', params: { userId: userId }, replace: true }
+  } else if (to.meta.auth.role === 'admin') {
+    const isAuth = await checkAuth('admin')
+
+    if (to.meta.auth.isRequired) {
+      if (!isAuth && to.path !== '/admin/login') {
+        return { name: 'admin login', replace: true }
+      }
+    } else {
+      if (isAuth) {
+        return { name: 'admin dashboard', replace: true }
+      }
     }
   }
 
   //create the admin route guard
 })
 
-async function checkAuthentication() {
-  const userId = localStorage.getItem('ncp_user_id')
-  const token = localStorage.getItem('ncp_token')
+async function checkAuth(role) {
+  let isAuthenticated = null
 
-  const isAuthenticated = await axios
-    .post(
-      `http://localhost:3000/auth`,
-      { userId: userId },
-      {
+  if (role === 'student') {
+    const userId = localStorage.getItem('ncp_user_id')
+    const token = localStorage.getItem('ncp_token')
+
+    isAuthenticated = await axios
+      .post(
+        `${import.meta.env.VITE_API_DOMAIN}/auth/student`,
+        { userId: userId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      )
+      .then((res) => {
+        if (res.status === 200) {
+          return true
+        } else if (res.status === 401) {
+          return false
+        }
+      })
+      .catch((err) => console.log(err))
+  } else if (role === 'admin') {
+    const token = localStorage.getItem('ncp_admin_token')
+
+    isAuthenticated = await axios
+      .post(`${import.meta.env.VITE_API_DOMAIN}/auth/admin`, null, {
         headers: {
           Authorization: `Bearer ${token}`
         }
-      }
-    )
-    .then((res) => {
-      if (res.status === 200) {
-        return true
-      } else if (res.status === 401) {
-        return false
-      }
-    })
-    .catch((err) => console.log(err))
+      })
+      .then((res) => {
+        if (res.status === 200) {
+          return true
+        } else if (res.status === 401) {
+          return false
+        }
+      })
+      .catch((err) => console.log(err))
+  }
 
   return isAuthenticated
 }

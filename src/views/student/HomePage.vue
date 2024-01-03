@@ -1,10 +1,11 @@
 <script setup>
 import TheBottomNavbar from '@/components/TheBottomNavbar.vue'
-import DashboardTab from '@/views/tabs/DashboardTab.vue'
-import TestHistoryTab from '@/views/tabs/TestHistoryTab.vue'
+import CasesTab from './tabs/CasesTab.vue'
+import CaseScenarioHistoryTab from './tabs/CaseScenarioHistoryTab.vue'
+import PostTestTab from './tabs/PostTestTab.vue'
 import { studentTabStore } from '@/store'
 
-const tabs = [DashboardTab, TestHistoryTab]
+const tabs = [PostTestTab, CasesTab, CaseScenarioHistoryTab]
 </script>
 
 <template>

@@ -1,35 +1,21 @@
 <script setup>
 import { onMounted, ref, reactive, watchEffect } from 'vue'
-import generatePDF from '@/assets/scripts/pdf'
 import debounce from '@/assets/scripts/debounce'
 import axios from 'axios'
 
 const histories = ref(null)
-const userHistory = ref(null)
 const search = reactive({
   value: '',
   section: 'All',
-  category: 'All'
+  type: 'All'
 })
 
-function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
+const getHistory = debounce((value, section, type) => {
   axios
-    .get(`http://localhost:3000/test-history/${id}/get/`)
-    .then((res) => {
-      userHistory.value = res.data
-    })
-    .then(() => {
-      generatePDF(name, category, caseId, timesTaken, new Date(dateTaken).toLocaleString())
-    })
-}
-
-const getHistory = debounce((value, section, category) => {
-  console.log(value)
-  axios
-    .post(`http://localhost:3000/test-history/search`, {
+    .post(`${import.meta.env.VITE_API_DOMAIN}/test-history/search`, {
       search: value,
       section: section,
-      category: category
+      testType: type === 'Pre test' ? 'PRETEST' : type === 'Post test' ? 'POSTTEST' : 'All'
     })
     .then((res) => {
       histories.value = res.data
@@ -38,22 +24,23 @@ const getHistory = debounce((value, section, category) => {
 
 onMounted(() => {
   watchEffect(() => {
-    getHistory(search.value, search.section, search.category)
+    getHistory(search.value, search.section, search.type)
   })
 })
 </script>
 
 <template>
-  <div class="sticky top-[61px] flex flex-row items-center gap-6 bg-blue-50 px-4 py-2">
-    <VFormTextbox v-model="search.value" placeholder="Search for Name or Case ID" class="w-72" />
+  <div class="sticky top-[61px] flex w-full flex-row items-center gap-6 bg-blue-50 px-4 py-2">
+    <h3>Test History</h3>
+    <VFormTextbox v-model="search.value" placeholder="Search for Name or Test ID" class="w-72" />
     <div class="flex flex-row items-center gap-2">
       <span class="text-sm text-neutral-600 lg:text-base">Section</span>
       <VSelect v-model="search.section" :options="['All', '1A', '1B', '1C', '1D']" class="w-20" />
     </div>
 
     <div class="flex flex-row items-center gap-2">
-      <span class="text-sm text-neutral-600 lg:text-base">Category</span>
-      <VSelect v-model="search.category" :options="['All', 'Neuro', 'Etc.']" class="w-40" />
+      <span class="text-sm text-neutral-600 lg:text-base">Type</span>
+      <VSelect v-model="search.type" :options="['All', 'Pre test', 'Post test']" class="w-32" />
     </div>
   </div>
   <table class="w-full table-fixed">
@@ -61,134 +48,22 @@ onMounted(() => {
       <th class="w-16">#</th>
       <th class="px-6 py-4 text-start">Name</th>
       <th class="px-6 py-4 text-start">Section</th>
-      <th class="px-6 py-4 text-start">Category</th>
-      <th class="px-6 py-4 text-start">Case ID</th>
-      <th class="px-6 py-4 text-start">Times Taken</th>
+      <th class="px-6 py-4 text-start">Test Type</th>
+      <th class="px-6 py-4 text-start">Test ID</th>
       <th class="px-6 py-4 text-start">Date Taken</th>
-      <th class="px-6 py-4">Nursing Care Plan</th>
+      <th class="px-6 py-4">Answers</th>
     </tr>
     <tr v-for="(student, index) in histories" :key="index" class="text-center odd:bg-blue-100">
       <td class="w-16 text-center">{{ index + 1 }}</td>
-      <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ student.fullName }}</td>
+      <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ student.name }}</td>
       <td class="px-6 py-1 text-start">{{ student.section }}</td>
-      <td class="px-6 py-1 text-start">{{ student.category }}</td>
-      <td class="px-6 py-1 text-start">{{ student.caseId }}</td>
-      <td class="px-6 py-1 text-start">{{ student.timesTaken }}</td>
+      <td class="px-6 py-1 text-start">{{ student.testType }}</td>
+      <td class="px-6 py-1 text-start">{{ student.id }}</td>
       <td class="px-6 py-1 text-start">{{ new Date(student.dateTaken).toLocaleString() }}</td>
       <td class="px-6 py-1">
         <div class="flex h-full w-full flex-row items-center justify-center">
-          <VButton
-            @click="beforeGeneratePDF(student.id, student.fullName, student.category, student.caseId, student.timesTaken, student.dateTaken)"
-            variant="filled"
-            start-icon="print"
-            color="success"
-          >
-            Print
-          </VButton>
+          <VButton variant="filled" start-icon="visibility" color="success"> Show </VButton>
         </div>
-      </td>
-    </tr>
-  </table>
-
-  <!-- for pdf generation -->
-  <table
-    v-if="userHistory"
-    class="hidden w-full table-fixed border-collapse border border-black bg-white font-['Times'] text-[15px] text-black"
-    id="table"
-  >
-    <tr>
-      <th class="border border-black px-2 pb-6 pt-2 text-center">Assessment</th>
-      <th class="border border-black px-2 pb-6 pt-2 text-center">Nursing Diagnosis</th>
-      <th class="border border-black px-2 pb-6 pt-2 text-center">Planning</th>
-      <th class="border border-black px-2 pb-6 pt-2 text-center">Intervention</th>
-      <th class="border border-black px-2 pb-6 pt-2 text-center">Rationale</th>
-      <th class="border border-black px-2 pb-6 pt-2 text-center">Evaluation</th>
-    </tr>
-    <tr>
-      <td class="border border-black px-4 py-2 text-start align-top">
-        Subjective:<br />
-        - {{ userHistory.answers.subjective }} <br /><br />
-        Objective:<br />
-        <template v-for="(objective, index) in userHistory.answers.objective" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.objective.length"> • {{ objective }} <br /><br /> </template>
-          <template v-else> • {{ objective }} <br /> </template>
-        </template>
-      </td>
-      <td class="border border-black px-4 py-2 text-start align-top">
-        {{ userHistory.answers.nursing_diagnosis }}
-      </td>
-      <td class="border border-black px-4 py-2 text-start align-top">
-        Short Term Goal:<br />
-        - {{ userHistory.answers.shortTermGoalsDesc }}:<br /><br />
-        <template v-for="(shortTermGoal, index) in userHistory.answers.short_term_goal" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.short_term_goal.length"> • {{ shortTermGoal }} <br /><br /> </template>
-          <template v-else> • {{ shortTermGoal }} <br /> </template>
-        </template>
-
-        <br />Long Term Goal:<br />
-        - {{ userHistory.answers.longTermGoalsDesc }}:<br /><br />
-        <template v-for="(longTermGoal, index) in userHistory.answers.long_term_goal" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.long_term_goal.length"> • {{ longTermGoal }} <br /><br /> </template>
-          <template v-else> • {{ longTermGoal }} <br /> </template>
-        </template>
-      </td>
-      <td class="border border-black px-4 py-2 text-start align-top">
-        Independent:<br />
-        <template v-for="(independent, index) in userHistory.answers.independent" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.independent.length"> • {{ independent.split('::')[0] }} <br /><br /> </template>
-          <template v-else> • {{ independent.split('::')[0] }} <br /> </template>
-        </template>
-
-        <br />Dependent:<br />
-        <template v-for="(dependent, index) in userHistory.answers.dependent" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.dependent.length"> • {{ dependent.split('::')[0] }} <br /><br /> </template>
-          <template v-else> • {{ dependent.split('::')[0] }} <br /> </template>
-        </template>
-      </td>
-      <td class="border border-black px-4 py-2 text-start align-top">
-        <template v-for="(independent, index) in userHistory.answers.independent" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.independent.length"> • {{ independent.split('::')[1] }} <br /><br /> </template>
-          <template v-else> • {{ independent.split('::')[0] }} <br /> </template>
-        </template>
-
-        <br />
-        <template v-for="(dependent, index) in userHistory.answers.dependent" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.dependent.length"> • {{ dependent.split('::')[1] }} <br /><br /> </template>
-          <template v-else> • {{ dependent.split('::')[0] }} <br /> </template>
-        </template>
-      </td>
-      <td class="border border-black px-4 py-2 text-start align-top">
-        Short Term Goal:<br />
-        - {{ userHistory.answers.shortTermGoalsDesc }}:<br /><br />
-        <template v-for="(shortTermGoal, index) in userHistory.answers.short_term_goal" :key="index">
-          • {{ shortTermGoal }} <br />
-          <template v-if="index + 1 !== userHistory.answers.short_term_goal.length">
-            ___Met <br />
-            ___Partially Met <br />
-            ___Unmet <br /><br />
-          </template>
-          <template v-else>
-            ___Met <br />
-            ___Partially Met <br />
-            ___Unmet <br />
-          </template>
-        </template>
-
-        <br />Long Term Goal:<br />
-        - {{ userHistory.answers.longTermGoalsDesc }}:<br /><br />
-        <template v-for="(longTermGoal, index) in userHistory.answers.long_term_goal" :key="index">
-          • {{ longTermGoal }} <br />
-          <template v-if="index + 1 !== userHistory.answers.long_term_goal.length">
-            ___Met <br />
-            ___Partially Met <br />
-            ___Unmet <br /><br />
-          </template>
-          <template v-else>
-            ___Met <br />
-            ___Partially Met <br />
-            ___Unmet <br />
-          </template>
-        </template>
       </td>
     </tr>
   </table>

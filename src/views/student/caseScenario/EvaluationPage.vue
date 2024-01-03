@@ -20,7 +20,7 @@ function goHome() {
 }
 
 onMounted(() => {
-  axios.get(`http://localhost:3000/test-history/${route.params.id}/get`).then((res) => {
+  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${route.params.id}/get`).then((res) => {
     userHistory.value = res.data
     scores.value.push(userHistory.value.score.assessment)
     scores.value.push(userHistory.value.score.nursingDiagnosis)

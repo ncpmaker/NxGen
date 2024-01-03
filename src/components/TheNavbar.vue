@@ -1,7 +1,10 @@
 <script setup>
 import { reactive } from 'vue'
-import { adminTabStore } from '@/store'
-import router from '@/router'
+import { adminTabStore, toastStore } from '@/store'
+import { useRouter } from 'vue-router'
+import axios from 'axios'
+
+const router = useRouter()
 
 const modals = reactive({
   profileModal: false,
@@ -10,8 +13,35 @@ const modals = reactive({
   }
 })
 
+function goHome() {
+  adminTabStore.set(0)
+
+  router.push({ name: 'admin dashboard' })
+
+  toastStore.add({
+    msg: 'Logged out successfully.',
+    duration: 4000
+  })
+}
+
 function logout() {
-  router.push({ name: 'admin login' })
+  axios
+    .delete('http://localhost:3000/admin/logout', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncp_admin_token')}`
+      }
+    })
+    .then(() => {
+      localStorage.setItem('ncp_admin_token', undefined)
+      router.push({ name: 'admin login' })
+      adminTabStore.set(0)
+
+      toastStore.add({
+        msg: 'Logged out successfully.',
+        duration: 4000
+      })
+    })
+    .catch((err) => console.log(err))
 }
 </script>
 
@@ -20,7 +50,7 @@ function logout() {
     <div v-if="$route.name !== 'admin login'" class="sticky top-0 z-20 grid grid-cols-3 items-center border-b bg-blue-50 px-6 py-2 shadow-lg">
       <!-- logo -->
       <div>
-        <h2>App Name</h2>
+        <button @click="goHome()" class="text-2xl">App Name</button>
       </div>
 
       <!-- middle  -->
@@ -30,7 +60,7 @@ function logout() {
           :class="[adminTabStore.index === 0 ? 'active' : '']"
           class="relative flex items-center justify-center rounded-lg px-6 py-1 transition-colors hover:bg-neutral-400/20"
         >
-          <span v-if="$route.name !== 'admin test records'" class="material-icons text-3xl"> space_dashboard </span>
+          <span v-if="adminTabStore.index === 0" class="material-icons text-3xl"> space_dashboard </span>
           <span v-else class="material-icons-outlined text-3xl"> space_dashboard </span>
         </button>
         <button
@@ -38,22 +68,26 @@ function logout() {
           :class="[adminTabStore.index === 1 ? 'active' : '']"
           class="relative flex items-center justify-center rounded-lg px-6 py-1 transition-colors hover:bg-neutral-400/20"
         >
-          <span v-if="$route.name === 'admin test records'" class="material-icons text-3xl"> table_chart </span>
-          <span v-else class="material-icons-outlined text-3xl"> table_chart </span>
+          <span v-if="adminTabStore.index === 1" class="material-icons text-3xl"> history </span>
+          <span v-else class="material-icons-outlined text-3xl"> history </span>
+        </button>
+        <button
+          @click="adminTabStore.set(2)"
+          :class="[adminTabStore.index === 2 ? 'active' : '']"
+          class="relative flex items-center justify-center rounded-lg px-6 py-1 transition-colors hover:bg-neutral-400/20"
+        >
+          <span v-if="adminTabStore.index === 2" class="material-icons text-3xl"> timeline </span>
+          <span v-else class="material-icons-outlined text-3xl"> timeline </span>
         </button>
       </div>
 
       <!-- profile -->
       <div class="flex flex-row items-center justify-end gap-4">
-        <button @click="modals.profileToggle()">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-400 text-lg font-semibold hover:bg-blue-500 active:bg-blue-600">
-            A
-          </div>
-        </button>
+        <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="settings" />
       </div>
     </div>
 
-    <div class="grow">
+    <div class="flex grow flex-col items-center">
       <slot />
     </div>
 

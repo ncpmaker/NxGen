@@ -3,7 +3,6 @@ import { reactive } from 'vue'
 export const toastStore = reactive({
   list: [],
   add(params) {
-    console.log(params)
     this.list.push(params)
   }
 })

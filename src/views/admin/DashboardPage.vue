@@ -1,7 +1,11 @@
 <script setup></script>
 
 <template>
-  <div class="relative z-10 grid grid-cols-2 gap-2 px-32 py-4">
+  <div class="mb-4 w-[calc(100%-10rem)] place-self-center border-b border-b-stone-400 py-6 text-center">
+    <h1>Categories</h1>
+  </div>
+
+  <div class="relative z-10 grid w-full grid-cols-2 gap-2 px-32 pb-4">
     <router-link
       :to="{ name: 'admin case scenarios', params: { category: 'neuro' } }"
       v-for="x in 7"

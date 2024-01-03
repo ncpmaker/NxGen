@@ -30,7 +30,7 @@ const independents = ref([{ text: '', rationale: '', isCorrect: false }])
 const dependents = ref([{ text: '', rationale: '', isCorrect: false }])
 
 onMounted(() => {
-  axios.get(`http://localhost:3000/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
+  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
     scenario.value = res.data.scenario
     imageLink.value = res.data.image_link
     audioLink.value = res.data.audio_link
@@ -89,7 +89,7 @@ function removeTextbox(index, section) {
 
 function create() {
   axios
-    .post('http://localhost:3000/case-scenarios/create', {
+    .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/create`, {
       category: route.params.category,
       scenario: scenario.value,
       image_link: imageLink.value,
@@ -122,7 +122,7 @@ function create() {
 
 function save() {
   axios
-    .put(`http://localhost:3000/case-scenarios/edit/${route.params.category}/${route.params.id}`, {
+    .put(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/edit/${route.params.category}/${route.params.id}`, {
       category: route.params.category,
       scenario: scenario.value,
       image_link: imageLink.value,
@@ -156,11 +156,11 @@ function save() {
 
 <template>
   <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[88px]" />
-  <div class="pt-4 text-center">
+  <div class="w-full pt-4 text-center">
     <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.number }}</h1>
   </div>
 
-  <div class="flex flex-col gap-6 px-64 pb-32">
+  <div class="flex w-full flex-col gap-6 px-64 pb-32">
     <div>
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Scenario Section</h2>
       <hr class="m-2 border-neutral-300" />
