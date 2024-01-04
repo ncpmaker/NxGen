@@ -1,5 +1,5 @@
 <script setup>
-import { reactive } from 'vue'
+import { onMounted, reactive } from 'vue'
 import { adminTabStore, toastStore } from '@/store'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -17,22 +17,17 @@ function goHome() {
   adminTabStore.set(0)
 
   router.push({ name: 'admin dashboard' })
-
-  toastStore.add({
-    msg: 'Logged out successfully.',
-    duration: 4000
-  })
 }
 
 function logout() {
   axios
-    .delete('http://localhost:3000/admin/logout', {
+    .delete(`${import.meta.env.VITE_API_DOMAIN}/admin/logout`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('ncp_admin_token')}`
       }
     })
     .then(() => {
-      localStorage.setItem('ncp_admin_token', undefined)
+      localStorage.removeItem('ncp_admin_token')
       router.push({ name: 'admin login' })
       adminTabStore.set(0)
 
@@ -42,6 +37,38 @@ function logout() {
       })
     })
     .catch((err) => console.log(err))
+}
+
+const enabledSections = reactive({
+  A1: false,
+  B1: false,
+  C1: false,
+  D1: false
+})
+
+onMounted(async () => {
+  await axios.get(`${import.meta.env.VITE_API_DOMAIN}/enable-post-test/get`).then((res) => {
+    enabledSections.A1 = res.data.A1
+    enabledSections.B1 = res.data.B1
+    enabledSections.C1 = res.data.C1
+    enabledSections.D1 = res.data.D1
+  })
+})
+
+function updateEnablePostTest() {
+  axios
+    .post(`${import.meta.env.VITE_API_DOMAIN}/enable-post-test`, {
+      A1: enabledSections.A1,
+      B1: enabledSections.B1,
+      C1: enabledSections.C1,
+      D1: enabledSections.D1
+    })
+    .then(() => {
+      toastStore.add({
+        msg: 'Enabled/disabled successfully',
+        duration: 4000
+      })
+    })
 }
 </script>
 
@@ -92,12 +119,39 @@ function logout() {
     </div>
 
     <VModal v-model:go-open="modals.profileModal" :click-outside="false">
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2 p-4">
         <div class="flex flex-row items-center justify-between">
-          <h2>Account Settings</h2>
+          <h2>Settings</h2>
 
           <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="close" />
         </div>
+
+        <div class="flex flex-row items-center justify-between px-6">
+          <div>
+            <h3>Enable Post Test</h3>
+            <div class="flex flex-row gap-2">
+              <label class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100">
+                <input v-model="enabledSections.A1" type="checkbox" class="cursor-pointer" />
+                1A
+              </label>
+              <label class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100">
+                <input v-model="enabledSections.B1" type="checkbox" class="cursor-pointer" />
+                1B
+              </label>
+              <label class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100">
+                <input v-model="enabledSections.C1" type="checkbox" class="cursor-pointer" />
+                1C
+              </label>
+              <label class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100">
+                <input v-model="enabledSections.D1" type="checkbox" class="cursor-pointer" />
+                1D
+              </label>
+            </div>
+          </div>
+
+          <VButton @click="updateEnablePostTest()"> Update </VButton>
+        </div>
+        <hr class="m-2 border-stone-400" />
         <VButton @click="logout()" color="warning" class="justify-center">Logout</VButton>
       </div>
     </VModal>

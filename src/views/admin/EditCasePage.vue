@@ -155,7 +155,7 @@ function save() {
 </script>
 
 <template>
-  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[88px]" />
+  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[27px]" />
   <div class="w-full pt-4 text-center">
     <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.number }}</h1>
   </div>

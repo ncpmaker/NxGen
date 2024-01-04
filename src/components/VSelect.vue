@@ -16,7 +16,7 @@ defineEmits(['update:modelValue'])
 
 <template>
   <label class="relative flex cursor-pointer select-none flex-col justify-center gap-1">
-    <span v-if="props.label" class="text-sm text-neutral-600">{{ props.modelValue }}</span>
+    <span v-if="props.label" class="text-sm text-neutral-600">{{ props.label }}</span>
     <select
       v-bind="$attrs"
       @input="$emit('update:modelValue', $event.target.value)"

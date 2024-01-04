@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { goToPostTestStore } from '@/store'
 import axios from 'axios'
 
 import LoginPage from '@/views/student/LoginPage.vue'
 import SignupPage from '@/views/student/SignupPage.vue'
 import IntroductionPage from '@/views/student/IntroductionPage.vue'
 import HomePage from '@/views/student/HomePage.vue'
-import CaseScenarioPage from '@/views/student/CaseScenarioPage.vue'
 import TestsPageVue from '@/views/student/TestsPage.vue'
 
 const router = createRouter({
@@ -58,28 +58,12 @@ const router = createRouter({
         const userId = localStorage.getItem('ncp_user_id')
         const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
 
-        console.log(finishedPreTest)
-
         if (to.params.userId !== userId) {
           return { name: 'home', params: { userId: userId }, replace: true }
         }
 
         if (!finishedPreTest) {
           return { name: 'introduction' }
-        }
-      }
-    },
-    {
-      path: '/post-test',
-      name: 'post-test',
-      meta: { auth: { isRequired: true, role: 'student' } },
-      component: TestsPageVue,
-      beforeEnter: () => {
-        const userId = localStorage.getItem('ncp_user_id')
-        const finishedPostTest = JSON.parse(localStorage.getItem('ncp_finished_post_test'))
-
-        if (finishedPostTest) {
-          return { name: 'home', params: { userId: userId }, replace: true }
         }
       }
     },
@@ -94,18 +78,39 @@ const router = createRouter({
 
         if (finishedPreTest) {
           return { name: 'home', params: { userId: userId }, replace: true }
+        } else {
+          localStorage.setItem('ncp_pre_test_session', true)
+        }
+      }
+    },
+    {
+      path: '/post-test',
+      name: 'post-test',
+      meta: { auth: { isRequired: true, role: 'student' } },
+      component: TestsPageVue,
+      beforeEnter: () => {
+        const userId = localStorage.getItem('ncp_user_id')
+        const finishedPostTest = JSON.parse(localStorage.getItem('ncp_finished_post_test'))
+        const onPostTest = JSON.parse(localStorage.getItem('ncp_post_test_session'))
+
+        if ((finishedPostTest || !goToPostTestStore.value) && !onPostTest) {
+          return { name: 'home', params: { userId: userId }, replace: true }
+        } else {
+          localStorage.setItem('ncp_post_test_session', true)
         }
       }
     },
     {
       path: '/case-scenario',
       meta: { auth: { isRequired: true, role: 'student' } },
-      component: CaseScenarioPage,
       children: [
         {
           path: ':category/:number/:id',
           name: 'case scenario',
-          component: () => import('@/views/student/caseScenario/CaseScenarioPage.vue')
+          component: () => import('@/views/student/caseScenario/CaseScenarioPage.vue'),
+          beforeEnter: () => {
+            localStorage.setItem('ncp_case_scenario_session', true)
+          }
         },
         {
           path: 'evaluation/:id',
@@ -170,10 +175,28 @@ router.beforeEach(async (to) => {
   if (to.meta.auth.role === 'student') {
     const userId = localStorage.getItem('ncp_user_id')
     const isAuth = await checkAuth('student')
+    const onPreTest = JSON.parse(localStorage.getItem('ncp_pre_test_session'))
+    const onPostTest = JSON.parse(localStorage.getItem('ncp_post_test_session'))
+    const onCaseScenario = JSON.parse(localStorage.getItem('ncp_case_scenario_session'))
+    const csCategory = localStorage.getItem('ncp_case_scenario_category')
+    const csNumber = parseInt(localStorage.getItem('ncp_case_scenario_number'))
+    const csId = localStorage.getItem('ncp_case_scenario_id')
 
     if (to.meta.auth.isRequired) {
-      if (!isAuth && to.path !== '/login') {
+      if (!isAuth && to.name !== 'login') {
         return { name: 'login', replace: true }
+      }
+
+      if (onPreTest && to.name !== 'pre-test') {
+        return { name: 'pre-test', replace: true }
+      }
+
+      if (onPostTest && to.name !== 'post-test') {
+        return { name: 'post-test', replace: true }
+      }
+
+      if (onCaseScenario && to.name !== 'case scenario') {
+        return { name: 'case scenario', params: { number: csNumber, id: csId, category: csCategory }, replace: true }
       }
     } else {
       if (isAuth) {
@@ -184,7 +207,7 @@ router.beforeEach(async (to) => {
     const isAuth = await checkAuth('admin')
 
     if (to.meta.auth.isRequired) {
-      if (!isAuth && to.path !== '/admin/login') {
+      if (!isAuth && to.name !== 'admin login') {
         return { name: 'admin login', replace: true }
       }
     } else {
@@ -193,53 +216,31 @@ router.beforeEach(async (to) => {
       }
     }
   }
-
-  //create the admin route guard
 })
 
 async function checkAuth(role) {
   let isAuthenticated = null
+  const userId = localStorage.getItem('ncp_user_id')
+  const token = localStorage.getItem(`${role === 'student' ? 'ncp_token' : role === 'admin' ? 'ncp_admin_token' : ''}`)
 
-  if (role === 'student') {
-    const userId = localStorage.getItem('ncp_user_id')
-    const token = localStorage.getItem('ncp_token')
-
-    isAuthenticated = await axios
-      .post(
-        `${import.meta.env.VITE_API_DOMAIN}/auth/student`,
-        { userId: userId },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      )
-      .then((res) => {
-        if (res.status === 200) {
-          return true
-        } else if (res.status === 401) {
-          return false
-        }
-      })
-      .catch((err) => console.log(err))
-  } else if (role === 'admin') {
-    const token = localStorage.getItem('ncp_admin_token')
-
-    isAuthenticated = await axios
-      .post(`${import.meta.env.VITE_API_DOMAIN}/auth/admin`, null, {
+  isAuthenticated = await axios
+    .post(
+      `${import.meta.env.VITE_API_DOMAIN}/auth/${role === 'student' ? 'student' : role === 'admin' ? 'admin' : ''}`,
+      { ...(role === 'student' ? { userId: userId } : role === 'admin' ? {} : {}) },
+      {
         headers: {
           Authorization: `Bearer ${token}`
         }
-      })
-      .then((res) => {
-        if (res.status === 200) {
-          return true
-        } else if (res.status === 401) {
-          return false
-        }
-      })
-      .catch((err) => console.log(err))
-  }
+      }
+    )
+    .then((res) => {
+      if (res.status === 200) {
+        return true
+      } else if (res.status === 401) {
+        return false
+      }
+    })
+    .catch((err) => console.log(err))
 
   return isAuthenticated
 }

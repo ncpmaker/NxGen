@@ -7,7 +7,7 @@ import axios from 'axios'
 const route = useRoute()
 const router = useRouter()
 const scores = ref([])
-const userHistory = ref(null)
+const data = ref(null)
 const stepLabel = ['Assessment', 'Nursing Diagnosis', 'Planning', 'Intervention', 'Evaluation']
 
 function goHome() {
@@ -21,13 +21,13 @@ function goHome() {
 
 onMounted(() => {
   axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${route.params.id}/get`).then((res) => {
-    userHistory.value = res.data
-    scores.value.push(userHistory.value.score.assessment)
-    scores.value.push(userHistory.value.score.nursingDiagnosis)
-    scores.value.push(userHistory.value.score.planning)
-    scores.value.push(userHistory.value.score.intervention)
-    scores.value.push(userHistory.value.score.evaluation)
-    scores.value.push(userHistory.value.score.overall)
+    data.value = res.data
+    scores.value.push(data.value.score.assessment)
+    scores.value.push(data.value.score.nursingDiagnosis)
+    scores.value.push(data.value.score.planning)
+    scores.value.push(data.value.score.intervention)
+    scores.value.push(data.value.score.evaluation)
+    scores.value.push(data.value.score.overall)
   })
 })
 </script>
@@ -45,15 +45,7 @@ onMounted(() => {
           <VRadialProgress size="100px" color="success" thickness="12px" :progress="scores[5]" :max-value="100" class="text-xl font-semibold" />
         </div>
         <VButton
-          @click="
-            generatePDF(
-              userHistory.fullName,
-              userHistory.category,
-              userHistory.caseId,
-              userHistory.timesTaken,
-              new Date(userHistory.dateTaken).toLocaleString()
-            )
-          "
+          @click="generatePDF(data.fullName, data.category, data.caseId, data.timesTaken, new Date(data.dateTaken).toLocaleString())"
           start-icon="print"
           class="w-fit"
         >
@@ -82,11 +74,7 @@ onMounted(() => {
   </div>
 
   <!-- for pdf generation -->
-  <table
-    v-if="userHistory"
-    class="hidden w-full table-fixed border-collapse border border-black bg-white font-['Times'] text-[15px] text-black"
-    id="table"
-  >
+  <table v-if="data" class="hidden w-full table-fixed border-collapse border border-black bg-white font-['Times'] text-[15px] text-black" id="table">
     <tr>
       <th class="border border-black px-2 pb-6 pt-2 text-center">Assessment</th>
       <th class="border border-black px-2 pb-6 pt-2 text-center">Nursing Diagnosis</th>
@@ -98,62 +86,62 @@ onMounted(() => {
     <tr>
       <td class="border border-black px-4 py-2 text-start align-top">
         Subjective:<br />
-        - {{ userHistory.answers.subjective }} <br /><br />
+        - {{ data.answers.subjective }} <br /><br />
         Objective:<br />
-        <template v-for="(objective, index) in userHistory.answers.objective" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.objective.length"> • {{ objective }} <br /><br /> </template>
+        <template v-for="(objective, index) in data.answers.objective" :key="index">
+          <template v-if="index + 1 !== data.answers.objective.length"> • {{ objective }} <br /><br /> </template>
           <template v-else> • {{ objective }} <br /> </template>
         </template>
       </td>
       <td class="border border-black px-4 py-2 text-start align-top">
-        {{ userHistory.answers.nursing_diagnosis }}
+        {{ data.answers.nursingDiagnosis }}
       </td>
       <td class="border border-black px-4 py-2 text-start align-top">
         Short Term Goal:<br />
-        - {{ userHistory.answers.shortTermGoalsDesc }}:<br /><br />
-        <template v-for="(shortTermGoal, index) in userHistory.answers.short_term_goal" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.short_term_goal.length"> • {{ shortTermGoal }} <br /><br /> </template>
+        - {{ data.answers.shortTermGoalsDesc }}:<br /><br />
+        <template v-for="(shortTermGoal, index) in data.answers.shortTermGoal" :key="index">
+          <template v-if="index + 1 !== data.answers.shortTermGoal.length"> • {{ shortTermGoal }} <br /><br /> </template>
           <template v-else> • {{ shortTermGoal }} <br /> </template>
         </template>
 
         <br />Long Term Goal:<br />
-        - {{ userHistory.answers.longTermGoalsDesc }}:<br /><br />
-        <template v-for="(longTermGoal, index) in userHistory.answers.long_term_goal" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.long_term_goal.length"> • {{ longTermGoal }} <br /><br /> </template>
+        - {{ data.answers.longTermGoalsDesc }}:<br /><br />
+        <template v-for="(longTermGoal, index) in data.answers.longTermGoal" :key="index">
+          <template v-if="index + 1 !== data.answers.longTermGoal.length"> • {{ longTermGoal }} <br /><br /> </template>
           <template v-else> • {{ longTermGoal }} <br /> </template>
         </template>
       </td>
       <td class="border border-black px-4 py-2 text-start align-top">
         Independent:<br />
-        <template v-for="(independent, index) in userHistory.answers.independent" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.independent.length"> • {{ independent.split('::')[0] }} <br /><br /> </template>
+        <template v-for="(independent, index) in data.answers.independent" :key="index">
+          <template v-if="index + 1 !== data.answers.independent.length"> • {{ independent.split('::')[0] }} <br /><br /> </template>
           <template v-else> • {{ independent.split('::')[0] }} <br /> </template>
         </template>
 
         <br />Dependent:<br />
-        <template v-for="(dependent, index) in userHistory.answers.dependent" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.dependent.length"> • {{ dependent.split('::')[0] }} <br /><br /> </template>
+        <template v-for="(dependent, index) in data.answers.dependent" :key="index">
+          <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[0] }} <br /><br /> </template>
           <template v-else> • {{ dependent.split('::')[0] }} <br /> </template>
         </template>
       </td>
       <td class="border border-black px-4 py-2 text-start align-top">
-        <template v-for="(independent, index) in userHistory.answers.independent" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.independent.length"> • {{ independent.split('::')[1] }} <br /><br /> </template>
+        <template v-for="(independent, index) in data.answers.independent" :key="index">
+          <template v-if="index + 1 !== data.answers.independent.length"> • {{ independent.split('::')[1] }} <br /><br /> </template>
           <template v-else> • {{ independent.split('::')[0] }} <br /> </template>
         </template>
 
         <br />
-        <template v-for="(dependent, index) in userHistory.answers.dependent" :key="index">
-          <template v-if="index + 1 !== userHistory.answers.dependent.length"> • {{ dependent.split('::')[1] }} <br /><br /> </template>
+        <template v-for="(dependent, index) in data.answers.dependent" :key="index">
+          <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[1] }} <br /><br /> </template>
           <template v-else> • {{ dependent.split('::')[0] }} <br /> </template>
         </template>
       </td>
       <td class="border border-black px-4 py-2 text-start align-top">
         Short Term Goal:<br />
-        - {{ userHistory.answers.shortTermGoalsDesc }}:<br /><br />
-        <template v-for="(shortTermGoal, index) in userHistory.answers.short_term_goal" :key="index">
+        - {{ data.answers.shortTermGoalsDesc }}:<br /><br />
+        <template v-for="(shortTermGoal, index) in data.answers.shortTermGoal" :key="index">
           • {{ shortTermGoal }} <br />
-          <template v-if="index + 1 !== userHistory.answers.short_term_goal.length">
+          <template v-if="index + 1 !== data.answers.shortTermGoal.length">
             ___Met <br />
             ___Partially Met <br />
             ___Unmet <br /><br />
@@ -166,10 +154,10 @@ onMounted(() => {
         </template>
 
         <br />Long Term Goal:<br />
-        - {{ userHistory.answers.longTermGoalsDesc }}:<br /><br />
-        <template v-for="(longTermGoal, index) in userHistory.answers.long_term_goal" :key="index">
+        - {{ data.answers.longTermGoalsDesc }}:<br /><br />
+        <template v-for="(longTermGoal, index) in data.answers.longTermGoal" :key="index">
           • {{ longTermGoal }} <br />
-          <template v-if="index + 1 !== userHistory.answers.long_term_goal.length">
+          <template v-if="index + 1 !== data.answers.longTermGoal.length">
             ___Met <br />
             ___Partially Met <br />
             ___Unmet <br /><br />

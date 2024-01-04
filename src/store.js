@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 
 export const toastStore = reactive({
   list: [],
@@ -19,4 +19,12 @@ export const adminTabStore = reactive({
   set(number = 0) {
     this.index = number
   }
+})
+
+export const goToPostTestStore = ref(false)
+
+export const taskStore = reactive({
+  preTest: false,
+  postTest: false,
+  caseScenario: false
 })

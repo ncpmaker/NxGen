@@ -10,9 +10,11 @@ const tabs = [PostTestTab, CasesTab, CaseScenarioHistoryTab]
 
 <template>
   <TheBottomNavbar>
-    <KeepAlive>
-      <component :is="tabs[studentTabStore.index]" />
-    </KeepAlive>
+    <Transition name="fade-up" mode="out-in">
+      <KeepAlive>
+        <component :is="tabs[studentTabStore.index]" />
+      </KeepAlive>
+    </Transition>
   </TheBottomNavbar>
 </template>
 

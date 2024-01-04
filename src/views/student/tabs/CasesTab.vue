@@ -1,9 +1,11 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const cases = ref(null)
-
 const modals = reactive({
   categoryModal: false,
   category: '',
@@ -16,12 +18,20 @@ const modals = reactive({
     })
   }
 })
+
+function takeCase(number, id, category) {
+  localStorage.setItem('ncp_case_scenario_category', category)
+  localStorage.setItem('ncp_case_scenario_number', number)
+  localStorage.setItem('ncp_case_scenario_id', id)
+
+  router.push({ name: 'case scenario', params: { number: number, id: id, category: category } })
+}
 </script>
 
 <template>
   <div class="h-[100svh] w-screen overflow-y-auto">
     <div class="sticky top-0 flex w-full flex-row items-center gap-2 bg-blue-50 px-4 pb-4 pt-6 text-center">
-      <h1>Category</h1>
+      <h1>Cases</h1>
     </div>
 
     <div class="flex flex-col gap-2 px-2 pb-2">
@@ -40,24 +50,19 @@ const modals = reactive({
         </div>
       </button>
     </div>
+
+    <VBottomSheet v-model:go-up="modals.categoryModal">
+      <div class="w-full bg-blue-50 p-4 text-center">
+        <h2>{{ modals.category.charAt(0).toUpperCase() + modals.category.slice(1) }}</h2>
+      </div>
+
+      <div class="flex grow flex-col gap-2 px-2 pb-2">
+        <VButton v-for="(item, index) in cases" :key="item" @click="takeCase(index + 1, item.id, 'neuro')" class="justify-center">
+          Case Scenario {{ index + 1 }}
+        </VButton>
+      </div>
+    </VBottomSheet>
   </div>
-
-  <VBottomSheet v-model:go-up="modals.categoryModal">
-    <div class="w-full bg-blue-50 p-4 text-center">
-      <h2>{{ modals.category.charAt(0).toUpperCase() + modals.category.slice(1) }}</h2>
-    </div>
-
-    <div class="flex grow flex-col gap-2 px-2 pb-2">
-      <VButton
-        v-for="(item, index) in cases"
-        :key="item"
-        @click="$router.push({ name: 'case scenario', params: { number: index + 1, id: item.id, category: 'neuro' } })"
-        class="justify-center"
-      >
-        Case Scenario {{ index + 1 }}
-      </VButton>
-    </div>
-  </VBottomSheet>
 </template>
 
 <style scoped></style>

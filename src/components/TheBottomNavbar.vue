@@ -20,10 +20,19 @@ function logout() {
       }
     })
     .then(() => {
-      localStorage.setItem('ncp_user_id', undefined)
-      localStorage.setItem('ncp_token', undefined)
-      localStorage.setItem('ncp_finished_pre_test', undefined)
-      localStorage.setItem('ncp_finished_post_test', undefined)
+      localStorage.removeItem('ncp_user_id')
+      localStorage.removeItem('ncp_user_section')
+      localStorage.removeItem('ncp_token')
+      localStorage.removeItem('ncp_finished_pre_test')
+      localStorage.removeItem('ncp_finished_post_test')
+      localStorage.removeItem('ncp_pre_test_session')
+      localStorage.removeItem('ncp_post_test_session')
+      localStorage.removeItem('ncp_case_scenario_category')
+      localStorage.removeItem('ncp_case_scenario_number')
+      localStorage.removeItem('ncp_case_scenario_id')
+      localStorage.removeItem('ncp_case_scenario_session')
+      localStorage.removeItem('ncp_case_scenario_step')
+      localStorage.removeItem('ncp_case_scenario_answers')
 
       router.push({ name: 'login' })
 
@@ -69,7 +78,7 @@ function logout() {
   </div>
 
   <VModal v-model:go-open="modals.profileModal">
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2 p-4">
       <h2>Profile Settings</h2>
 
       <VButton color="primary" size="sm" class="justify-center">Terms and Conditions</VButton>

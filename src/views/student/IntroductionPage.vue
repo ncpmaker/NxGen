@@ -39,7 +39,7 @@ const modals = reactive({
   </div>
 
   <VModal v-model:go-open="modals.welcomeModal" :click-outside="false">
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2 p-4">
       <span>Video Introduction here</span>
 
       <VButton @click="modals.closeWelcomeToggle()" class="justify-center">Close</VButton>

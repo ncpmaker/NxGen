@@ -25,7 +25,7 @@ function onDelete(id, index) {
 </script>
 
 <template>
-  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[88px]" />
+  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[27px]" />
   <div class="flex w-full flex-col gap-2 px-64">
     <div class="my-4 flex h-96 flex-row items-end justify-between rounded-2xl bg-gradient-to-b from-blue-300 to-blue-400 p-8 shadow-xl">
       <div class="flex flex-col">

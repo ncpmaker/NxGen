@@ -8,7 +8,6 @@ const router = useRouter()
 
 const scrollableDiv = ref(null)
 const scenarioRef = ref(null)
-const formRef = ref(null)
 
 const stepLabel = ['Assessment', 'Nursing Diagnosis', 'Planning', 'Intervention']
 
@@ -19,7 +18,7 @@ const step = reactive({
   })
 })
 
-const caseScenario = reactive({
+const data = reactive({
   introduction: {
     scenario: null,
     imageLink: null,
@@ -42,37 +41,50 @@ const caseScenario = reactive({
   }
 })
 
+const answers = ref({
+  subjective: null,
+  objective: [],
+  nursingDiagnosis: null,
+  shortTermGoal: [],
+  longTermGoal: [],
+  independent: [],
+  dependent: []
+})
+
 onMounted(() => {
+  step.count = parseInt(localStorage.getItem('ncp_case_scenario_step'))
+  answers.value = JSON.parse(localStorage.getItem('ncp_case_scenario_answers'))
+
   axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
     //introduction
-    caseScenario.introduction.scenario = res.data.scenario
-    caseScenario.introduction.imageLink = res.data.image_link
-    caseScenario.introduction.audioLink = res.data.audio_link
+    data.introduction.scenario = res.data.scenario
+    data.introduction.imageLink = res.data.image_link
+    data.introduction.audioLink = res.data.audio_link
 
     //assessment
-    caseScenario.assessment.subjectives = res.data.assessment.subjectives
-    caseScenario.assessment.objectives = res.data.assessment.objectives
+    data.assessment.subjectives = res.data.assessment.subjectives
+    data.assessment.objectives = res.data.assessment.objectives
 
     //nursing diagnosis
-    caseScenario.nursingDiagnosis = res.data.nursing_diagnosis
+    data.nursingDiagnosis = res.data.nursing_diagnosis
 
     //planning
-    caseScenario.planning.shortTermGoalsDesc = res.data.planning.shortTermGoalsDesc
-    caseScenario.planning.shortTermGoals = res.data.planning.shortTermGoals
-    caseScenario.planning.longTermGoalsDesc = res.data.planning.longTermGoalsDesc
-    caseScenario.planning.longTermGoals = res.data.planning.longTermGoals
+    data.planning.shortTermGoalsDesc = res.data.planning.shortTermGoalsDesc
+    data.planning.shortTermGoals = res.data.planning.shortTermGoals
+    data.planning.longTermGoalsDesc = res.data.planning.longTermGoalsDesc
+    data.planning.longTermGoals = res.data.planning.longTermGoals
 
     //intervention
-    caseScenario.intervention.independents = res.data.intervention.independents
-    caseScenario.intervention.dependents = res.data.intervention.dependents
+    data.intervention.independents = res.data.intervention.independents
+    data.intervention.dependents = res.data.intervention.dependents
   })
 })
 
-function assessmentScore(userAnswers) {
+function assessmentScore(subjAnswer, objAnswer) {
   let totalCorrectItems = 1 //initial value because subjective correct answer is always 1
   let correctAnswers = 0
-  let subjectives = caseScenario.assessment.subjectives
-  let objectives = caseScenario.assessment.objectives
+  let subjectives = data.assessment.subjectives
+  let objectives = data.assessment.objectives
 
   objectives.forEach((item) => {
     if (item.isCorrect) {
@@ -80,13 +92,13 @@ function assessmentScore(userAnswers) {
     }
   })
 
-  if (userAnswers.subjective === subjectives.correctValue) {
+  if (subjAnswer === subjectives.correctValue) {
     correctAnswers++
   } else if (correctAnswers > 0) {
     correctAnswers--
   }
 
-  userAnswers.objective.forEach((answer) => {
+  objAnswer.forEach((answer) => {
     if (objectives[objectives.map((e) => e.text).indexOf(answer)].isCorrect) {
       correctAnswers++
     } else if (correctAnswers > 0) {
@@ -97,16 +109,16 @@ function assessmentScore(userAnswers) {
   return correctAnswers === 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
 }
 
-function nursingDiagScore(userAnswers) {
-  let correctAnswer = caseScenario.nursingDiagnosis.correctValue
-  return userAnswers === correctAnswer ? 20 : 0
+function nursingDiagScore(ndAnswer) {
+  let correctAnswer = data.nursingDiagnosis.correctValue
+  return ndAnswer === correctAnswer ? 20 : 0
 }
 
-function planningScore(userAnswers) {
+function planningScore(stgAnswer, ltgAnswer) {
   let totalCorrectItems = 0
   let correctAnswers = 0
-  let shortTermGoals = caseScenario.planning.shortTermGoals
-  let longTermGoals = caseScenario.planning.longTermGoals
+  let shortTermGoals = data.planning.shortTermGoals
+  let longTermGoals = data.planning.longTermGoals
 
   shortTermGoals.forEach((item) => {
     if (item.isCorrect) {
@@ -120,7 +132,7 @@ function planningScore(userAnswers) {
     }
   })
 
-  userAnswers.shortTermGoal.forEach((answer) => {
+  stgAnswer.forEach((answer) => {
     if (shortTermGoals[shortTermGoals.map((e) => e.text).indexOf(answer)].isCorrect) {
       correctAnswers++
     } else if (correctAnswers > 0) {
@@ -128,7 +140,7 @@ function planningScore(userAnswers) {
     }
   })
 
-  userAnswers.longTermGoal.forEach((answer) => {
+  ltgAnswer.forEach((answer) => {
     if (longTermGoals[longTermGoals.map((e) => e.text).indexOf(answer)].isCorrect) {
       correctAnswers++
     } else if (correctAnswers > 0) {
@@ -139,11 +151,11 @@ function planningScore(userAnswers) {
   return correctAnswers === 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
 }
 
-function interventionScore(userAnswers) {
+function interventionScore(indepAnswer, depAnswer) {
   let totalCorrectItems = 0
   let correctAnswers = 0
-  let independents = caseScenario.intervention.independents
-  let dependents = caseScenario.intervention.dependents
+  let independents = data.intervention.independents
+  let dependents = data.intervention.dependents
 
   independents.forEach((item) => {
     if (item.isCorrect) {
@@ -157,7 +169,7 @@ function interventionScore(userAnswers) {
     }
   })
 
-  userAnswers.independent.forEach((answer) => {
+  indepAnswer.forEach((answer) => {
     if (independents[independents.map((e) => e.text).indexOf(answer.split('::')[0])].isCorrect) {
       correctAnswers++
     } else if (correctAnswers > 0) {
@@ -165,7 +177,7 @@ function interventionScore(userAnswers) {
     }
   })
 
-  userAnswers.dependent.forEach((answer) => {
+  depAnswer.forEach((answer) => {
     if (dependents[dependents.map((e) => e.text).indexOf(answer.split('::')[0])].isCorrect) {
       correctAnswers++
     } else if (correctAnswers > 0) {
@@ -187,46 +199,37 @@ function nextStep() {
 
   scrollableDiv.value.scrollTo(0, bottomEdge)
   step.count++
+
+  localStorage.setItem('ncp_case_scenario_step', step.count)
+  localStorage.setItem('ncp_case_scenario_answers', JSON.stringify(answers.value))
+}
+
+function disableNext() {
+  switch (step.count) {
+    case 1:
+      return answers.value.subjective === null || answers.value.objective.length === 0
+    case 2:
+      return answers.value.nursingDiagnosis === null
+    case 3:
+      return answers.value.shortTermGoal.length === 0 || answers.value.longTermGoal.length === 0
+    case 4:
+      return answers.value.independent.length === 0 || answers.value.dependent.length === 0
+  }
 }
 
 function submit() {
-  const formData = new FormData(formRef.value)
-  const formDataObj = {}
-
-  formData.forEach((value, key) => {
-    if (key === 'objective' || key === 'short_term_goal' || key === 'long_term_goal' || key === 'independent' || key === 'dependent') {
-      formDataObj[key] = formData.getAll(key)
-    } else {
-      formDataObj[key] = value
-    }
-  })
-
-  let score1 = assessmentScore({
-    subjective: formDataObj.subjective,
-    objective: formDataObj.objective
-  })
-
-  let score2 = nursingDiagScore(formDataObj.nursing_diagnosis)
-
-  let score3 = planningScore({
-    shortTermGoal: formDataObj.short_term_goal,
-    longTermGoal: formDataObj.long_term_goal
-  })
-
-  let score4 = interventionScore({
-    independent: formDataObj.independent,
-    dependent: formDataObj.dependent
-  })
-
+  let score1 = assessmentScore(answers.value.subjective, answers.value.objective)
+  let score2 = nursingDiagScore(answers.value.nursingDiagnosis)
+  let score3 = planningScore(answers.value.shortTermGoal, answers.value.longTermGoal)
+  let score4 = interventionScore(answers.value.independent, answers.value.dependent)
   let score5 = evaluationScore(score1, score2, score3, score4)
-
   let totalScore = score1 + score2 + score3 + score4 + score5
 
   axios
     .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/create`, {
       userId: localStorage.getItem('ncp_user_id'),
       caseId: route.params.id,
-      answers: formDataObj,
+      answers: answers.value,
       assessmentScore: score1,
       nursingDiagScore: score2,
       planningScore: score3,
@@ -235,27 +238,45 @@ function submit() {
       overallScore: totalScore
     })
     .then((res) => {
+      localStorage.setItem('ncp_case_scenario_category', undefined)
+      localStorage.setItem('ncp_case_scenario_number', undefined)
+      localStorage.setItem('ncp_case_scenario_id', undefined)
+      localStorage.setItem('ncp_case_scenario_session', false)
+      localStorage.setItem('ncp_case_scenario_step', 1)
+      localStorage.setItem(
+        'ncp_case_scenario_answers',
+        JSON.stringify({
+          subjective: null,
+          objective: [],
+          nursingDiagnosis: null,
+          shortTermGoal: [],
+          longTermGoal: [],
+          independent: [],
+          dependent: []
+        })
+      )
+
       router.push({ name: 'evaluation', params: { id: res.data.historyId } })
     })
 }
 </script>
 
 <template>
-  <form @submit.prevent="submit()" ref="formRef" class="flex h-[100svh] flex-col">
+  <div class="flex h-[100svh] flex-col">
     <!-- case body -->
     <div class="grow overflow-y-auto scroll-smooth px-4 pb-4" ref="scrollableDiv">
       <div class="sticky top-0 z-10 bg-blue-50 pb-4 pt-6">
         <h1>Case Scenario {{ $route.params.number }}</h1>
       </div>
 
-      <div :class="`bg-[url('${caseScenario.introduction.imageLink}')]`" class="h-56 w-full shrink-0 rounded-2xl bg-cover"></div>
+      <div :class="`bg-[url('${data.introduction.imageLink}')]`" class="h-56 w-full shrink-0 rounded-2xl bg-cover"></div>
 
       <!-- scenario -->
       <div class="flex flex-col items-center gap-1 pt-4" ref="scenarioRef">
-        <p>{{ caseScenario.introduction.scenario }}</p>
+        <p>{{ data.introduction.scenario }}</p>
         <div>
           <span class="text-sm text-neutral-600">Audio description here:</span>
-          <audio controls class="block w-screen max-w-[320px]" :src="caseScenario.introduction.audioLink" type="audio/mp3"></audio>
+          <audio controls class="block w-screen max-w-[320px]" :src="data.introduction.audioLink" type="audio/mp3"></audio>
         </div>
       </div>
 
@@ -266,11 +287,11 @@ function submit() {
         <h3 class="pb-2 font-medium">Subjective</h3>
         <div class="flex flex-col gap-1">
           <label
-            v-for="(subjective, index) in caseScenario.assessment.subjectives.texts"
+            v-for="(subjective, index) in data.assessment.subjectives.texts"
             :key="index"
             class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
           >
-            <input type="radio" name="subjective" :value="subjective.text" />
+            <input v-model="answers.subjective" type="radio" :value="subjective.text" />
             {{ subjective.text }}.
           </label>
         </div>
@@ -278,11 +299,11 @@ function submit() {
         <h3 class="pb-2 font-medium">Objective</h3>
         <div class="flex flex-col gap-1">
           <label
-            v-for="(objective, index) in caseScenario.assessment.objectives"
+            v-for="(objective, index) in data.assessment.objectives"
             :key="index"
             class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
           >
-            <input type="checkbox" name="objective" :value="objective.text" />
+            <input v-model="answers.objective" type="checkbox" :value="objective.text" />
             {{ objective.text }}.
           </label>
         </div>
@@ -292,11 +313,11 @@ function submit() {
         <h3 class="pb-2 font-medium">Choices</h3>
         <div class="flex flex-col gap-1">
           <label
-            v-for="(diagnosis, index) in caseScenario.nursingDiagnosis.texts"
+            v-for="(diagnosis, index) in data.nursingDiagnosis.texts"
             :key="index"
             class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
           >
-            <input type="radio" name="nursing_diagnosis" :value="diagnosis.text" />
+            <input v-model="answers.nursingDiagnosis" type="radio" :value="diagnosis.text" />
             {{ diagnosis.text }}.
           </label>
         </div>
@@ -304,27 +325,27 @@ function submit() {
 
       <div v-show="step.count === 3">
         <h3 class="pb-2 font-medium">Short Term Goal</h3>
-        <p class="font-medium">{{ caseScenario.planning.shortTermGoalsDesc }}:</p>
+        <p class="font-medium">{{ data.planning.shortTermGoalsDesc }}:</p>
         <div class="flex flex-col gap-1">
           <label
-            v-for="(shortTermGoal, index) in caseScenario.planning.shortTermGoals"
+            v-for="(shortTermGoal, index) in data.planning.shortTermGoals"
             :key="index"
             class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
           >
-            <input type="checkbox" name="short_term_goal" :value="shortTermGoal.text" />
+            <input v-model="answers.shortTermGoal" type="checkbox" :value="shortTermGoal.text" />
             {{ shortTermGoal.text }}.
           </label>
         </div>
 
         <h3 class="pb-2 font-medium">Long Term Goal</h3>
-        <p class="font-medium">{{ caseScenario.planning.longTermGoalsDesc }}:</p>
+        <p class="font-medium">{{ data.planning.longTermGoalsDesc }}:</p>
         <div class="flex flex-col gap-1">
           <label
-            v-for="(longTermGoal, index) in caseScenario.planning.longTermGoals"
+            v-for="(longTermGoal, index) in data.planning.longTermGoals"
             :key="index"
             class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
           >
-            <input type="checkbox" name="long_term_goal" :value="longTermGoal.text" />
+            <input v-model="answers.longTermGoal" type="checkbox" :value="longTermGoal.text" />
             {{ longTermGoal.text }}.
           </label>
         </div>
@@ -334,11 +355,11 @@ function submit() {
         <h3 class="pb-2 font-medium">Independent</h3>
         <div class="flex flex-col gap-1">
           <label
-            v-for="(independent, index) in caseScenario.intervention.independents"
+            v-for="(independent, index) in data.intervention.independents"
             :key="index"
             class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
           >
-            <input type="checkbox" name="independent" :value="`${independent.text}::${independent.rationale}`" />
+            <input v-model="answers.independent" type="checkbox" :value="`${independent.text}::${independent.rationale}`" />
             <div>
               {{ independent.text }}. <br />
               <i>({{ independent.rationale }})</i>
@@ -349,11 +370,11 @@ function submit() {
         <h3 class="pb-2 font-medium">Dependent</h3>
         <div class="flex flex-col gap-1">
           <label
-            v-for="(dependent, index) in caseScenario.intervention.dependents"
+            v-for="(dependent, index) in data.intervention.dependents"
             :key="index"
             class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
           >
-            <input type="checkbox" name="dependent" :value="`${dependent.text}::${dependent.rationale}`" />
+            <input v-model="answers.dependent" type="checkbox" name="dependent" :value="`${dependent.text}::${dependent.rationale}`" />
             <div>
               {{ dependent.text }}. <br />
               <i>({{ dependent.rationale }})</i>
@@ -373,21 +394,21 @@ function submit() {
           <span class="text-lg font-bold leading-none">{{ stepLabel[step.count - 1] }}</span>
         </div>
 
-        <VButton v-if="step.count < 4" @click="nextStep()" type="button" color="warning">
+        <VButton v-if="step.count < 4" @click="nextStep()" :disabled="disableNext()" color="warning">
           <div class="flex flex-row items-center">
             <span>Next</span>
             <span class="material-icons"> chevron_right </span>
           </div>
         </VButton>
 
-        <VButton v-else type="submit" color="warning">
+        <VButton v-else @click="submit()" :disabled="disableNext()" color="warning">
           <div class="flex flex-row items-center">
             <span>Finish</span>
           </div>
         </VButton>
       </div>
     </div>
-  </form>
+  </div>
 </template>
 
 <style scoped>

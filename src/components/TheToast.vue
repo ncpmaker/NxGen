@@ -34,7 +34,7 @@ function reload() {
     <li
       v-for="(currentAlert, index) in displayAlert"
       :key="index"
-      class="pointer-events-none absolute bottom-[16px] left-4 right-4 z-50 flex min-w-0 flex-row items-center justify-between gap-4 rounded-xl bg-stone-800 p-4 font-medium text-stone-200 md:left-auto md:min-w-[440px] md:text-lg"
+      class="pointer-events-none absolute left-4 right-4 top-4 z-50 flex min-w-0 flex-row items-center justify-between gap-4 rounded-xl bg-stone-800 p-4 font-medium text-stone-200 md:left-auto md:min-w-[440px] md:text-lg"
     >
       {{ currentAlert }}
       <button

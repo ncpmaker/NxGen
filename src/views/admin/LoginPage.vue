@@ -24,7 +24,7 @@ function submit() {
 
       toastStore.add({
         msg: 'Successfully logged in.',
-        duration: 4000
+        duration: 2000
       })
     })
     .catch((err) => {

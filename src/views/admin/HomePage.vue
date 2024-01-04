@@ -2,17 +2,19 @@
 import TheNavbar from '@/components/TheNavbar.vue'
 import TestHistoryTab from './tabs/TestHistoryTab.vue'
 import CaseScenarioHistoryTab from './tabs/CaseScenarioHistoryTab.vue'
-import { RouterView } from 'vue-router'
+import RouterViewWrapper from './tabs/RouterViewWrapper.vue'
 import { adminTabStore } from '@/store'
 
-const tabs = [RouterView, CaseScenarioHistoryTab, TestHistoryTab]
+const tabs = [RouterViewWrapper, CaseScenarioHistoryTab, TestHistoryTab]
 </script>
 
 <template>
   <TheNavbar>
-    <KeepAlive>
-      <component :is="tabs[adminTabStore.index]" />
-    </KeepAlive>
+    <transition name="fade-up" mode="out-in">
+      <KeepAlive>
+        <component :is="tabs[adminTabStore.index]" />
+      </KeepAlive>
+    </transition>
   </TheNavbar>
 </template>
 
