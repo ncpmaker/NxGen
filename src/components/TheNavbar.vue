@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { adminTabStore, toastStore } from '@/store'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
@@ -19,7 +19,9 @@ function goHome() {
   router.push({ name: 'admin dashboard' })
 }
 
+const isLoggingOut = ref(false)
 function logout() {
+  isLoggingOut.value = true
   axios
     .delete(`${import.meta.env.VITE_API_DOMAIN}/admin/logout`, {
       headers: {
@@ -55,7 +57,9 @@ onMounted(async () => {
   })
 })
 
+const isUpdating = ref(false)
 function updateEnablePostTest() {
+  isUpdating.value = true
   axios
     .post(`${import.meta.env.VITE_API_DOMAIN}/enable-post-test`, {
       A1: enabledSections.A1,
@@ -64,6 +68,7 @@ function updateEnablePostTest() {
       D1: enabledSections.D1
     })
     .then(() => {
+      isUpdating.value = false
       toastStore.add({
         msg: 'Enabled/disabled successfully',
         duration: 4000
@@ -149,10 +154,16 @@ function updateEnablePostTest() {
             </div>
           </div>
 
-          <VButton @click="updateEnablePostTest()"> Update </VButton>
+          <VButton @click="updateEnablePostTest()" :disabled="isUpdating" class="w-[81px] justify-center">
+            <VLoader v-if="isUpdating" size="16px" thickness="2px" />
+            <span v-else>Update</span>
+          </VButton>
         </div>
         <hr class="m-2 border-stone-400" />
-        <VButton @click="logout()" color="warning" class="justify-center">Logout</VButton>
+        <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="justify-center">
+          <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
+          <span v-else>Logout</span>
+        </VButton>
       </div>
     </VModal>
   </div>

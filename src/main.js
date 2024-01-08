@@ -16,6 +16,7 @@ import VBottomSheet from '@/components/VBottomSheet.vue'
 import VModal from '@/components/VModal.vue'
 import VRadialProgress from '@/components/VRadialProgress.vue'
 import VSteps from '@/components/VSteps.vue'
+import VLoader from '@/components/VLoader.vue'
 
 const app = createApp(App)
 
@@ -33,3 +34,4 @@ app.component('VBottomSheet', VBottomSheet)
 app.component('VModal', VModal)
 app.component('VRadialProgress', VRadialProgress)
 app.component('VSteps', VSteps)
+app.component('VLoader', VLoader)

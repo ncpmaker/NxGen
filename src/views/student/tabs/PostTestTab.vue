@@ -15,12 +15,14 @@ function reverseString(str) {
 
 const postTestEnabled = ref(null)
 const postTestFinished = ref(null)
+const isLoading = ref(true)
 onMounted(async () => {
   let sections
   let userSection = reverseString(localStorage.getItem('ncp_user_section'))
 
   await axios.get(`${import.meta.env.VITE_API_DOMAIN}/enable-post-test/get`).then((res) => {
     sections = res.data
+    isLoading.value = false
   })
 
   postTestEnabled.value = sections[userSection]
@@ -34,33 +36,37 @@ function readyPostTest() {
 </script>
 
 <template>
-  <div class="flex grow flex-col overflow-y-auto pb-4">
-    <div class="sticky top-0 z-10 bg-blue-50 px-4 pb-4 pt-6">
-      <h1>Welcome to App Name</h1>
-    </div>
-
-    <div class="flex grow items-center justify-center px-4">
-      <button
-        @click="readyPostTest()"
-        :disabled="!postTestEnabled || postTestFinished"
-        class="group col-span-8 h-64 w-full overflow-hidden rounded-2xl bg-[url('https://marketplace.canva.com/EAFOtK0VoYQ/1/0/1600w/canva-brown-simple-aesthetic-desktop-wallpaper-kf83cZpRSuM.jpg')] shadow-lg"
+  <div class="flex grow items-center justify-center px-2 md:pb-10 md:pt-5">
+    <button
+      @click="readyPostTest()"
+      :disabled="!postTestEnabled || postTestFinished"
+      class="group col-span-8 h-64 w-full overflow-hidden rounded-2xl bg-[url('https://www.ucl.ac.uk/ioe/sites/ioe/files/styles/large_image/public/lilac-blouse-school-uniform.png?itok=KGavEVWp')] bg-cover bg-top shadow-lg sm:h-80 md:h-full"
+    >
+      <div
+        v-if="isLoading"
+        class="flex h-full w-full flex-row items-end justify-center gap-6 bg-gradient-to-t from-gray-950/50 to-transparent px-4 pb-16 group-disabled:bg-gradient-to-t group-disabled:from-gray-950/70 group-disabled:to-gray-950/40"
       >
-        <div
-          v-if="postTestFinished"
-          class="flex h-full w-full flex-col items-center justify-end bg-gradient-to-t from-gray-950/50 to-transparent pb-16 group-disabled:bg-gradient-to-t group-disabled:from-gray-950/70 group-disabled:to-gray-950/40"
-        >
-          <h1 class="font-medium leading-none text-blue-50 drop-shadow-md">Thank you for taking the Post Test</h1>
-        </div>
-        <div
-          v-else
-          class="flex h-full w-full flex-col items-center justify-end bg-gradient-to-t from-gray-950/50 to-transparent pb-6 group-disabled:bg-gradient-to-t group-disabled:from-gray-950/70 group-disabled:to-gray-950/40"
-        >
-          <h1 class="font-medium leading-none text-blue-50 drop-shadow-md">Take the Post Test</h1>
-          <span v-if="!postTestEnabled" class="text-sm text-blue-50 drop-shadow-md">(Please wait for the moderator to enable this)</span>
-          <span v-else class="text-sm text-blue-50 drop-shadow-md">Click Here</span>
-        </div>
-      </button>
-    </div>
+        <h1 class="font-medium leading-none text-blue-50 drop-shadow-md md:text-5xl">Please wait</h1>
+        <VLoader size="30px" thickness="2px" class="md:hidden" />
+        <VLoader size="48px" thickness="2px" class="hidden md:block" />
+      </div>
+
+      <div
+        v-else-if="postTestFinished"
+        class="flex h-full w-full flex-col items-center justify-end bg-gradient-to-t from-gray-950/50 to-transparent px-4 pb-16 group-disabled:bg-gradient-to-t group-disabled:from-gray-950/70 group-disabled:to-gray-950/40"
+      >
+        <h1 class="font-medium leading-none text-blue-50 drop-shadow-md md:text-5xl">Finished taking Post Test</h1>
+      </div>
+
+      <div
+        v-else
+        class="flex h-full w-full flex-col items-center justify-end bg-gradient-to-t from-gray-950/50 to-transparent px-4 pb-6 group-disabled:bg-gradient-to-t group-disabled:from-gray-950/70 group-disabled:to-gray-950/40 md:items-start md:px-10 md:py-10"
+      >
+        <h1 class="font-medium leading-none text-blue-50 drop-shadow-md md:text-5xl">Take the Post Test</h1>
+        <span v-if="!postTestEnabled" class="text-sm text-blue-50 drop-shadow-md md:text-base">(Please wait for the moderator to enable this)</span>
+        <span v-else class="text-sm text-blue-50 drop-shadow-md md:text-base">Click Here</span>
+      </div>
+    </button>
   </div>
 </template>
 

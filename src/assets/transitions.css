@@ -15,6 +15,7 @@
 }
 
 .fade-up-enter-active {
+  z-index: -1;
   overflow-x: clip;
   transition:
     opacity 150ms ease-in-out,

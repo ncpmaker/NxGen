@@ -1,16 +1,17 @@
 <script setup>
-import { reactive } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 import { toastStore } from '@/store'
 
 const router = useRouter()
 
-const formValues = reactive({
+const formValues = ref({
   email: null,
   password: null
 })
-const states = reactive({
+
+const states = ref({
   email: {
     message: null,
     color: null
@@ -20,11 +21,14 @@ const states = reactive({
     color: null
   }
 })
-const submit = () => {
+
+const isLoading = ref(false)
+function submit() {
+  isLoading.value = true
   axios
     .post(`${import.meta.env.VITE_API_DOMAIN}/user/login`, {
-      email: formValues.email,
-      password: formValues.password
+      email: formValues.value.email,
+      password: formValues.value.password
     })
     .then((res) => {
       localStorage.setItem('ncp_user_id', res.data.userId)
@@ -51,51 +55,64 @@ const submit = () => {
           dependent: []
         })
       )
-
       router.push({ name: 'introduction' })
-
       toastStore.add({
         msg: 'Successfully logged in.',
         duration: 2000
       })
     })
     .catch((err) => {
-      if (err.response.data.message === 'Account not yet approved.' || err.response.status === 401) {
-        states.email.message = err.response.data.message
-        states.email.color = 'error'
-        states.password.message = null
-        states.password.color = 'error'
+      isLoading.value = false
+      if (err.response.data.message === 'Account not yet approved.' || err.response.status === 401 || err.response.status === 400) {
+        states.value.email.message = err.response.data.message
+        states.value.email.color = 'error'
+        states.value.password.message = null
+        states.value.password.color = 'error'
       } else if (err.response.data.message === 'Wrong password!') {
-        states.email.message = null
-        states.email.color = null
-        states.password.message = err.response.data.message
-        states.password.color = 'error'
+        states.value.email.message = null
+        states.value.email.color = null
+        states.value.password.message = err.response.data.message
+        states.value.password.color = 'error'
       }
     })
 }
 </script>
 
 <template>
-  <div class="flex h-[100svh] flex-col justify-end gap-2 bg-gradient-to-b from-blue-300 to-blue-500">
-    <h1 class="px-4">Login Page</h1>
+  <div class="flex h-[100svh] flex-col justify-end bg-gradient-to-b from-blue-300 to-blue-500 sm:items-center sm:justify-center">
+    <div class="flex w-full flex-col gap-2 sm:max-w-[600px] sm:p-4">
+      <h1 class="px-4 drop-shadow-lg">Welcome to TakeCare</h1>
 
-    <!-- login form -->
-    <form @submit.prevent="submit()" class="flex w-screen flex-col gap-2 rounded-t-2xl bg-blue-50 px-4 py-4">
-      <VFormTextbox v-model="formValues.email" :color="states.email.color" label="Email" :sub-label="states.email.message" type="email" required />
-      <VFormTextbox
-        v-model="formValues.password"
-        :color="states.password.color"
-        label="Password"
-        :sub-label="states.password.message"
-        type="password"
-        required
-      />
+      <!-- login form -->
+      <form @submit.prevent="submit()" class="flex w-full flex-col gap-2 rounded-t-2xl bg-blue-50 px-4 py-4 sm:rounded-2xl">
+        <VFormTextbox
+          v-model="formValues.email"
+          :color="states.email.color"
+          :sub-label="states.email.message"
+          label="Email"
+          type="email"
+          autocomplete="username"
+          required
+        />
+        <VFormTextbox
+          v-model="formValues.password"
+          :color="states.password.color"
+          :sub-label="states.password.message"
+          label="Password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
 
-      <VButton class="justify-center"> Login </VButton>
-      <div class="text-right text-sm">
-        Don't have an account?
-        <VLinkButton :to="{ name: 'signup' }"> Create one </VLinkButton>
-      </div>
-    </form>
+        <VButton :disabled="isLoading" class="justify-center">
+          <VLoader v-if="isLoading" size="16px" thickness="2px" />
+          <span v-else>Login</span>
+        </VButton>
+        <div class="text-right text-sm lg:text-base">
+          Don't have an account?
+          <VLinkButton :to="{ name: 'signup' }"> Create one </VLinkButton>
+        </div>
+      </form>
+    </div>
   </div>
 </template>

@@ -1,18 +1,20 @@
 <script setup>
-import { reactive } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { studentTabStore, toastStore } from '@/store'
 import axios from 'axios'
 
 const router = useRouter()
-const modals = reactive({
+const modals = ref({
   profileModal: false,
   profileToggle() {
     this.profileModal = !this.profileModal
   }
 })
 
+const isLoggingOut = ref(false)
 function logout() {
+  isLoggingOut.value = true
   axios
     .delete('http://localhost:3000/user/logout', {
       headers: {
@@ -33,9 +35,7 @@ function logout() {
       localStorage.removeItem('ncp_case_scenario_session')
       localStorage.removeItem('ncp_case_scenario_step')
       localStorage.removeItem('ncp_case_scenario_answers')
-
       router.push({ name: 'login' })
-
       studentTabStore.set(0)
 
       toastStore.add({
@@ -45,79 +45,101 @@ function logout() {
     })
     .catch((err) => console.log(err))
 }
+
+const isDeleting = ref(false)
+function deleteAcc() {
+  isDeleting.value = true
+  axios
+    .delete(`http://localhost:3000/user/delete/${localStorage.getItem('ncp_user_id')}`)
+    .then(() => {
+      localStorage.removeItem('ncp_user_id')
+      localStorage.removeItem('ncp_user_section')
+      localStorage.removeItem('ncp_token')
+      localStorage.removeItem('ncp_finished_pre_test')
+      localStorage.removeItem('ncp_finished_post_test')
+      localStorage.removeItem('ncp_pre_test_session')
+      localStorage.removeItem('ncp_post_test_session')
+      localStorage.removeItem('ncp_case_scenario_category')
+      localStorage.removeItem('ncp_case_scenario_number')
+      localStorage.removeItem('ncp_case_scenario_id')
+      localStorage.removeItem('ncp_case_scenario_session')
+      localStorage.removeItem('ncp_case_scenario_step')
+      localStorage.removeItem('ncp_case_scenario_answers')
+      router.push({ name: 'login' })
+      studentTabStore.set(0)
+
+      toastStore.add({
+        msg: 'Account deleted successfully',
+        duration: 4000
+      })
+    })
+    .catch((err) => {
+      isLoggingOut.value = false
+      isDeleting.value = false
+      console.log(err)
+    })
+}
 </script>
 
 <template>
   <div class="flex h-[100svh] flex-col">
-    <!-- content slot -->
-    <slot />
+    <div class="flex grow flex-col overflow-y-scroll">
+      <div class="sticky top-0 flex flex-row items-center justify-between bg-blue-50/70 px-4 pb-4 pt-6 backdrop-blur-xl">
+        <h1>App Name</h1>
 
-    <!-- the sidebar wrapper -->
-    <div class="flex shrink-0 flex-row items-center justify-between overflow-hidden overflow-x-hidden border-t border-t-neutral-200 p-3 font-medium">
-      <div class="flex w-full flex-row items-center justify-around">
-        <div class="mt-0 flex w-full flex-row items-center justify-around gap-4">
-          <button @click="studentTabStore.set(0)" :class="[studentTabStore.index === 0 ? 'active' : '']" class="nav-points">
-            <span class="material-icons"> task </span>
-            <span>Post Test</span>
-          </button>
-          <button @click="studentTabStore.set(1)" :class="[studentTabStore.index === 1 ? 'active' : '']" class="nav-points">
-            <span class="material-icons"> category </span>
-            <span>Cases</span>
-          </button>
-          <button @click="studentTabStore.set(2)" :class="[studentTabStore.index === 2 ? 'active' : '']" class="nav-points">
-            <span class="material-icons"> timeline </span>
-            <span>Case History</span>
-          </button>
-          <button @click="modals.profileToggle()" class="nav-points">
-            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-blue-400">UA</div>
-            <span>Profile</span>
-          </button>
-        </div>
+        <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="settings" />
+      </div>
+
+      <!-- content slot -->
+      <slot />
+    </div>
+
+    <div class="flex w-full shrink-0 flex-row items-center justify-between overflow-hidden border-t bg-blue-50 px-3 font-medium">
+      <div class="mt-0 flex w-full flex-row items-center justify-around gap-4">
+        <button @click="studentTabStore.set(0)" :class="[studentTabStore.index === 0 ? 'active' : '']" class="nav-points">
+          <span class="material-icons-round"> rectangle </span>
+          <span>Post Test</span>
+        </button>
+        <button @click="studentTabStore.set(1)" :class="[studentTabStore.index === 1 ? 'active' : '']" class="nav-points">
+          <span class="material-icons"> view_stream </span>
+          <span>Cases</span>
+        </button>
+        <button @click="studentTabStore.set(2)" :class="[studentTabStore.index === 2 ? 'active' : '']" class="nav-points">
+          <span class="material-icons"> history </span>
+          <span>Case History</span>
+        </button>
       </div>
     </div>
   </div>
 
-  <VModal v-model:go-open="modals.profileModal">
+  <VModal v-model:go-open="modals.profileModal" :click-outside="false">
     <div class="flex flex-col gap-2 p-4">
-      <h2>Profile Settings</h2>
+      <div class="flex flex-row items-center justify-between">
+        <h2>Settings</h2>
+        <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="close" />
+      </div>
 
-      <VButton color="primary" size="sm" class="justify-center">Terms and Conditions</VButton>
-      <VButton color="error" size="sm" class="justify-center">Delete Account</VButton>
-      <VButton @click="logout()" color="warning" size="sm" class="justify-center">Logout</VButton>
+      <VButton color="primary" class="justify-center">Terms and Conditions</VButton>
+      <div class="flex flex-row items-center gap-2">
+        <VButton @click="deleteAcc()" :disabled="isDeleting" color="error" class="basis-1/2 justify-center">
+          <VLoader v-if="isDeleting" size="16px" thickness="2px" />
+          <span v-else>Delete Account</span>
+        </VButton>
+        <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="basis-1/2 justify-center">
+          <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
+          <span v-else>Logout</span>
+        </VButton>
+      </div>
     </div>
   </VModal>
 </template>
 
 <style scoped>
 .nav-points {
-  @apply flex w-full flex-col items-center gap-1 text-[0.75rem] text-sm font-semibold text-blue-900;
+  @apply flex w-full flex-col items-center whitespace-nowrap py-2 text-[0.75rem] text-sm text-neutral-950/50 transition-colors md:flex-row md:justify-center md:gap-2 md:py-4 md:text-base;
 }
 
-.nav-points > .material-icons {
-  @apply w-8 rounded-full p-1 transition-all;
-}
-
-.nav-points > div {
-  @apply border border-blue-400 transition-all hover:border-blue-900;
-}
-
-.nav-points.active > .material-icons {
-  @apply !w-16 !bg-blue-400;
-}
-
-.nav-points:focus > div {
-  @apply !border-blue-900;
-}
-
-.nav-points:hover > .material-icons {
-  @apply w-16 bg-blue-400/25;
-}
-
-.nav-points:disabled {
-  @apply opacity-60;
-}
-
-.nav-points:hover:disabled > .material-icons {
-  @apply w-8 bg-transparent;
+.nav-points.active {
+  @apply text-blue-400;
 }
 </style>

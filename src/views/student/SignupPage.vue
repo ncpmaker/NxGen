@@ -14,8 +14,9 @@ const formValues = reactive({
   confirmPassword: null,
   firstName: null,
   lastName: null,
-  section: null
+  section: '1A'
 })
+
 const states = reactive({
   email: {
     message: null,
@@ -29,8 +30,11 @@ const states = reactive({
     color: null
   }
 })
+
+const isLoading = ref(false)
 function submit() {
   if (formValues.password === formValues.confirmPassword) {
+    isLoading.value = true
     axios
       .post(`${import.meta.env.VITE_API_DOMAIN}/user/create`, {
         email: formValues.email,
@@ -66,6 +70,7 @@ function submit() {
             duration: 4000
           })
         }
+        isLoading.value = false
       })
   } else {
     states.password.color = 'error'
@@ -76,40 +81,62 @@ function submit() {
 </script>
 
 <template>
-  <div class="flex h-[100svh] flex-col justify-end gap-2 bg-blue-300">
-    <h1 class="px-4">Signup Page</h1>
-    <form @submit.prevent="submit()" class="flex w-screen flex-col gap-2 overflow-hidden rounded-t-2xl bg-blue-50 pb-4">
-      <div class="flex max-h-[calc(480px-120px)] flex-col gap-2 overflow-y-auto px-4 pt-6">
-        <VFormTextbox v-model="formValues.email" :color="states.email.color" :sub-label="states.email.message" label="Email" type="email" required />
-        <VFormTextbox v-model="formValues.password" :color="states.password.color" label="Password" type="password" required />
-        <VFormTextbox
-          v-model="formValues.confirmPassword"
-          :color="states.confirmPassword.color"
-          :sub-label="states.confirmPassword.message"
-          label="Confirm Password"
-          type="password"
-          required
-        />
-        <VFormTextbox v-model="formValues.firstName" label="First Name" type="text" required />
-        <VFormTextbox v-model="formValues.lastName" label="Last Name" type="text" required />
-        <VSelect v-model="formValues.section" label="Class Section" :options="['1A', '1B', '1C', '1D']" />
-      </div>
+  <div class="flex h-[100svh] flex-col justify-end bg-gradient-to-b from-blue-300 to-blue-500 sm:items-center sm:justify-center">
+    <div class="flex w-full flex-col gap-2 sm:max-w-[600px] sm:p-4">
+      <h1 class="px-4 drop-shadow-lg">Create an account</h1>
+      <form @submit.prevent="submit()" class="flex w-full flex-col gap-2 overflow-hidden rounded-t-2xl bg-blue-50 pb-4 sm:rounded-2xl">
+        <div class="flex max-h-[calc(480px-80px)] flex-col gap-2 overflow-y-auto px-4 pt-6">
+          <VFormTextbox
+            v-model="formValues.email"
+            :color="states.email.color"
+            :sub-label="states.email.message"
+            label="Email"
+            type="email"
+            autocomplete="username"
+            required
+          />
+          <VFormTextbox
+            v-model="formValues.password"
+            :color="states.password.color"
+            label="Password"
+            type="password"
+            autocomplete="new-password"
+            required
+          />
+          <VFormTextbox
+            v-model="formValues.confirmPassword"
+            :color="states.confirmPassword.color"
+            :sub-label="states.confirmPassword.message"
+            label="Confirm Password"
+            type="password"
+            autocomplete="new-password"
+            required
+          />
+          <VFormTextbox v-model="formValues.firstName" label="First Name" type="text" required />
+          <VFormTextbox v-model="formValues.lastName" label="Last Name" type="text" required />
+          <VSelect v-model="formValues.section" label="Class Section" :options="['1A', '1B', '1C', '1D']" />
 
-      <div class="flex flex-col gap-2 px-4">
-        <div class="flex flex-row gap-1 text-sm">
-          <input type="checkbox" v-model="isAgreeing" />
-          I Agree to the
-          <VLinkButton variant="button" type="button" @click="tacModal = !tacModal"> Terms and Conditions </VLinkButton>
+          <!-- Terms and conditions -->
+          <div class="flex flex-row gap-1 text-sm">
+            <input type="checkbox" v-model="isAgreeing" />
+            I Agree to the
+            <VLinkButton variant="button" type="button" @click="tacModal = !tacModal"> Terms and Conditions </VLinkButton>
+          </div>
         </div>
 
-        <VButton :disabled="!isAgreeing" type="submit" class="justify-center"> Create Account </VButton>
+        <div class="flex flex-col gap-2 px-4">
+          <VButton :disabled="!isAgreeing || isLoading" type="submit" class="justify-center">
+            <VLoader v-if="isLoading" size="16px" thickness="2px" />
+            <span v-else>Create Account</span>
+          </VButton>
 
-        <div class="text-right text-sm">
-          Already have and account?
-          <VLinkButton :to="{ name: 'login' }"> Login here </VLinkButton>
+          <div class="text-right text-sm lg:text-base">
+            Already have and account?
+            <VLinkButton :to="{ name: 'login' }"> Login here </VLinkButton>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 
   <!-- Terms and conditions modal -->

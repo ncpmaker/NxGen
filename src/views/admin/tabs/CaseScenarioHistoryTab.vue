@@ -11,6 +11,26 @@ const search = reactive({
   section: 'All',
   category: 'All'
 })
+const isLoading = ref(true)
+const getHistory = debounce((value, section, category) => {
+  axios
+    .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/search`, {
+      search: value,
+      section: section,
+      category: category
+    })
+    .then((res) => {
+      histories.value = res.data
+      isLoading.value = false
+    })
+})
+
+onMounted(() => {
+  watchEffect(() => {
+    isLoading.value = true
+    getHistory(search.value, search.section, search.category)
+  })
+})
 
 function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
   axios
@@ -22,24 +42,6 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
       generatePDF(name, category, caseId, timesTaken, new Date(dateTaken).toLocaleString())
     })
 }
-
-const getHistory = debounce((value, section, category) => {
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/search`, {
-      search: value,
-      section: section,
-      category: category
-    })
-    .then((res) => {
-      histories.value = res.data
-    })
-})
-
-onMounted(() => {
-  watchEffect(() => {
-    getHistory(search.value, search.section, search.category)
-  })
-})
 </script>
 
 <template>
@@ -68,7 +70,16 @@ onMounted(() => {
         <th class="px-6 py-4 text-start">Date Taken</th>
         <th class="px-6 py-4">Nursing Care Plan</th>
       </tr>
-      <tr v-for="(student, index) in histories" :key="index" class="text-center odd:bg-blue-100">
+
+      <tr v-if="isLoading">
+        <td colspan="8">
+          <div class="flex w-full items-center justify-center py-6">
+            <VLoader size="40px" thickness="2px" />
+          </div>
+        </td>
+      </tr>
+
+      <tr v-else-if="histories.length > 0" v-for="(student, index) in histories" :key="index" class="text-center odd:bg-blue-100">
         <td class="w-16 text-center">{{ index + 1 }}</td>
         <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ student.name }}</td>
         <td class="px-6 py-1 text-start">{{ student.section }}</td>
@@ -87,6 +98,12 @@ onMounted(() => {
               Print
             </VButton>
           </div>
+        </td>
+      </tr>
+
+      <tr v-else>
+        <td colspan="8">
+          <div class="flex w-full items-center justify-center py-6">No entries found</div>
         </td>
       </tr>
     </table>
@@ -116,14 +133,14 @@ onMounted(() => {
         </td>
         <td class="border border-black px-4 py-2 text-start align-top">
           Short Term Goal:<br />
-          - {{ data.answers.shortTermGoalsDesc }}:<br /><br />
+          - {{ data.answers.shortTermGoalsDesc }}<br /><br />
           <template v-for="(shortTermGoal, index) in data.answers.shortTermGoal" :key="index">
             <template v-if="index + 1 !== data.answers.shortTermGoal.length"> • {{ shortTermGoal }} <br /><br /> </template>
             <template v-else> • {{ shortTermGoal }} <br /> </template>
           </template>
 
           <br />Long Term Goal:<br />
-          - {{ data.answers.longTermGoalsDesc }}:<br /><br />
+          - {{ data.answers.longTermGoalsDesc }}<br /><br />
           <template v-for="(longTermGoal, index) in data.answers.longTermGoal" :key="index">
             <template v-if="index + 1 !== data.answers.longTermGoal.length"> • {{ longTermGoal }} <br /><br /> </template>
             <template v-else> • {{ longTermGoal }} <br /> </template>

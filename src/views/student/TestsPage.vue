@@ -24,6 +24,8 @@ function testScore(answers) {
     question.possibleAnswers.forEach((answer) => {
       if (answer.isCorrect) {
         totalCorrectItems++
+      } else if (correctAnswers > 0) {
+        correctAnswers--
       }
     })
   })
@@ -40,6 +42,8 @@ function testScore(answers) {
           questionsAndAnswers[index].possibleAnswers[questionsAndAnswers[index].possibleAnswers.map((e) => e.text).indexOf(answer)].isCorrect
         if (answerIsCorrect) {
           correctAnswers++
+        } else if (correctAnswers > 0) {
+          correctAnswers--
         }
       })
     } else {
@@ -47,6 +51,8 @@ function testScore(answers) {
         questionsAndAnswers[index].possibleAnswers[questionsAndAnswers[index].possibleAnswers.map((e) => e.text).indexOf(answer)].isCorrect
       if (answerIsCorrect) {
         correctAnswers++
+      } else if (correctAnswers > 0) {
+        correctAnswers--
       }
     }
   })
@@ -68,8 +74,9 @@ function formatAnswers(answers) {
 }
 
 const formRef = ref(null)
-
+const isLoading = ref(false)
 function submit() {
+  isLoading.value = true
   const formData = new FormData(formRef.value)
   const formDataObj = {}
 
@@ -104,14 +111,14 @@ function submit() {
 
       if (route.name === 'pre-test') {
         localStorage.setItem('ncp_finished_pre_test', true)
-        localStorage.setItem('ncp_on_pre_test', false)
+        localStorage.setItem('ncp_pre_test_session', false)
         toastStore.add({
           msg: 'Pre test successfully submitted.',
           duration: 4000
         })
       } else if (route.name === 'post-test') {
         localStorage.setItem('ncp_finished_post_test', true)
-        localStorage.setItem('ncp_on_post_test', false)
+        localStorage.setItem('ncp_post_test_session', false)
         toastStore.add({
           msg: 'Post test successfully submitted.',
           duration: 4000
@@ -149,7 +156,10 @@ function submit() {
     </div>
 
     <div class="p-2">
-      <VButton type="submit" class="w-full justify-center">Submit</VButton>
+      <VButton :disabled="isLoading" type="submit" class="w-full justify-center">
+        <VLoader v-if="isLoading" size="16px" thickness="2px" />
+        <span v-else>Submit</span>
+      </VButton>
     </div>
   </form>
 </template>

@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const cases = ref(null)
+const isLoading = ref(true)
 const modals = reactive({
   categoryModal: false,
   category: '',
@@ -15,6 +16,7 @@ const modals = reactive({
 
     axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get-all/${category}`).then((res) => {
       cases.value = res.data
+      isLoading.value = false
     })
   }
 })
@@ -29,20 +31,16 @@ function takeCase(number, id, category) {
 </script>
 
 <template>
-  <div class="h-[100svh] w-screen overflow-y-auto">
-    <div class="sticky top-0 flex w-full flex-row items-center gap-2 bg-blue-50 px-4 pb-4 pt-6 text-center">
-      <h1>Cases</h1>
-    </div>
-
-    <div class="flex flex-col gap-2 px-2 pb-2">
+  <div class="w-full">
+    <div class="grid grid-cols-1 gap-2 px-2 pb-2 md:grid-cols-2">
       <button
-        v-for="x in 1"
+        v-for="x in 7"
         :key="x"
         @click="modals.categoryToggle('neuro')"
-        class="flex h-64 flex-col rounded-2xl border bg-blue-50 text-start shadow-lg transition-colors hover:border-blue-400 hover:bg-blue-200"
+        class="flex flex-col rounded-2xl border bg-blue-50 text-start shadow-lg transition-colors hover:border-blue-400 hover:bg-blue-200"
       >
         <div
-          class="h-40 w-full shrink-0 rounded-2xl bg-[url('https://marketplace.canva.com/EAFOtK0VoYQ/1/0/1600w/canva-brown-simple-aesthetic-desktop-wallpaper-kf83cZpRSuM.jpg')]"
+          class="h-52 w-full shrink-0 rounded-2xl bg-[url('https://us.123rf.com/450wm/captainvector/captainvector2204/captainvector220403921/185074387-a-brain.jpg?ver=6')] bg-cover bg-center"
         ></div>
         <div class="flex w-full grow flex-col p-4">
           <h2>Neuro</h2>
@@ -57,7 +55,11 @@ function takeCase(number, id, category) {
       </div>
 
       <div class="flex grow flex-col gap-2 px-2 pb-2">
-        <VButton v-for="(item, index) in cases" :key="item" @click="takeCase(index + 1, item.id, 'neuro')" class="justify-center">
+        <div v-if="isLoading" class="flex items-center justify-center py-[5px]">
+          <VLoader size="32px" thickness="2px" />
+        </div>
+
+        <VButton v-else v-for="(item, index) in cases" :key="item" @click="takeCase(index + 1, item.id, 'neuro')" class="justify-center">
           Case Scenario {{ index + 1 }}
         </VButton>
       </div>

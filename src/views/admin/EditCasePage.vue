@@ -8,47 +8,53 @@ const route = useRoute()
 const router = useRouter()
 
 //introduction
-const scenario = ref('')
+const scenario = ref(null)
 const imageLink = ref('')
 const audioLink = ref('')
 
 //assessment
-const subjectives = ref({ texts: [{ text: '' }], correctValue: '' })
+const subjectives = ref({ texts: [{ text: null }], correctValue: null })
 const objectives = ref([{ text: '', isCorrect: false }])
 
 //nursing diagnosis
-const nursingDiagnosis = ref({ texts: [{ text: '' }], correctValue: '' })
+const nursingDiagnosis = ref({ texts: [{ text: null }], correctValue: null })
 
 //planning
-const shortTermGoalsDesc = ref('')
-const shortTermGoals = ref([{ text: '', isCorrect: false }])
-const longTermGoalsDesc = ref('')
-const longTermGoals = ref([{ text: '', isCorrect: false }])
+const shortTermGoalsDesc = ref(null)
+const shortTermGoals = ref([{ text: null, isCorrect: false }])
+const longTermGoalsDesc = ref(null)
+const longTermGoals = ref([{ text: null, isCorrect: false }])
 
 //intervention
-const independents = ref([{ text: '', rationale: '', isCorrect: false }])
-const dependents = ref([{ text: '', rationale: '', isCorrect: false }])
+const independents = ref([{ text: null, rationale: null, isCorrect: false }])
+const dependents = ref([{ text: null, rationale: null, isCorrect: false }])
 
+const isLoading = ref(false)
 onMounted(() => {
-  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
-    scenario.value = res.data.scenario
-    imageLink.value = res.data.image_link
-    audioLink.value = res.data.audio_link
+  if (route.name === 'admin edit case') {
+    isLoading.value = true
+    axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
+      scenario.value = res.data.scenario
+      imageLink.value = res.data.image_link
+      audioLink.value = res.data.audio_link
 
-    subjectives.value = res.data.assessment.subjectives
-    objectives.value = res.data.assessment.objectives
+      subjectives.value = res.data.assessment.subjectives
+      objectives.value = res.data.assessment.objectives
 
-    nursingDiagnosis.value = res.data.nursing_diagnosis
+      nursingDiagnosis.value = res.data.nursing_diagnosis
 
-    shortTermGoalsDesc.value = res.data.planning.shortTermGoalsDesc
-    shortTermGoals.value = res.data.planning.shortTermGoals
+      shortTermGoalsDesc.value = res.data.planning.shortTermGoalsDesc
+      shortTermGoals.value = res.data.planning.shortTermGoals
 
-    longTermGoalsDesc.value = res.data.planning.longTermGoalsDesc
-    longTermGoals.value = res.data.planning.longTermGoals
+      longTermGoalsDesc.value = res.data.planning.longTermGoalsDesc
+      longTermGoals.value = res.data.planning.longTermGoals
 
-    independents.value = res.data.intervention.independents
-    dependents.value = res.data.intervention.dependents
-  })
+      independents.value = res.data.intervention.independents
+      dependents.value = res.data.intervention.dependents
+
+      isLoading.value = false
+    })
+  }
 })
 
 function addTextbox(section) {
@@ -87,7 +93,9 @@ function removeTextbox(index, section) {
   }
 }
 
+const isCreating = ref(false)
 function create() {
+  isCreating.value = true
   axios
     .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/create`, {
       category: route.params.category,
@@ -111,16 +119,22 @@ function create() {
       }
     })
     .then(() => {
+      isCreating.value = false
       router.push({ name: 'admin case scenarios', params: { category: 'neuro' } })
       toastStore.add({
         msg: 'Case created.',
         duration: 4000
       })
     })
-    .catch((err) => console.log(err))
+    .catch((err) => {
+      isCreating.value = false
+      console.log(err)
+    })
 }
 
+const isSaving = ref(false)
 function save() {
+  isSaving.value = true
   axios
     .put(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/edit/${route.params.category}/${route.params.id}`, {
       category: route.params.category,
@@ -144,6 +158,7 @@ function save() {
       }
     })
     .then(() => {
+      isSaving.value = false
       toastStore.add({
         msg: 'Case updated.',
         duration: 4000
@@ -155,16 +170,24 @@ function save() {
 </script>
 
 <template>
-  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[27px]" />
+  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!sticky left-52 top-[100px] w-fit" />
   <div class="w-full pt-4 text-center">
     <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.number }}</h1>
   </div>
 
-  <div class="flex w-full flex-col gap-6 px-64 pb-32">
+  <div v-if="isLoading" class="flex items-center justify-center py-4">
+    <VLoader size="32px" thickness="2px" />
+  </div>
+
+  <form
+    @submit.prevent="$route.name === 'admin create case' ? create() : $route.name === 'admin edit case' ? save() : null"
+    v-else
+    class="flex w-full flex-col gap-6 px-64 pb-32"
+  >
     <div>
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Scenario Section</h2>
       <hr class="m-2 border-neutral-300" />
-      <VFormTextbox v-model="scenario" textarea label="Scenario *" placeholder="Put any scenario description here" />
+      <VFormTextbox v-model="scenario" label="Scenario *" placeholder="Put any scenario description here" textarea required />
       <VFormTextbox v-model="imageLink" label="Image Link" placeholder="URL" />
       <VFormTextbox v-model="audioLink" label="Audio Link" placeholder="URL" />
     </div>
@@ -181,7 +204,7 @@ function save() {
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in subjectives.texts" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
 
             <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="subjectives.correctValue" :value="choice.text" name="subjective" type="radio" class="cursor-pointer" />
@@ -211,7 +234,7 @@ function save() {
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in objectives" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="subjective" class="cursor-pointer" />
@@ -244,7 +267,7 @@ function save() {
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in nursingDiagnosis.texts" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
 
             <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="nursingDiagnosis.correctValue" :value="choice.text" name="nursing_diagnosis" type="radio" class="cursor-pointer" />
@@ -275,6 +298,7 @@ function save() {
           type="text"
           class="w-full"
           placeholder="Ex. Within 3 days of nursing interventions, the client will be able to"
+          required
         />
 
         <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
@@ -285,7 +309,7 @@ function save() {
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in shortTermGoals" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Goal ' + (index + 1)" />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Goal ' + (index + 1)" required />
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="short_term_goals" class="cursor-pointer" />
@@ -313,6 +337,7 @@ function save() {
           type="text"
           class="w-full"
           placeholder="Ex. Within 1 week of nursing interventions, the client will be able to"
+          required
         />
 
         <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
@@ -322,7 +347,7 @@ function save() {
         </div>
 
         <div v-for="(choice, index) in longTermGoals" :key="index" class="flex w-full flex-row items-center gap-2">
-          <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Goal ' + (index + 1)" />
+          <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Goal ' + (index + 1)" required />
 
           <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
             <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="long_term_goals" class="cursor-pointer" />
@@ -355,8 +380,8 @@ function save() {
         <div class="flex w-full flex-col items-center gap-4">
           <div v-for="(choice, index) in independents" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
-              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
-              <VTextbox v-model="choice.rationale" type="text" class="w-full" :placeholder="'Rationale ' + (index + 1)" />
+              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+              <VTextbox v-model="choice.rationale" type="text" class="w-full italic" :placeholder="'Rationale ' + (index + 1)" required />
             </div>
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
@@ -388,8 +413,8 @@ function save() {
         <div class="flex w-full flex-col items-center gap-4">
           <div v-for="(choice, index) in dependents" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
-              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" />
-              <VTextbox v-model="choice.rationale" type="text" class="w-full" :placeholder="'Rationale ' + (index + 1)" />
+              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+              <VTextbox v-model="choice.rationale" type="text" class="w-full italic" :placeholder="'Rationale ' + (index + 1)" required />
             </div>
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
@@ -409,17 +434,35 @@ function save() {
         <VIconButton @click.prevent="addTextbox('dependent')" variant="ghost" icon="add" size="lg" />
       </div>
     </div>
-  </div>
 
-  <VButton v-if="$route.name === 'admin create case'" @click="create()" size="lg" class="fixed bottom-10 right-16">
-    <span class="material-icons"> add </span>
-    Create
-  </VButton>
+    <VButton
+      v-if="$route.name === 'admin create case'"
+      :disabled="isCreating"
+      size="lg"
+      type="submit"
+      class="fixed bottom-10 right-16 w-[140px] justify-center"
+    >
+      <VLoader v-if="isCreating" size="20px" thickness="2px" />
+      <template v-else>
+        <span class="material-icons"> add </span>
+        Create
+      </template>
+    </VButton>
 
-  <VButton v-else @click="save()" size="lg" class="fixed bottom-10 right-16">
-    <span class="material-icons"> save </span>
-    Save
-  </VButton>
+    <VButton
+      v-else-if="$route.name === 'admin edit case'"
+      :disabled="isSaving"
+      size="lg"
+      type="submit"
+      class="fixed bottom-10 right-16 w-[124px] justify-center"
+    >
+      <VLoader v-if="isSaving" size="20px" thickness="2px" />
+      <template v-else>
+        <span class="material-icons"> save </span>
+        Save
+      </template>
+    </VButton>
+  </form>
 </template>
 
 <style scoped></style>

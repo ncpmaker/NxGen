@@ -9,7 +9,7 @@ const search = reactive({
   section: 'All',
   type: 'All'
 })
-
+const isLoading = ref(true)
 const getHistory = debounce((value, section, type) => {
   axios
     .post(`${import.meta.env.VITE_API_DOMAIN}/test-history/search`, {
@@ -19,12 +19,14 @@ const getHistory = debounce((value, section, type) => {
     })
     .then((res) => {
       histories.value = res.data
+      isLoading.value = false
     })
 })
 
 onMounted(() => {
   watchEffect(() => {
     getHistory(search.value, search.section, search.type)
+    isLoading.value = true
   })
 })
 
@@ -53,7 +55,7 @@ const modals = reactive({
   <div class="w-full">
     <div class="sticky top-[61px] flex w-full flex-row items-center gap-6 bg-blue-50 px-4 py-2">
       <h3>Test History</h3>
-      <VFormTextbox v-model="search.value" placeholder="Search for Name or Test ID" class="w-72" />
+      <VFormTextbox v-model="search.value" placeholder="Search for Name" class="w-72" />
       <div class="flex flex-row items-center gap-2">
         <span class="text-sm text-neutral-600 lg:text-base">Section</span>
         <VSelect v-model="search.section" :options="['All', '1A', '1B', '1C', '1D']" class="w-20" />
@@ -64,6 +66,7 @@ const modals = reactive({
         <VSelect v-model="search.type" :options="['All', 'Pre test', 'Post test']" class="w-32" />
       </div>
     </div>
+
     <table class="w-full table-fixed">
       <tr class="sticky top-[119px] bg-blue-200">
         <th class="w-16">#</th>
@@ -74,7 +77,16 @@ const modals = reactive({
         <th class="px-6 py-4 text-start">Date Taken</th>
         <th class="px-6 py-4">Answers</th>
       </tr>
-      <tr v-for="(student, index) in histories" :key="index" class="text-center odd:bg-blue-100">
+
+      <tr v-if="isLoading">
+        <td colspan="7">
+          <div class="flex w-full items-center justify-center py-6">
+            <VLoader size="40px" thickness="2px" />
+          </div>
+        </td>
+      </tr>
+
+      <tr v-else-if="histories.length > 0" v-for="(student, index) in histories" :key="index" class="text-center odd:bg-blue-100">
         <td class="w-16 text-center">{{ index + 1 }}</td>
         <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ student.name }}</td>
         <td class="px-6 py-1 text-start">{{ student.section }}</td>
@@ -92,6 +104,12 @@ const modals = reactive({
               Show
             </VButton>
           </div>
+        </td>
+      </tr>
+
+      <tr v-else>
+        <td colspan="8">
+          <div class="flex w-full items-center justify-center py-6">No entries found</div>
         </td>
       </tr>
     </table>

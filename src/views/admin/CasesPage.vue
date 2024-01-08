@@ -6,10 +6,11 @@ import axios from 'axios'
 
 const route = useRoute()
 const cases = ref(null)
-
+const isLoading = ref(true)
 onMounted(() => {
   axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get-all/${route.params.category}`).then((res) => {
     cases.value = res.data
+    isLoading.value = false
   })
 })
 
@@ -25,8 +26,8 @@ function onDelete(id, index) {
 </script>
 
 <template>
-  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!absolute left-52 top-[27px]" />
-  <div class="flex w-full flex-col gap-2 px-64">
+  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!sticky left-52 top-[100px] !w-fit" />
+  <div class="flex w-full flex-col gap-2 px-64 pb-4">
     <div class="my-4 flex h-96 flex-row items-end justify-between rounded-2xl bg-gradient-to-b from-blue-300 to-blue-400 p-8 shadow-xl">
       <div class="flex flex-col">
         <span class="text-4xl font-semibold leading-none">Neuro</span>
@@ -41,7 +42,11 @@ function onDelete(id, index) {
       </button>
     </div>
 
+    <div v-if="isLoading" class="flex items-center justify-center py-4">
+      <VLoader size="32px" thickness="2px" />
+    </div>
     <div
+      v-else
       v-for="(item, index) in cases"
       :key="item.id"
       class="flex flex-row items-center rounded-2xl border border-neutral-400 pr-5 transition-colors hover:bg-neutral-400/20"

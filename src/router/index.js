@@ -2,11 +2,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { goToPostTestStore } from '@/store'
 import axios from 'axios'
 
+//student pages
 import LoginPage from '@/views/student/LoginPage.vue'
 import SignupPage from '@/views/student/SignupPage.vue'
 import IntroductionPage from '@/views/student/IntroductionPage.vue'
 import HomePage from '@/views/student/HomePage.vue'
-import TestsPageVue from '@/views/student/TestsPage.vue'
+import EvaluationPage from '@/views/student/caseScenario/EvaluationPage.vue'
+import CaseScenarioPage from '@/views/student/caseScenario/CaseScenarioPage.vue'
+import TestsPage from '@/views/student/TestsPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -71,7 +74,7 @@ const router = createRouter({
       path: '/pre-test',
       name: 'pre-test',
       meta: { auth: { isRequired: true, role: 'student' } },
-      component: TestsPageVue,
+      component: TestsPage,
       beforeEnter: () => {
         const userId = localStorage.getItem('ncp_user_id')
         const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
@@ -87,7 +90,7 @@ const router = createRouter({
       path: '/post-test',
       name: 'post-test',
       meta: { auth: { isRequired: true, role: 'student' } },
-      component: TestsPageVue,
+      component: TestsPage,
       beforeEnter: () => {
         const userId = localStorage.getItem('ncp_user_id')
         const finishedPostTest = JSON.parse(localStorage.getItem('ncp_finished_post_test'))
@@ -107,7 +110,7 @@ const router = createRouter({
         {
           path: ':category/:number/:id',
           name: 'case scenario',
-          component: () => import('@/views/student/caseScenario/CaseScenarioPage.vue'),
+          component: CaseScenarioPage,
           beforeEnter: () => {
             localStorage.setItem('ncp_case_scenario_session', true)
           }
@@ -115,7 +118,7 @@ const router = createRouter({
         {
           path: 'evaluation/:id',
           name: 'evaluation',
-          component: () => import('@/views/student/caseScenario/EvaluationPage.vue')
+          component: EvaluationPage
         }
       ]
     },
