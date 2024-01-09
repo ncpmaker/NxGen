@@ -36,7 +36,7 @@ function readyPostTest() {
 </script>
 
 <template>
-  <div class="flex grow items-center justify-center px-2 md:pb-10 md:pt-5">
+  <div class="flex grow items-center justify-center px-2 md:pb-10 md:pt-5 xl:px-20">
     <button
       @click="readyPostTest()"
       :disabled="!postTestEnabled || postTestFinished"

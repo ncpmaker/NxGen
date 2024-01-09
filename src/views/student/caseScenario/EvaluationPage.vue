@@ -58,7 +58,7 @@ onMounted(() => {
 
       <hr class="mx-2 my-2 border-neutral-300" />
 
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2 sm:px-24">
         <template v-for="(step, index) in stepLabel" :key="index">
           <div class="flex flex-row items-center gap-2">
             <VLoader v-if="isLoading" size="72px" thickness="4px" />

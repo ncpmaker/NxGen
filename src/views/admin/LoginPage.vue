@@ -5,12 +5,11 @@ import { toastStore } from '@/store'
 import axios from 'axios'
 
 const router = useRouter()
-
+const formRef = ref(null)
 const formValues = ref({
   username: null,
   password: null
 })
-
 const states = ref({
   username: {
     message: null,
@@ -21,11 +20,13 @@ const states = ref({
     color: null
   }
 })
-
-const formRef = ref(null)
 const isLoading = ref(false)
 function submit() {
   isLoading.value = true
+  states.value.username.message = null
+  states.value.username.color = null
+  states.value.password.message = null
+  states.value.password.color = null
 
   axios
     .post(`${import.meta.env.VITE_API_DOMAIN}/admin/login`, {

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toastStore } from '@/store'
 import axios from 'axios'
@@ -8,7 +8,7 @@ const router = useRouter()
 
 const tacModal = ref(false)
 const isAgreeing = ref(false)
-const formValues = reactive({
+const formValues = ref({
   email: null,
   password: null,
   confirmPassword: null,
@@ -17,7 +17,7 @@ const formValues = reactive({
   section: '1A'
 })
 
-const states = reactive({
+const states = ref({
   email: {
     message: null,
     color: null
@@ -33,14 +33,20 @@ const states = reactive({
 
 const isLoading = ref(false)
 function submit() {
-  if (formValues.password === formValues.confirmPassword) {
+  if (formValues.value.password === formValues.value.confirmPassword) {
     isLoading.value = true
+    states.value.email.message = null
+    states.value.email.color = null
+    states.value.password.color = null
+    states.value.confirmPassword.message = null
+    states.value.confirmPassword.color = null
+
     axios
       .post(`${import.meta.env.VITE_API_DOMAIN}/user/create`, {
-        email: formValues.email,
-        password: formValues.password,
-        name: formValues.firstName + ' ' + formValues.lastName,
-        section: formValues.section
+        email: formValues.value.email,
+        password: formValues.value.password,
+        name: formValues.value.firstName + ' ' + formValues.value.lastName,
+        section: formValues.value.section
       })
       .then(() => {
         toastStore.add({
@@ -62,8 +68,8 @@ function submit() {
             duration: 2000
           })
 
-          states.email.message = 'User already exists!'
-          states.email.color = 'error'
+          states.value.email.message = 'User already exists!'
+          states.value.email.color = 'error'
         } else {
           toastStore.add({
             msg: err.response.message,
@@ -73,9 +79,9 @@ function submit() {
         isLoading.value = false
       })
   } else {
-    states.password.color = 'error'
-    states.confirmPassword.message = 'Passwords are not the same!'
-    states.confirmPassword.color = 'error'
+    states.value.password.color = 'error'
+    states.value.confirmPassword.message = 'Passwords are not the same!'
+    states.value.confirmPassword.color = 'error'
   }
 }
 </script>

@@ -25,6 +25,11 @@ const states = ref({
 const isLoading = ref(false)
 function submit() {
   isLoading.value = true
+  states.value.email.message = null
+  states.value.email.color = null
+  states.value.password.message = null
+  states.value.password.color = null
+
   axios
     .post(`${import.meta.env.VITE_API_DOMAIN}/user/login`, {
       email: formValues.value.email,
@@ -36,6 +41,7 @@ function submit() {
       localStorage.setItem('ncp_token', res.data.token)
       localStorage.setItem('ncp_finished_pre_test', res.data.finishedPreTest)
       localStorage.setItem('ncp_finished_post_test', res.data.finishedPostTest)
+      localStorage.setItem('ncp_finished_intro', res.data.finishedIntro)
       localStorage.setItem('ncp_pre_test_session', false)
       localStorage.setItem('ncp_post_test_session', false)
       localStorage.setItem('ncp_case_scenario_category', undefined)
@@ -73,6 +79,11 @@ function submit() {
         states.value.email.color = null
         states.value.password.message = err.response.data.message
         states.value.password.color = 'error'
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
       }
     })
 }

@@ -11,6 +11,8 @@ import EvaluationPage from '@/views/student/caseScenario/EvaluationPage.vue'
 import CaseScenarioPage from '@/views/student/caseScenario/CaseScenarioPage.vue'
 import TestsPage from '@/views/student/TestsPage.vue'
 
+const userId = localStorage.getItem('ncp_user_id')
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -20,7 +22,7 @@ const router = createRouter({
     },
     {
       path: '/home',
-      redirect: { name: 'home', params: { userId: localStorage.getItem('ncp_user_id') } }
+      redirect: { name: 'home', params: { userId: userId } }
     },
     {
       path: '/admin/home',
@@ -44,7 +46,6 @@ const router = createRouter({
       meta: { auth: { isRequired: true, role: 'student' } },
       component: IntroductionPage,
       beforeEnter: () => {
-        const userId = localStorage.getItem('ncp_user_id')
         const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
 
         if (finishedPreTest) {
@@ -58,7 +59,6 @@ const router = createRouter({
       meta: { auth: { isRequired: true, role: 'student' } },
       component: HomePage,
       beforeEnter: (to) => {
-        const userId = localStorage.getItem('ncp_user_id')
         const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
 
         if (to.params.userId !== userId) {
@@ -76,7 +76,6 @@ const router = createRouter({
       meta: { auth: { isRequired: true, role: 'student' } },
       component: TestsPage,
       beforeEnter: () => {
-        const userId = localStorage.getItem('ncp_user_id')
         const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
 
         if (finishedPreTest) {
@@ -92,7 +91,6 @@ const router = createRouter({
       meta: { auth: { isRequired: true, role: 'student' } },
       component: TestsPage,
       beforeEnter: () => {
-        const userId = localStorage.getItem('ncp_user_id')
         const finishedPostTest = JSON.parse(localStorage.getItem('ncp_finished_post_test'))
         const onPostTest = JSON.parse(localStorage.getItem('ncp_post_test_session'))
 
@@ -176,7 +174,6 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   if (to.meta.auth.role === 'student') {
-    const userId = localStorage.getItem('ncp_user_id')
     const isAuth = await checkAuth('student')
     const onPreTest = JSON.parse(localStorage.getItem('ncp_pre_test_session'))
     const onPostTest = JSON.parse(localStorage.getItem('ncp_post_test_session'))
@@ -223,7 +220,6 @@ router.beforeEach(async (to) => {
 
 async function checkAuth(role) {
   let isAuthenticated = null
-  const userId = localStorage.getItem('ncp_user_id')
   const token = localStorage.getItem(`${role === 'student' ? 'ncp_token' : role === 'admin' ? 'ncp_admin_token' : ''}`)
 
   isAuthenticated = await axios

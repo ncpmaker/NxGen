@@ -269,8 +269,8 @@ function submit() {
 <template>
   <div class="flex h-[100svh] flex-col">
     <!-- case body -->
-    <div class="grow overflow-y-auto scroll-smooth px-4 pb-[78px]" ref="scrollableDiv">
-      <div class="sticky top-0 z-10 bg-blue-50 pb-4 pt-6">
+    <div class="grow overflow-y-auto scroll-smooth pb-[78px]" ref="scrollableDiv">
+      <div class="sticky top-0 z-10 bg-blue-50/70 px-4 pb-4 pt-6 backdrop-blur-xl">
         <h1>Case Scenario {{ $route.params.number }}</h1>
       </div>
 
@@ -278,133 +278,138 @@ function submit() {
         <VLoader size="32px" thickness="2px" />
       </div>
 
-      <template v-else>
-        <picture v-if="data.introduction.imageLink" class="relative block w-full overflow-hidden rounded-2xl pt-[56.25%]">
-          <img
-            :src="data.introduction.imageLink"
-            :alt="data.introduction.imageLink"
-            class="absolute left-0 top-0 h-full w-full object-cover object-center"
-          />
-        </picture>
+      <div v-else class="flex flex-col px-4">
+        <div class="flex flex-col items-center lg:flex-row lg:gap-4">
+          <picture
+            v-if="data.introduction.imageLink"
+            class="relative block w-full max-w-[512px] overflow-hidden rounded-2xl pt-[56.25%] sm:h-[288px] sm:pt-0 lg:shrink-0"
+          >
+            <img
+              :src="data.introduction.imageLink"
+              :alt="data.introduction.imageLink"
+              class="absolute left-0 top-0 h-full w-full object-cover object-center"
+            />
+          </picture>
 
-        <!-- scenario -->
-        <div class="flex flex-col items-center gap-1 pt-4" ref="scenarioRef">
-          <p>{{ data.introduction.scenario }}</p>
-          <div v-if="data.introduction.audioLink">
-            <span class="text-sm text-neutral-600">Audio description here:</span>
-            <audio controls class="block w-screen max-w-[320px]" :src="data.introduction.audioLink" type="audio/mp3"></audio>
+          <!-- scenario -->
+          <div class="flex flex-col items-center gap-1 pt-4" ref="scenarioRef">
+            <p>{{ data.introduction.scenario }}</p>
+            <div v-if="data.introduction.audioLink">
+              <span class="text-sm text-neutral-600">Audio description here:</span>
+              <audio controls class="block w-screen max-w-[320px]" :src="data.introduction.audioLink" type="audio/mp3"></audio>
+            </div>
           </div>
         </div>
-      </template>
 
-      <hr class="mx-2 my-2 border-neutral-300" />
+        <hr class="mx-2 my-2 border-neutral-300" />
 
-      <div v-if="isLoading" class="flex items-center justify-center p-4">
-        <VLoader size="32px" thickness="2px" />
+        <div v-if="isLoading" class="flex items-center justify-center p-4">
+          <VLoader size="32px" thickness="2px" />
+        </div>
+
+        <!-- possible answers -->
+        <template v-else>
+          <div v-show="step.count === 1">
+            <h3 class="pb-2 font-medium">Subjective</h3>
+            <div class="flex flex-col gap-1">
+              <label
+                v-for="(subjective, index) in data.assessment.subjectives.texts"
+                :key="index"
+                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+              >
+                <input v-model="answers.subjective" type="radio" :value="subjective.text" />
+                {{ subjective.text }}.
+              </label>
+            </div>
+
+            <h3 class="pb-2 font-medium">Objective</h3>
+            <div class="flex flex-col gap-1">
+              <label
+                v-for="(objective, index) in data.assessment.objectives"
+                :key="index"
+                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+              >
+                <input v-model="answers.objective" type="checkbox" :value="objective.text" />
+                {{ objective.text }}.
+              </label>
+            </div>
+          </div>
+
+          <div v-show="step.count === 2">
+            <h3 class="pb-2 font-medium">Choices</h3>
+            <div class="flex flex-col gap-1">
+              <label
+                v-for="(diagnosis, index) in data.nursingDiagnosis.texts"
+                :key="index"
+                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+              >
+                <input v-model="answers.nursingDiagnosis" type="radio" :value="diagnosis.text" />
+                {{ diagnosis.text }}.
+              </label>
+            </div>
+          </div>
+
+          <div v-show="step.count === 3">
+            <h3 class="pb-2 font-medium">Short Term Goal</h3>
+            <p class="font-medium">{{ data.planning.shortTermGoalsDesc }}:</p>
+            <div class="flex flex-col gap-1">
+              <label
+                v-for="(shortTermGoal, index) in data.planning.shortTermGoals"
+                :key="index"
+                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+              >
+                <input v-model="answers.shortTermGoal" type="checkbox" :value="shortTermGoal.text" />
+                {{ shortTermGoal.text }}.
+              </label>
+            </div>
+
+            <h3 class="pb-2 font-medium">Long Term Goal</h3>
+            <p class="font-medium">{{ data.planning.longTermGoalsDesc }}:</p>
+            <div class="flex flex-col gap-1">
+              <label
+                v-for="(longTermGoal, index) in data.planning.longTermGoals"
+                :key="index"
+                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+              >
+                <input v-model="answers.longTermGoal" type="checkbox" :value="longTermGoal.text" />
+                {{ longTermGoal.text }}.
+              </label>
+            </div>
+          </div>
+
+          <div v-show="step.count === 4">
+            <h3 class="pb-2 font-medium">Independent</h3>
+            <div class="flex flex-col gap-1">
+              <label
+                v-for="(independent, index) in data.intervention.independents"
+                :key="index"
+                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+              >
+                <input v-model="answers.independent" type="checkbox" :value="`${independent.text}::${independent.rationale}`" />
+                <div>
+                  {{ independent.text }}. <br />
+                  <i>({{ independent.rationale }})</i>
+                </div>
+              </label>
+            </div>
+
+            <h3 class="pb-2 font-medium">Dependent</h3>
+            <div class="flex flex-col gap-1">
+              <label
+                v-for="(dependent, index) in data.intervention.dependents"
+                :key="index"
+                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+              >
+                <input v-model="answers.dependent" type="checkbox" name="dependent" :value="`${dependent.text}::${dependent.rationale}`" />
+                <div>
+                  {{ dependent.text }}. <br />
+                  <i>({{ dependent.rationale }})</i>
+                </div>
+              </label>
+            </div>
+          </div>
+        </template>
       </div>
-
-      <!-- possible answers -->
-      <template v-else>
-        <div v-show="step.count === 1">
-          <h3 class="pb-2 font-medium">Subjective</h3>
-          <div class="flex flex-col gap-1">
-            <label
-              v-for="(subjective, index) in data.assessment.subjectives.texts"
-              :key="index"
-              class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-            >
-              <input v-model="answers.subjective" type="radio" :value="subjective.text" />
-              {{ subjective.text }}.
-            </label>
-          </div>
-
-          <h3 class="pb-2 font-medium">Objective</h3>
-          <div class="flex flex-col gap-1">
-            <label
-              v-for="(objective, index) in data.assessment.objectives"
-              :key="index"
-              class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-            >
-              <input v-model="answers.objective" type="checkbox" :value="objective.text" />
-              {{ objective.text }}.
-            </label>
-          </div>
-        </div>
-
-        <div v-show="step.count === 2">
-          <h3 class="pb-2 font-medium">Choices</h3>
-          <div class="flex flex-col gap-1">
-            <label
-              v-for="(diagnosis, index) in data.nursingDiagnosis.texts"
-              :key="index"
-              class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-            >
-              <input v-model="answers.nursingDiagnosis" type="radio" :value="diagnosis.text" />
-              {{ diagnosis.text }}.
-            </label>
-          </div>
-        </div>
-
-        <div v-show="step.count === 3">
-          <h3 class="pb-2 font-medium">Short Term Goal</h3>
-          <p class="font-medium">{{ data.planning.shortTermGoalsDesc }}:</p>
-          <div class="flex flex-col gap-1">
-            <label
-              v-for="(shortTermGoal, index) in data.planning.shortTermGoals"
-              :key="index"
-              class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-            >
-              <input v-model="answers.shortTermGoal" type="checkbox" :value="shortTermGoal.text" />
-              {{ shortTermGoal.text }}.
-            </label>
-          </div>
-
-          <h3 class="pb-2 font-medium">Long Term Goal</h3>
-          <p class="font-medium">{{ data.planning.longTermGoalsDesc }}:</p>
-          <div class="flex flex-col gap-1">
-            <label
-              v-for="(longTermGoal, index) in data.planning.longTermGoals"
-              :key="index"
-              class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-            >
-              <input v-model="answers.longTermGoal" type="checkbox" :value="longTermGoal.text" />
-              {{ longTermGoal.text }}.
-            </label>
-          </div>
-        </div>
-
-        <div v-show="step.count === 4">
-          <h3 class="pb-2 font-medium">Independent</h3>
-          <div class="flex flex-col gap-1">
-            <label
-              v-for="(independent, index) in data.intervention.independents"
-              :key="index"
-              class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-            >
-              <input v-model="answers.independent" type="checkbox" :value="`${independent.text}::${independent.rationale}`" />
-              <div>
-                {{ independent.text }}. <br />
-                <i>({{ independent.rationale }})</i>
-              </div>
-            </label>
-          </div>
-
-          <h3 class="pb-2 font-medium">Dependent</h3>
-          <div class="flex flex-col gap-1">
-            <label
-              v-for="(dependent, index) in data.intervention.dependents"
-              :key="index"
-              class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-            >
-              <input v-model="answers.dependent" type="checkbox" name="dependent" :value="`${dependent.text}::${dependent.rationale}`" />
-              <div>
-                {{ dependent.text }}. <br />
-                <i>({{ dependent.rationale }})</i>
-              </div>
-            </label>
-          </div>
-        </div>
-      </template>
     </div>
 
     <!-- progress -->

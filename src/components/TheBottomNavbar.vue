@@ -4,11 +4,39 @@ import { useRouter } from 'vue-router'
 import { studentTabStore, toastStore } from '@/store'
 import axios from 'axios'
 
+const userId = localStorage.getItem('ncp_user_id')
 const router = useRouter()
 const modals = ref({
   profileModal: false,
   profileToggle() {
     this.profileModal = !this.profileModal
+  },
+  postTestModal: !JSON.parse(localStorage.getItem('ncp_finished_intro')),
+  async postTestToggle() {
+    this.postTestModal = !this.postTestModal
+
+    toastStore.add({
+      msg: 'Updating information...',
+      duration: 2000
+    })
+
+    await axios
+      .put(`${import.meta.env.VITE_API_DOMAIN}/user/update/${userId}`, {
+        finished_intro: true
+      })
+      .then(() => {
+        localStorage.setItem('ncp_finished_intro', true)
+        toastStore.add({
+          msg: 'Successfully updated.',
+          duration: 4000
+        })
+      })
+      .catch(() => {
+        toastStore.add({
+          msg: 'Update failed',
+          duration: 4000
+        })
+      })
   }
 })
 
@@ -16,7 +44,7 @@ const isLoggingOut = ref(false)
 function logout() {
   isLoggingOut.value = true
   axios
-    .delete('http://localhost:3000/user/logout', {
+    .delete(`${import.meta.env.VITE_API_DOMAIN}/user/logout`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('ncp_token')}`
       }
@@ -50,7 +78,7 @@ const isDeleting = ref(false)
 function deleteAcc() {
   isDeleting.value = true
   axios
-    .delete(`http://localhost:3000/user/delete/${localStorage.getItem('ncp_user_id')}`)
+    .delete(`${import.meta.env.VITE_API_DOMAIN}/user/delete/${userId}`)
     .then(() => {
       localStorage.removeItem('ncp_user_id')
       localStorage.removeItem('ncp_user_section')
@@ -111,6 +139,14 @@ function deleteAcc() {
       </div>
     </div>
   </div>
+
+  <VModal v-model:go-open="modals.postTestModal" :click-outside="false">
+    <div class="flex flex-col gap-2 p-4">
+      <span>Video Introduction for Post Test</span>
+
+      <VButton @click="modals.postTestToggle()" class="justify-center">Close</VButton>
+    </div>
+  </VModal>
 
   <VModal v-model:go-open="modals.profileModal" :click-outside="false">
     <div class="flex flex-col gap-2 p-4">
