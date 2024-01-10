@@ -48,7 +48,7 @@ onMounted(() => {
           <VRadialProgress v-else size="100px" color="success" thickness="12px" :progress="scores[5]" :max-value="100" class="text-xl font-semibold" />
         </div>
         <VButton
-          @click="generatePDF(data.fullName, data.category, data.caseId, data.timesTaken, new Date(data.dateTaken).toLocaleString())"
+          @click="generatePDF(data.name, data.category, data.caseId, data.timesTaken, new Date(data.dateTaken).toLocaleString())"
           start-icon="print"
           class="w-fit"
         >

@@ -57,6 +57,8 @@ export default function generatePDF(name, category, caseNo, timesTaken, dateHand
     }
   })
 
-  let blob = doc.output('blob')
-  window.open(URL.createObjectURL(blob))
+  doc.setProperties({
+    title: 'Hello'
+  })
+  window.open(doc.output('bloburl'), '_blank')
 }

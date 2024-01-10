@@ -128,7 +128,7 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
         <td class="px-6 py-1">
           <div class="flex h-full w-full flex-row items-center justify-center">
             <VButton
-              @click="beforeGeneratePDF(entry.id, entry.fullName, entry.category, entry.caseId, entry.timesTaken, entry.dateTaken)"
+              @click="beforeGeneratePDF(entry.id, entry.name, entry.category, entry.caseId, entry.timesTaken, entry.dateTaken)"
               variant="filled"
               start-icon="print"
               color="success"
