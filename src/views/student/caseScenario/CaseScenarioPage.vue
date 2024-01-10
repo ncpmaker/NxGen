@@ -59,8 +59,8 @@ onMounted(() => {
   axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
     //introduction
     data.introduction.scenario = res.data.scenario
-    data.introduction.imageLink = res.data.image_link
-    data.introduction.audioLink = res.data.audio_link
+    data.introduction.imageLink = res.data.image_link.replace(/dl=0/g, 'raw=1')
+    data.introduction.audioLink = res.data.audio_link.replace(/dl=0/g, 'raw=1')
 
     //assessment
     data.assessment.subjectives = res.data.assessment.subjectives

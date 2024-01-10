@@ -143,11 +143,13 @@ function deleteAcc() {
   <VModal v-model:go-open="modals.postTestModal" :click-outside="false">
     <div class="flex flex-col gap-2 p-4">
       <div class="relative w-full overflow-hidden rounded-2xl pt-[56.25%]">
-        <iframe
-          src="https://drive.google.com/file/d/1SCeWcte7wUk9IQbwmlBVMzVgLqtjd0HL/preview"
-          class="absolute left-0 top-0 h-full w-full"
-          allowfullscreen
-        ></iframe>
+        <video class="absolute left-0 top-0 h-full w-full" controls>
+          <source
+            src="https://www.dropbox.com/scl/fi/ilr9358x8bgmo65usni4h/Mobile-App-Presentation-_-Video-Template.mp4?rlkey=ddsds9sbx2w970vpz7c3g7nk2&raw=1"
+            type="video/mp4"
+          />
+          Your browser does not support HTML video.
+        </video>
       </div>
 
       <VButton @click="modals.postTestToggle()" class="justify-center">Close</VButton>
@@ -161,7 +163,6 @@ function deleteAcc() {
         <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="close" />
       </div>
 
-      <VButton color="primary" class="justify-center">Terms and Conditions</VButton>
       <div class="flex flex-row items-center gap-2">
         <VButton @click="deleteAcc()" :disabled="isDeleting" color="error" class="basis-1/2 justify-center">
           <VLoader v-if="isDeleting" size="16px" thickness="2px" />

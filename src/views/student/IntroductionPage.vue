@@ -45,11 +45,13 @@ const modals = reactive({
   <VModal v-model:go-open="modals.welcomeModal" :click-outside="false">
     <div class="flex flex-col gap-2 p-4">
       <div class="relative w-full overflow-hidden rounded-2xl pt-[56.25%]">
-        <iframe
-          src="https://drive.google.com/file/d/1SCeWcte7wUk9IQbwmlBVMzVgLqtjd0HL/preview"
-          class="absolute left-0 top-0 h-full w-full"
-          allowfullscreen
-        ></iframe>
+        <video class="absolute left-0 top-0 h-full w-full" controls>
+          <source
+            src="https://www.dropbox.com/scl/fi/ilr9358x8bgmo65usni4h/Mobile-App-Presentation-_-Video-Template.mp4?rlkey=ddsds9sbx2w970vpz7c3g7nk2&raw=1"
+            type="video/mp4"
+          />
+          Your browser does not support HTML video.
+        </video>
       </div>
 
       <VButton @click="modals.closeWelcomeToggle()" class="justify-center">Close</VButton>
