@@ -118,19 +118,21 @@ function submit() {
             autocomplete="new-password"
             required
           />
-          <VFormTextbox v-model="formValues.firstName" label="First Name" type="text" required />
-          <VFormTextbox v-model="formValues.lastName" label="Last Name" type="text" required />
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <VFormTextbox v-model="formValues.firstName" label="First Name" type="text" class="sm:w-full" required />
+            <VFormTextbox v-model="formValues.lastName" label="Last Name" type="text" class="sm:w-full" required />
+          </div>
           <VSelect v-model="formValues.section" label="Class Section" :options="['1A', '1B', '1C', '1D']" />
+        </div>
 
+        <div class="flex flex-col gap-2 px-4">
           <!-- Terms and conditions -->
           <div class="flex flex-row gap-1 text-sm">
             <input type="checkbox" v-model="isAgreeing" />
             I Agree to the
             <VLinkButton variant="button" type="button" @click="tacModal = !tacModal"> Terms and Conditions </VLinkButton>
           </div>
-        </div>
 
-        <div class="flex flex-col gap-2 px-4">
           <VButton :disabled="!isAgreeing || isLoading" type="submit" class="justify-center">
             <VLoader v-if="isLoading" size="16px" thickness="2px" />
             <span v-else>Create Account</span>

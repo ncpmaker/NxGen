@@ -1,25 +1,28 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
-import { adminTabStore, toastStore } from '@/store'
+import { onMounted, ref } from 'vue'
+import { adminTabStore, toastStore, scrollStore } from '@/store'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
+//others
 const router = useRouter()
 
-const modals = reactive({
-  profileModal: false,
-  profileToggle() {
-    this.profileModal = !this.profileModal
+const modals = ref({
+  settingsModal: false,
+  settingsToggle() {
+    this.settingsModal = !this.settingsModal
   }
 })
 
+//home
 function goHome() {
   adminTabStore.set(0)
-
   router.push({ name: 'admin dashboard' })
 }
 
+//logout
 const isLoggingOut = ref(false)
+
 function logout() {
   isLoggingOut.value = true
   axios
@@ -41,7 +44,9 @@ function logout() {
     .catch((err) => console.log(err))
 }
 
-const enabledSections = reactive({
+//Enabled sections
+const isUpdating = ref(false)
+const enabledSections = ref({
   A1: false,
   B1: false,
   C1: false,
@@ -50,22 +55,21 @@ const enabledSections = reactive({
 
 onMounted(async () => {
   await axios.get(`${import.meta.env.VITE_API_DOMAIN}/enable-post-test/get`).then((res) => {
-    enabledSections.A1 = res.data.A1
-    enabledSections.B1 = res.data.B1
-    enabledSections.C1 = res.data.C1
-    enabledSections.D1 = res.data.D1
+    enabledSections.value.A1 = res.data.A1
+    enabledSections.value.B1 = res.data.B1
+    enabledSections.value.C1 = res.data.C1
+    enabledSections.value.D1 = res.data.D1
   })
 })
 
-const isUpdating = ref(false)
 function updateEnablePostTest() {
   isUpdating.value = true
   axios
     .post(`${import.meta.env.VITE_API_DOMAIN}/enable-post-test`, {
-      A1: enabledSections.A1,
-      B1: enabledSections.B1,
-      C1: enabledSections.C1,
-      D1: enabledSections.D1
+      A1: enabledSections.value.A1,
+      B1: enabledSections.value.B1,
+      C1: enabledSections.value.C1,
+      D1: enabledSections.value.D1
     })
     .then(() => {
       isUpdating.value = false
@@ -78,7 +82,7 @@ function updateEnablePostTest() {
 </script>
 
 <template>
-  <div :class="{ 'overflow-y-scroll': $route.name !== 'admin login' }" class="flex h-[100svh] flex-col">
+  <div :class="{ 'overflow-y-scroll': $route.name !== 'admin login' }" class="flex h-[100svh] flex-col" ref="scrollStore">
     <div v-if="$route.name !== 'admin login'" class="sticky top-0 z-20 grid grid-cols-3 items-center border-b bg-blue-50 px-6 py-2 shadow-lg">
       <!-- logo -->
       <div>
@@ -115,7 +119,7 @@ function updateEnablePostTest() {
 
       <!-- profile -->
       <div class="flex flex-row items-center justify-end gap-4">
-        <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="settings" />
+        <VIconButton @click="modals.settingsToggle()" variant="ghost" size="lg" icon="settings" />
       </div>
     </div>
 
@@ -123,12 +127,12 @@ function updateEnablePostTest() {
       <slot />
     </div>
 
-    <VModal v-model:go-open="modals.profileModal" :click-outside="false">
+    <VModal v-model:go-open="modals.settingsModal" :click-outside="false">
       <div class="flex flex-col gap-2 p-4">
         <div class="flex flex-row items-center justify-between">
           <h2>Settings</h2>
 
-          <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="close" />
+          <VIconButton @click="modals.settingsToggle()" variant="ghost" size="lg" icon="close" />
         </div>
 
         <div class="flex flex-row items-center justify-between px-6">
@@ -159,7 +163,9 @@ function updateEnablePostTest() {
             <span v-else>Update</span>
           </VButton>
         </div>
+
         <hr class="m-2 border-stone-400" />
+
         <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="justify-center">
           <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
           <span v-else>Logout</span>

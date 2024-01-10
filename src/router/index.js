@@ -11,8 +11,6 @@ import EvaluationPage from '@/views/student/caseScenario/EvaluationPage.vue'
 import CaseScenarioPage from '@/views/student/caseScenario/CaseScenarioPage.vue'
 import TestsPage from '@/views/student/TestsPage.vue'
 
-const userId = localStorage.getItem('ncp_user_id')
-
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -22,7 +20,7 @@ const router = createRouter({
     },
     {
       path: '/home',
-      redirect: { name: 'home', params: { userId: userId } }
+      redirect: { name: 'home', params: { userId: localStorage.getItem('ncp_user_id') } }
     },
     {
       path: '/admin/home',
@@ -49,7 +47,7 @@ const router = createRouter({
         const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
 
         if (finishedPreTest) {
-          return { name: 'home', params: { userId: userId }, replace: true }
+          return { name: 'home', params: { userId: localStorage.getItem('ncp_user_id') }, replace: true }
         }
       }
     },
@@ -61,8 +59,8 @@ const router = createRouter({
       beforeEnter: (to) => {
         const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
 
-        if (to.params.userId !== userId) {
-          return { name: 'home', params: { userId: userId }, replace: true }
+        if (to.params.userId !== localStorage.getItem('ncp_user_id')) {
+          return { name: 'home', params: { userId: localStorage.getItem('ncp_user_id') }, replace: true }
         }
 
         if (!finishedPreTest) {
@@ -79,7 +77,7 @@ const router = createRouter({
         const finishedPreTest = JSON.parse(localStorage.getItem('ncp_finished_pre_test'))
 
         if (finishedPreTest) {
-          return { name: 'home', params: { userId: userId }, replace: true }
+          return { name: 'home', params: { userId: localStorage.getItem('ncp_user_id') }, replace: true }
         } else {
           localStorage.setItem('ncp_pre_test_session', true)
         }
@@ -95,7 +93,7 @@ const router = createRouter({
         const onPostTest = JSON.parse(localStorage.getItem('ncp_post_test_session'))
 
         if ((finishedPostTest || !goToPostTestStore.value) && !onPostTest) {
-          return { name: 'home', params: { userId: userId }, replace: true }
+          return { name: 'home', params: { userId: localStorage.getItem('ncp_user_id') }, replace: true }
         } else {
           localStorage.setItem('ncp_post_test_session', true)
         }
@@ -200,7 +198,7 @@ router.beforeEach(async (to) => {
       }
     } else {
       if (isAuth) {
-        return { name: 'home', params: { userId: userId }, replace: true }
+        return { name: 'home', params: { userId: localStorage.getItem('ncp_user_id') }, replace: true }
       }
     }
   } else if (to.meta.auth.role === 'admin') {
@@ -225,7 +223,7 @@ async function checkAuth(role) {
   isAuthenticated = await axios
     .post(
       `${import.meta.env.VITE_API_DOMAIN}/auth/${role === 'student' ? 'student' : role === 'admin' ? 'admin' : ''}`,
-      { ...(role === 'student' ? { userId: userId } : role === 'admin' ? {} : {}) },
+      { ...(role === 'student' ? { userId: localStorage.getItem('ncp_user_id') } : role === 'admin' ? {} : {}) },
       {
         headers: {
           Authorization: `Bearer ${token}`

@@ -196,9 +196,9 @@ function save() {
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Assessment Section</h2>
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
-        <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Subjectives *</span>
-          <span class="">Correct</span>
+          <span class="text-neutral-600">Correct</span>
           <span class="basis-[32px]"></span>
         </div>
 
@@ -226,9 +226,9 @@ function save() {
 
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
-        <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Objectives *</span>
-          <span class="">Correct</span>
+          <span class="text-neutral-600">Correct</span>
           <span class="basis-[32px]"></span>
         </div>
 
@@ -259,9 +259,9 @@ function save() {
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Nursing Diagnosis Section</h2>
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
-        <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Diagnoses *</span>
-          <span class="">Correct</span>
+          <span class="text-neutral-600">Correct</span>
           <span class="basis-[32px]"></span>
         </div>
 
@@ -301,9 +301,9 @@ function save() {
           required
         />
 
-        <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Short Term Goals *</span>
-          <span class="">Correct</span>
+          <span class="text-neutral-600">Correct</span>
           <span class="basis-[32px]"></span>
         </div>
 
@@ -340,9 +340,9 @@ function save() {
           required
         />
 
-        <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Long Term Goals *</span>
-          <span class="">Correct</span>
+          <span class="text-neutral-600">Correct</span>
           <span class="basis-[32px]"></span>
         </div>
 
@@ -371,9 +371,9 @@ function save() {
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Invervention and Rationale Section</h2>
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
-        <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Independents *</span>
-          <span class="">Correct</span>
+          <span class="text-neutral-600">Correct</span>
           <span class="basis-[32px]"></span>
         </div>
 
@@ -381,7 +381,10 @@ function save() {
           <div v-for="(choice, index) in independents" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
               <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
-              <VTextbox v-model="choice.rationale" type="text" class="w-full italic" :placeholder="'Rationale ' + (index + 1)" required />
+              <div class="flex flex-row items-center gap-2">
+                <i>Rationale:</i>
+                <VTextbox v-model="choice.rationale" type="text" class="w-full font-normal italic" :placeholder="'Rationale ' + (index + 1)" required />
+              </div>
             </div>
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
@@ -404,9 +407,9 @@ function save() {
 
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
-        <div class="flex w-full flex-row items-center place-self-start text-sm text-neutral-600 lg:text-base">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Dependents *</span>
-          <span class="">Correct</span>
+          <span class="text-neutral-600">Correct</span>
           <span class="basis-[32px]"></span>
         </div>
 
@@ -414,7 +417,10 @@ function save() {
           <div v-for="(choice, index) in dependents" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
               <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
-              <VTextbox v-model="choice.rationale" type="text" class="w-full italic" :placeholder="'Rationale ' + (index + 1)" required />
+              <div class="flex flex-row items-center gap-2">
+                <i>Rationale:</i>
+                <VTextbox v-model="choice.rationale" type="text" class="w-full font-normal italic" :placeholder="'Rationale ' + (index + 1)" required />
+              </div>
             </div>
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">

@@ -142,7 +142,13 @@ function deleteAcc() {
 
   <VModal v-model:go-open="modals.postTestModal" :click-outside="false">
     <div class="flex flex-col gap-2 p-4">
-      <span>Video Introduction for Post Test</span>
+      <div class="relative w-full overflow-hidden rounded-2xl pt-[56.25%]">
+        <iframe
+          src="https://drive.google.com/file/d/1SCeWcte7wUk9IQbwmlBVMzVgLqtjd0HL/preview"
+          class="absolute left-0 top-0 h-full w-full"
+          allowfullscreen
+        ></iframe>
+      </div>
 
       <VButton @click="modals.postTestToggle()" class="justify-center">Close</VButton>
     </div>

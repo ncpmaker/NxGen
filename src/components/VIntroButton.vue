@@ -7,6 +7,10 @@ const props = defineProps({
   desc: {
     type: String,
     default: null
+  },
+  step: {
+    type: Number,
+    default: 1
   }
 })
 </script>
@@ -16,13 +20,13 @@ const props = defineProps({
     class="group inline-grid w-full min-w-0 select-none auto-cols-[max-content_auto_max-content] grid-flow-col flex-row items-center rounded-2xl bg-blue-200 outline-none hover:enabled:bg-blue-300 active:enabled:bg-blue-400 disabled:opacity-50"
   >
     <div
-      class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-blue-400 text-4xl font-bold group-hover:enabled:bg-blue-500 group-active:enabled:enabled:bg-blue-600"
+      class="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-blue-400 text-4xl font-bold group-hover:enabled:bg-blue-500 group-active:enabled:bg-blue-600 sm:h-[88px] sm:w-[88px] sm:text-5xl"
     >
-      VD
+      {{ props.step }}
     </div>
     <div class="flex h-full w-full min-w-0 flex-col justify-center px-4">
-      <h3 class="truncate text-start leading-none">{{ props.title }}</h3>
-      <span class="text-start text-sm leading-none">{{ props.desc }}</span>
+      <h3 class="truncate text-start leading-none sm:text-[24px]">{{ props.title }}</h3>
+      <span class="text-start text-sm leading-none sm:text-base">{{ props.desc }}</span>
     </div>
 
     <div

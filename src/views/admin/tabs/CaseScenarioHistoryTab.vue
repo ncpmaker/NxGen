@@ -1,37 +1,75 @@
 <script setup>
-import { onMounted, ref, reactive, watchEffect } from 'vue'
+import { onMounted, ref, watchEffect } from 'vue'
+import { scrollStore } from '@/store'
 import generatePDF from '@/assets/scripts/pdf'
 import debounce from '@/assets/scripts/debounce'
 import axios from 'axios'
 
-const histories = ref(null)
+//get case scenario history
 const data = ref(null)
-const search = reactive({
-  value: '',
+const history = ref([])
+const lastFetch = ref([])
+const isLoading = ref(true)
+const moreLoading = ref(true)
+const moreLoadingRef = ref(null)
+const lastID = ref(null)
+const search = ref({
+  text: '',
   section: 'All',
   category: 'All'
 })
-const isLoading = ref(true)
-const getHistory = debounce((value, section, category) => {
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/search`, {
-      search: value,
-      section: section,
-      category: category
-    })
-    .then((res) => {
-      histories.value = res.data
-      isLoading.value = false
-    })
+
+const getHistory = debounce((text, section, category) => {
+  if (lastFetch.value.length === 50 || lastFetch.value.length === 0) {
+    axios
+      .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/search`, {
+        search: text,
+        section: section,
+        category: category,
+        cursor: lastID.value
+      })
+      .then((res) => {
+        lastFetch.value = res.data
+        history.value.push(...lastFetch.value)
+        isLoading.value = false
+
+        if (res.data.length > 0) {
+          lastID.value = res.data[res.data.length - 1].id
+        }
+
+        if (res.data.length < 50) {
+          moreLoading.value = false
+        }
+      })
+  }
 })
 
 onMounted(() => {
   watchEffect(() => {
+    lastFetch.value = []
+    history.value = []
     isLoading.value = true
-    getHistory(search.value, search.section, search.category)
+    lastID.value = null
+    getHistory(search.value.text, search.value.section, search.value.category)
+  })
+
+  //scroll checking
+  let ticking = false
+  scrollStore.value.addEventListener('scroll', () => {
+    let vpHeight = window.innerHeight
+    let moreLoadingRectY = moreLoadingRef.value.getBoundingClientRect().top + moreLoadingRef.value.offsetHeight / 2
+    let isVisible = moreLoadingRectY < vpHeight
+    if (isVisible && !ticking) {
+      window.requestAnimationFrame(async () => {
+        getHistory()
+        ticking = false
+      })
+      ticking = true
+    }
   })
 })
 
+//generate pdf
 function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
   axios
     .get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${id}/get/`)
@@ -48,7 +86,7 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
   <div class="w-full">
     <div class="sticky top-[61px] flex w-full flex-row items-center gap-6 bg-blue-50 px-4 py-2">
       <h3>Case Scenario History</h3>
-      <VFormTextbox v-model="search.value" placeholder="Search for Name or Case ID" class="w-72" />
+      <VFormTextbox v-model="search.text" placeholder="Search for Name or Case ID" class="w-72" />
       <div class="flex flex-row items-center gap-2">
         <span class="text-sm text-neutral-600 lg:text-base">Section</span>
         <VSelect v-model="search.section" :options="['All', '1A', '1B', '1C', '1D']" class="w-20" />
@@ -79,18 +117,18 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
         </td>
       </tr>
 
-      <tr v-else-if="histories.length > 0" v-for="(student, index) in histories" :key="index" class="text-center odd:bg-blue-100">
+      <tr v-else-if="history.length > 0" v-for="(entry, index) in history" :key="index" class="text-center odd:bg-blue-100">
         <td class="w-16 text-center">{{ index + 1 }}</td>
-        <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ student.name }}</td>
-        <td class="px-6 py-1 text-start">{{ student.section }}</td>
-        <td class="px-6 py-1 text-start">{{ student.category }}</td>
-        <td class="px-6 py-1 text-start">{{ student.caseId }}</td>
-        <td class="px-6 py-1 text-start">{{ student.timesTaken }}</td>
-        <td class="px-6 py-1 text-start">{{ new Date(student.dateTaken).toLocaleString() }}</td>
+        <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ entry.name }}</td>
+        <td class="px-6 py-1 text-start">{{ entry.section }}</td>
+        <td class="px-6 py-1 text-start">{{ entry.category }}</td>
+        <td class="px-6 py-1 text-start">{{ entry.caseId }}</td>
+        <td class="px-6 py-1 text-start">{{ entry.timesTaken }}</td>
+        <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString() }}</td>
         <td class="px-6 py-1">
           <div class="flex h-full w-full flex-row items-center justify-center">
             <VButton
-              @click="beforeGeneratePDF(student.id, student.fullName, student.category, student.caseId, student.timesTaken, student.dateTaken)"
+              @click="beforeGeneratePDF(entry.id, entry.fullName, entry.category, entry.caseId, entry.timesTaken, entry.dateTaken)"
               variant="filled"
               start-icon="print"
               color="success"
@@ -104,6 +142,14 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
       <tr v-else>
         <td colspan="8">
           <div class="flex w-full items-center justify-center py-6">No entries found</div>
+        </td>
+      </tr>
+
+      <tr v-show="moreLoading && !isLoading" ref="moreLoadingRef">
+        <td colspan="8">
+          <div class="flex w-full items-center justify-center py-6">
+            <VLoader size="40px" thickness="2px" />
+          </div>
         </td>
       </tr>
     </table>

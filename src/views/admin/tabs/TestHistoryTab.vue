@@ -1,45 +1,83 @@
 <script setup>
-import { onMounted, ref, reactive, watchEffect } from 'vue'
+import { onMounted, ref, watchEffect } from 'vue'
+import { scrollStore } from '@/store'
 import debounce from '@/assets/scripts/debounce'
 import axios from 'axios'
 
-const histories = ref(null)
-const search = reactive({
-  value: '',
+//Get test history
+const history = ref([])
+const lastFetch = ref([])
+const isLoading = ref(true)
+const moreLoading = ref(true)
+const moreLoadingRef = ref(null)
+const lastID = ref(null)
+const search = ref({
+  text: '',
   section: 'All',
   type: 'All'
 })
-const isLoading = ref(true)
-const getHistory = debounce((value, section, type) => {
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/test-history/search`, {
-      search: value,
-      section: section,
-      testType: type === 'Pre test' ? 'PRETEST' : type === 'Post test' ? 'POSTTEST' : 'All'
-    })
-    .then((res) => {
-      histories.value = res.data
-      isLoading.value = false
-    })
+
+const getHistory = debounce((text, section, type) => {
+  if (lastFetch.value.length === 50 || lastFetch.value.length === 0) {
+    axios
+      .post(`${import.meta.env.VITE_API_DOMAIN}/test-history/search`, {
+        search: text,
+        section: section,
+        testType: type === 'Pre test' ? 'PRETEST' : type === 'Post test' ? 'POSTTEST' : 'All',
+        cursor: lastID.value
+      })
+      .then((res) => {
+        lastFetch.value = res.data
+        history.value.push(...lastFetch.value)
+        isLoading.value = false
+
+        if (res.data.length > 0) {
+          lastID.value = res.data[res.data.length - 1].id
+        }
+
+        if (res.data.length < 50) {
+          moreLoading.value = false
+        }
+      })
+  }
 })
 
 onMounted(() => {
   watchEffect(() => {
-    getHistory(search.value, search.section, search.type)
+    lastFetch.value = []
+    history.value = []
     isLoading.value = true
+    lastID.value = null
+    getHistory(search.value.text, search.value.section, search.value.type)
+  })
+
+  //scroll checking
+  let ticking = false
+  scrollStore.value.addEventListener('scroll', () => {
+    let vpHeight = window.innerHeight
+    let moreLoadingRectY = moreLoadingRef.value.getBoundingClientRect().top + moreLoadingRef.value.offsetHeight / 2
+    let isVisible = moreLoadingRectY < vpHeight
+    if (isVisible && !ticking) {
+      window.requestAnimationFrame(async () => {
+        getHistory()
+        ticking = false
+      })
+      ticking = true
+    }
   })
 })
 
+//show entry test answers
 const answersData = ref({
   answers: null,
   name: '',
   testType: ''
 })
-const modals = reactive({
+const modals = ref({
   showAnswersModal: false,
-  showAnswersOpen(studentAnswers, name, testType) {
+  showAnswersOpen(entryAnswers, name, testType) {
     answersData.value = {
-      answers: studentAnswers,
+      answers: entryAnswers,
       name: name,
       testType: testType
     }
@@ -55,7 +93,7 @@ const modals = reactive({
   <div class="w-full">
     <div class="sticky top-[61px] flex w-full flex-row items-center gap-6 bg-blue-50 px-4 py-2">
       <h3>Test History</h3>
-      <VFormTextbox v-model="search.value" placeholder="Search for Name" class="w-72" />
+      <VFormTextbox v-model="search.text" placeholder="Search for Name" class="w-72" />
       <div class="flex flex-row items-center gap-2">
         <span class="text-sm text-neutral-600 lg:text-base">Section</span>
         <VSelect v-model="search.section" :options="['All', '1A', '1B', '1C', '1D']" class="w-20" />
@@ -86,17 +124,17 @@ const modals = reactive({
         </td>
       </tr>
 
-      <tr v-else-if="histories.length > 0" v-for="(student, index) in histories" :key="index" class="text-center odd:bg-blue-100">
+      <tr v-else-if="history.length > 0" v-for="(entry, index) in history" :key="index" class="text-center odd:bg-blue-100">
         <td class="w-16 text-center">{{ index + 1 }}</td>
-        <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ student.name }}</td>
-        <td class="px-6 py-1 text-start">{{ student.section }}</td>
-        <td class="px-6 py-1 text-start">{{ student.testType }}</td>
-        <td class="px-6 py-1 text-start">{{ student.score }}</td>
-        <td class="px-6 py-1 text-start">{{ new Date(student.dateTaken).toLocaleString() }}</td>
+        <td class="max-w-[200px] truncate px-6 py-1 text-start">{{ entry.name }}</td>
+        <td class="px-6 py-1 text-start">{{ entry.section }}</td>
+        <td class="px-6 py-1 text-start">{{ entry.testType }}</td>
+        <td class="px-6 py-1 text-start">{{ entry.score }}</td>
+        <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString() }}</td>
         <td class="px-6 py-1">
           <div class="flex h-full w-full flex-row items-center justify-center">
             <VButton
-              @click="modals.showAnswersOpen(student.answers, student.name, student.testType)"
+              @click="modals.showAnswersOpen(entry.answers, entry.name, entry.testType)"
               variant="filled"
               start-icon="visibility"
               color="success"
@@ -108,8 +146,16 @@ const modals = reactive({
       </tr>
 
       <tr v-else>
-        <td colspan="8">
+        <td colspan="7">
           <div class="flex w-full items-center justify-center py-6">No entries found</div>
+        </td>
+      </tr>
+
+      <tr v-show="moreLoading && !isLoading" ref="moreLoadingRef">
+        <td colspan="7">
+          <div class="flex w-full items-center justify-center py-6">
+            <VLoader size="40px" thickness="2px" />
+          </div>
         </td>
       </tr>
     </table>

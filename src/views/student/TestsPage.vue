@@ -144,7 +144,7 @@ function submit() {
           <label
             v-for="(answer, subIndex) in item.possibleAnswers"
             :key="subIndex"
-            class="flex flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+            class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
           >
             <input v-if="item.type === 'single'" type="radio" :name="`question_${index + 1}`" required :value="answer.text" />
             <input v-else-if="item.type === 'multiple'" type="checkbox" :name="`question_${index + 1}`" :value="answer.text" />

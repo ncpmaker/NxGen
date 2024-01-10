@@ -28,3 +28,5 @@ export const taskStore = reactive({
   postTest: false,
   caseScenario: false
 })
+
+export const scrollStore = ref(null)
