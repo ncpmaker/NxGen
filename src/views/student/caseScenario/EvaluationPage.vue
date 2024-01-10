@@ -186,4 +186,3 @@ onMounted(() => {
 </template>
 
 <style scoped></style>
-../../../public/scripts/pdf
