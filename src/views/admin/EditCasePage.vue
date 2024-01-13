@@ -122,7 +122,7 @@ function create() {
       isCreating.value = false
       router.push({ name: 'admin case scenarios', params: { category: 'neuro' } })
       toastStore.add({
-        msg: 'Case created.',
+        msg: 'Case created',
         duration: 4000
       })
     })
@@ -160,7 +160,7 @@ function save() {
     .then(() => {
       isSaving.value = false
       toastStore.add({
-        msg: 'Case updated.',
+        msg: 'Case updated',
         duration: 4000
       })
     })

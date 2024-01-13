@@ -50,12 +50,12 @@ function submit() {
       })
       .then(() => {
         toastStore.add({
-          msg: 'Account created successfully.',
+          msg: 'Account created successfully',
           duration: 2000
         })
 
         toastStore.add({
-          msg: 'Please wait for the account approval.',
+          msg: 'Please wait for the account approval',
           duration: 4000
         })
 
@@ -68,7 +68,7 @@ function submit() {
             duration: 2000
           })
 
-          states.value.email.message = 'User already exists!'
+          states.value.email.message = 'Email is already used'
           states.value.email.color = 'error'
         } else {
           toastStore.add({
@@ -80,7 +80,7 @@ function submit() {
       })
   } else {
     states.value.password.color = 'error'
-    states.value.confirmPassword.message = 'Passwords are not the same!'
+    states.value.confirmPassword.message = 'Passwords are not the same'
     states.value.confirmPassword.color = 'error'
   }
 }
@@ -91,7 +91,7 @@ function submit() {
     <div class="flex w-full flex-col gap-2 sm:max-w-[600px] sm:p-4">
       <h1 class="px-4 drop-shadow-lg">Create an account</h1>
       <form @submit.prevent="submit()" class="flex w-full flex-col gap-2 overflow-hidden rounded-t-2xl bg-blue-50 pb-4 sm:rounded-2xl">
-        <div class="flex max-h-[calc(480px-80px)] flex-col gap-2 overflow-y-auto px-4 pt-6">
+        <div class="flex max-h-[360px] flex-col gap-2 overflow-y-auto px-4 pt-6 sm:max-h-[calc(480px-72pxpx)]">
           <VFormTextbox
             v-model="formValues.email"
             :color="states.email.color"
@@ -128,7 +128,7 @@ function submit() {
         <div class="flex flex-col gap-2 px-4">
           <!-- Terms and conditions -->
           <div class="flex flex-row gap-1 text-sm">
-            <input type="checkbox" v-model="isAgreeing" />
+            <input v-model="isAgreeing" type="checkbox" class="cursor-pointer" />
             I Agree to the
             <VLinkButton variant="button" type="button" @click="tacModal = !tacModal"> Terms and Conditions </VLinkButton>
           </div>

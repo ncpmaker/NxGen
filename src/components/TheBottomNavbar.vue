@@ -75,38 +75,46 @@ function logout() {
 }
 
 const isDeleting = ref(false)
-function deleteAcc() {
-  isDeleting.value = true
-  axios
-    .delete(`${import.meta.env.VITE_API_DOMAIN}/user/delete/${userId}`)
-    .then(() => {
-      localStorage.removeItem('ncp_user_id')
-      localStorage.removeItem('ncp_user_section')
-      localStorage.removeItem('ncp_token')
-      localStorage.removeItem('ncp_finished_pre_test')
-      localStorage.removeItem('ncp_finished_post_test')
-      localStorage.removeItem('ncp_pre_test_session')
-      localStorage.removeItem('ncp_post_test_session')
-      localStorage.removeItem('ncp_case_scenario_category')
-      localStorage.removeItem('ncp_case_scenario_number')
-      localStorage.removeItem('ncp_case_scenario_id')
-      localStorage.removeItem('ncp_case_scenario_session')
-      localStorage.removeItem('ncp_case_scenario_step')
-      localStorage.removeItem('ncp_case_scenario_answers')
-      router.push({ name: 'login' })
-      studentTabStore.set(0)
+const deleteDialog = ref({
+  state: false,
+  toggle() {
+    this.state = !this.state
+  },
+  confirm() {
+    isDeleting.value = true
+    this.toggle()
 
-      toastStore.add({
-        msg: 'Account deleted successfully',
-        duration: 4000
+    axios
+      .delete(`${import.meta.env.VITE_API_DOMAIN}/user/delete/${userId}`)
+      .then(() => {
+        localStorage.removeItem('ncp_user_id')
+        localStorage.removeItem('ncp_user_section')
+        localStorage.removeItem('ncp_token')
+        localStorage.removeItem('ncp_finished_pre_test')
+        localStorage.removeItem('ncp_finished_post_test')
+        localStorage.removeItem('ncp_pre_test_session')
+        localStorage.removeItem('ncp_post_test_session')
+        localStorage.removeItem('ncp_case_scenario_category')
+        localStorage.removeItem('ncp_case_scenario_number')
+        localStorage.removeItem('ncp_case_scenario_id')
+        localStorage.removeItem('ncp_case_scenario_session')
+        localStorage.removeItem('ncp_case_scenario_step')
+        localStorage.removeItem('ncp_case_scenario_answers')
+        router.push({ name: 'login' })
+        studentTabStore.set(0)
+
+        toastStore.add({
+          msg: 'Account deleted successfully',
+          duration: 4000
+        })
       })
-    })
-    .catch((err) => {
-      isLoggingOut.value = false
-      isDeleting.value = false
-      console.log(err)
-    })
-}
+      .catch((err) => {
+        isLoggingOut.value = false
+        isDeleting.value = false
+        console.log(err)
+      })
+  }
+})
 </script>
 
 <template>
@@ -125,8 +133,8 @@ function deleteAcc() {
     <div class="flex w-full shrink-0 flex-row items-center justify-between overflow-hidden border-t bg-blue-50 px-3 font-medium">
       <div class="mt-0 flex w-full flex-row items-center justify-around gap-4">
         <button @click="studentTabStore.set(0)" :class="[studentTabStore.index === 0 ? 'active' : '']" class="nav-points">
-          <span class="material-icons-round"> rectangle </span>
-          <span>Post Test</span>
+          <span class="material-icons-round"> space_dashboard </span>
+          <span>Dashboard</span>
         </button>
         <button @click="studentTabStore.set(1)" :class="[studentTabStore.index === 1 ? 'active' : '']" class="nav-points">
           <span class="material-icons"> view_stream </span>
@@ -163,18 +171,29 @@ function deleteAcc() {
         <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="close" />
       </div>
 
-      <div class="flex flex-row items-center gap-2">
-        <VButton @click="deleteAcc()" :disabled="isDeleting" color="error" class="basis-1/2 justify-center">
-          <VLoader v-if="isDeleting" size="16px" thickness="2px" />
-          <span v-else>Delete Account</span>
-        </VButton>
-        <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="basis-1/2 justify-center">
-          <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
-          <span v-else>Logout</span>
-        </VButton>
-      </div>
+      <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="justify-center">
+        <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
+        <span v-else>Logout</span>
+      </VButton>
+      <VButton @click="deleteDialog.toggle()" :disabled="isDeleting" color="error" class="justify-center">
+        <VLoader v-if="isDeleting" size="16px" thickness="2px" />
+        <span v-else>Delete Account</span>
+      </VButton>
+      <p class="flex flex-row items-center gap-1 text-sm text-neutral-500">
+        <span class="material-icons-round"> warning </span>
+        This will delete all of the data related to you including your test and case scenario histories.
+      </p>
     </div>
   </VModal>
+
+  <VDialog
+    v-model:go-open="deleteDialog.state"
+    header="Account Deletion"
+    body="Do you really want to delete your account?"
+    cancel-label="No"
+    confirm-label="Yes"
+    @confirm="deleteDialog.confirm()"
+  />
 </template>
 
 <style scoped>

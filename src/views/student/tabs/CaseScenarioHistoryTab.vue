@@ -21,7 +21,7 @@ onMounted(() => {
     </template>
 
     <template v-else>
-      <div v-if="histories.length !== 0" class="flex flex-col px-4 pb-[69px]">
+      <div v-if="histories.length !== 0" class="flex flex-col px-4 pb-[69px] xl:px-24">
         <template v-for="(history, index) in histories" :key="index">
           <router-link
             :to="{ name: 'evaluation', params: { id: history.id } }"

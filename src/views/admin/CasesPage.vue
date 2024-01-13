@@ -14,15 +14,36 @@ onMounted(() => {
   })
 })
 
-function onDelete(id, index) {
-  axios.delete(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/delete/${route.params.category}/${id}`).then(() => {
-    cases.value.splice(index, 1)
+const isDeleting = ref(false)
+const deleteDialog = ref({
+  state: false,
+  id: null,
+  index: null,
+  toggle(id, index) {
+    this.state = !this.state
+    this.id = id
+    this.index = index
+  },
+  confirm() {
+    this.state = !this.state
+
     toastStore.add({
-      msg: 'Case deleted.',
-      duration: 4000
+      msg: 'Deleting Case',
+      duration: 1000
     })
-  })
-}
+
+    isDeleting.value = true
+
+    axios.delete(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/delete/${route.params.category}/${this.id}`).then(() => {
+      cases.value.splice(this.index, 1)
+      isDeleting.value = false
+      toastStore.add({
+        msg: 'Case deleted',
+        duration: 4000
+      })
+    })
+  }
+})
 </script>
 
 <template>
@@ -45,20 +66,39 @@ function onDelete(id, index) {
     <div v-if="isLoading" class="flex items-center justify-center py-4">
       <VLoader size="32px" thickness="2px" />
     </div>
+
     <div
       v-else
       v-for="(item, index) in cases"
       :key="item.id"
-      class="flex flex-row items-center rounded-2xl border border-neutral-400 pr-5 transition-colors hover:bg-neutral-400/20"
+      class="flex flex-row items-center rounded-2xl border border-neutral-400 pr-10 transition-colors hover:bg-neutral-400/20"
     >
       <router-link
         :to="{ name: 'admin edit case', params: { number: index + 1, id: item.id, category: 'neuro' } }"
         class="grow py-4 pl-10 text-xl font-medium"
         >Case Scenario {{ index + 1 }}</router-link
       >
-      <VIconButton @click="onDelete(item.id, index)" variant="ghost" color="error" size="lg" icon="delete" class="shrink-0" />
+
+      <VIconButton
+        @click="deleteDialog.toggle(item.id, index)"
+        :disabled="isDeleting"
+        variant="ghost"
+        color="error"
+        size="lg"
+        icon="delete"
+        class="shrink-0"
+      />
     </div>
   </div>
+
+  <VDialog
+    v-model:go-open="deleteDialog.state"
+    header="Account Deletion"
+    body="Do you really want to delete your account?"
+    cancel-label="No"
+    confirm-label="Yes"
+    @confirm="deleteDialog.confirm()"
+  />
 </template>
 
 <style scoped></style>

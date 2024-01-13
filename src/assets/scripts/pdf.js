@@ -3,7 +3,8 @@ import 'jspdf-autotable'
 import bsuLogo from '@/assets/logos/bulsu-logo.png'
 import conLogo from '@/assets/logos/CON-logo.png'
 
-export default function generatePDF(name, category, caseNo, timesTaken, dateHandled) {
+export default function generatePDF(name, category, caseNo, timesTaken, dateHandled, scores) {
+  let tableHeight
   let bulsuImg = new Image()
   let conImg = new Image()
   bulsuImg.src = bsuLogo
@@ -54,11 +55,18 @@ export default function generatePDF(name, category, caseNo, timesTaken, dateHand
       5: {
         cellWidth: 32.56 / 6
       }
-    }
+    },
+    didDrawPage: (d) => (tableHeight = d.cursor.y)
   })
 
-  doc.setProperties({
-    title: 'Hello'
-  })
-  window.open(doc.output('bloburl'), '_blank')
+  doc
+    .setFont(undefined, 'italic')
+    .text(
+      `Assessment - ${scores[0]}%        Nursing Diagnosis - ${scores[1]}%        Planning - ${scores[2]}%        Intervention - ${scores[3]}%        Evaluation - ${scores[4]}%        Overall - ${scores[5]}%`,
+      pageWidth / 2,
+      tableHeight + 0.75,
+      { align: 'center' }
+    )
+
+  window.open(doc.output('bloburl'))
 }

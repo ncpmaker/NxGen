@@ -96,24 +96,21 @@ function updateEnablePostTest() {
           :class="[adminTabStore.index === 0 ? 'active' : '']"
           class="relative flex items-center justify-center rounded-lg px-6 py-1 transition-colors hover:bg-neutral-400/20"
         >
-          <span v-if="adminTabStore.index === 0" class="material-icons text-3xl"> space_dashboard </span>
-          <span v-else class="material-icons-outlined text-3xl"> space_dashboard </span>
+          <span class="material-icons text-3xl"> space_dashboard </span>
         </button>
         <button
           @click="adminTabStore.set(1)"
           :class="[adminTabStore.index === 1 ? 'active' : '']"
           class="relative flex items-center justify-center rounded-lg px-6 py-1 transition-colors hover:bg-neutral-400/20"
         >
-          <span v-if="adminTabStore.index === 1" class="material-icons text-3xl"> history </span>
-          <span v-else class="material-icons-outlined text-3xl"> history </span>
+          <span class="material-icons text-3xl"> history </span>
         </button>
         <button
           @click="adminTabStore.set(2)"
           :class="[adminTabStore.index === 2 ? 'active' : '']"
           class="relative flex items-center justify-center rounded-lg px-6 py-1 transition-colors hover:bg-neutral-400/20"
         >
-          <span v-if="adminTabStore.index === 2" class="material-icons text-3xl"> timeline </span>
-          <span v-else class="material-icons-outlined text-3xl"> timeline </span>
+          <span class="material-icons text-3xl"> timeline </span>
         </button>
       </div>
 

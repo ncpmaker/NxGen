@@ -32,7 +32,7 @@ function takeCase(number, id, category) {
 
 <template>
   <div class="w-full">
-    <div class="grid grid-cols-1 gap-2 px-2 pb-2 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-2 px-2 pb-2 md:grid-cols-2 md:px-12 xl:px-24">
       <button
         v-for="x in 7"
         :key="x"

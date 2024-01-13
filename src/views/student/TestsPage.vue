@@ -113,14 +113,14 @@ function submit() {
         localStorage.setItem('ncp_finished_pre_test', true)
         localStorage.setItem('ncp_pre_test_session', false)
         toastStore.add({
-          msg: 'Pre test successfully submitted.',
+          msg: 'Pre test successfully submitted',
           duration: 4000
         })
       } else if (route.name === 'post-test') {
         localStorage.setItem('ncp_finished_post_test', true)
         localStorage.setItem('ncp_post_test_session', false)
         toastStore.add({
-          msg: 'Post test successfully submitted.',
+          msg: 'Post test successfully submitted',
           duration: 4000
         })
       }

@@ -75,9 +75,19 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
     .get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${id}/get/`)
     .then((res) => {
       data.value = res.data
+      return data.value
     })
-    .then(() => {
-      generatePDF(name, category, caseId, timesTaken, new Date(dateTaken).toLocaleString())
+    .then((data) => {
+      let scores = []
+
+      scores.push(data.score.assessment)
+      scores.push(data.score.nursingDiagnosis)
+      scores.push(data.score.planning)
+      scores.push(data.score.intervention)
+      scores.push(data.score.evaluation)
+      scores.push(data.score.overall)
+
+      generatePDF(name, category, caseId, timesTaken, new Date(dateTaken).toLocaleString(), scores)
     })
 }
 </script>
