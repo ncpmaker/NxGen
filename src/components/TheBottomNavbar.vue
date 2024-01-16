@@ -180,8 +180,8 @@ const deleteDialog = ref({
         <span v-else>Delete Account</span>
       </VButton>
       <p class="flex flex-row items-center gap-1 text-sm text-neutral-500">
-        <span class="material-icons-round"> warning </span>
-        This will delete all of the data related to you including your test and case scenario histories.
+        <span class="material-icons-round text-[16px]"> warning </span>
+        This will delete all of the data related to you including your test and case scenario histories
       </p>
     </div>
   </VModal>

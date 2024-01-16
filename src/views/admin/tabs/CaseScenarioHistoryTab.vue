@@ -229,7 +229,7 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
         </td>
         <td class="border border-black px-4 py-2 text-start align-top">
           Short Term Goal:<br />
-          - {{ data.answers.shortTermGoalsDesc }}:<br /><br />
+          - {{ data.answers.shortTermGoalsDesc }}<br /><br />
           <template v-for="(shortTermGoal, index) in data.answers.shortTermGoal" :key="index">
             • {{ shortTermGoal }} <br />
             <template v-if="index + 1 !== data.answers.shortTermGoal.length">
@@ -245,7 +245,7 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
           </template>
 
           <br />Long Term Goal:<br />
-          - {{ data.answers.longTermGoalsDesc }}:<br /><br />
+          - {{ data.answers.longTermGoalsDesc }}<br /><br />
           <template v-for="(longTermGoal, index) in data.answers.longTermGoal" :key="index">
             • {{ longTermGoal }} <br />
             <template v-if="index + 1 !== data.answers.longTermGoal.length">

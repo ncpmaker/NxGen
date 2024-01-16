@@ -67,6 +67,10 @@ const deleteDialog = ref({
       <VLoader size="32px" thickness="2px" />
     </div>
 
+    <div v-else-if="cases.length === 0" class="flex items-center justify-center py-4">
+      <h2>No cases created</h2>
+    </div>
+
     <div
       v-else
       v-for="(item, index) in cases"
@@ -93,8 +97,8 @@ const deleteDialog = ref({
 
   <VDialog
     v-model:go-open="deleteDialog.state"
-    header="Account Deletion"
-    body="Do you really want to delete your account?"
+    header="Case Deletion"
+    :body="`Do you want to delete Case Scenario ${deleteDialog.index + 1}?`"
     cancel-label="No"
     confirm-label="Yes"
     @confirm="deleteDialog.confirm()"

@@ -295,7 +295,7 @@ function submit() {
           <div class="flex flex-col items-center gap-1 pt-4" ref="scenarioRef">
             <p>{{ data.introduction.scenario }}</p>
             <div v-if="data.introduction.audioLink">
-              <span class="text-sm text-neutral-600">Audio description here:</span>
+              <span class="text-sm text-neutral-600">Audio sample:</span>
               <audio controls class="block w-screen max-w-[320px]" :src="data.introduction.audioLink" type="audio/mp3"></audio>
             </div>
           </div>
@@ -318,7 +318,7 @@ function submit() {
                 class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
               >
                 <input v-model="answers.subjective" type="radio" :value="subjective.text" />
-                {{ subjective.text }}.
+                {{ subjective.text }}
               </label>
             </div>
 
@@ -330,7 +330,7 @@ function submit() {
                 class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
               >
                 <input v-model="answers.objective" type="checkbox" :value="objective.text" />
-                {{ objective.text }}.
+                {{ objective.text }}
               </label>
             </div>
           </div>
@@ -344,7 +344,7 @@ function submit() {
                 class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
               >
                 <input v-model="answers.nursingDiagnosis" type="radio" :value="diagnosis.text" />
-                {{ diagnosis.text }}.
+                {{ diagnosis.text }}
               </label>
             </div>
           </div>
@@ -359,7 +359,7 @@ function submit() {
                 class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
               >
                 <input v-model="answers.shortTermGoal" type="checkbox" :value="shortTermGoal.text" />
-                {{ shortTermGoal.text }}.
+                {{ shortTermGoal.text }}
               </label>
             </div>
 
@@ -372,7 +372,7 @@ function submit() {
                 class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
               >
                 <input v-model="answers.longTermGoal" type="checkbox" :value="longTermGoal.text" />
-                {{ longTermGoal.text }}.
+                {{ longTermGoal.text }}
               </label>
             </div>
           </div>
@@ -387,7 +387,7 @@ function submit() {
               >
                 <input v-model="answers.independent" type="checkbox" :value="`${independent.text}::${independent.rationale}`" />
                 <div>
-                  {{ independent.text }}. <br />
+                  {{ independent.text }}<br />
                   <i>({{ independent.rationale }})</i>
                 </div>
               </label>
@@ -402,7 +402,7 @@ function submit() {
               >
                 <input v-model="answers.dependent" type="checkbox" name="dependent" :value="`${dependent.text}::${dependent.rationale}`" />
                 <div>
-                  {{ dependent.text }}. <br />
+                  {{ dependent.text }}<br />
                   <i>({{ dependent.rationale }})</i>
                 </div>
               </label>
