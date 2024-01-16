@@ -120,7 +120,7 @@ function submit() {
           <span v-else>Login</span>
         </VButton>
         <div class="text-right text-sm lg:text-base">
-          Don't have an account? testing
+          Don't have an account?
           <VLinkButton :to="{ name: 'signup' }"> Create one </VLinkButton>
         </div>
       </form>
