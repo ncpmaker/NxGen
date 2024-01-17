@@ -6,17 +6,18 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/ncp/',
   plugins: [
     vue(),
     VitePWA({
       manifest: {
-        name: 'Qotes',
-        short_name: 'Qotes',
-        start_url: '/qotes/',
+        name: 'NCP',
+        short_name: 'NCP',
+        start_url: '/ncp/',
         display: 'standalone',
         background_color: '#ecfdf5',
         lang: 'en',
-        scope: '/qotes/',
+        scope: '/ncp/',
         icons: [
           {
             src: 'icons/manifest-icon-192.maskable.png',
