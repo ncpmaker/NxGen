@@ -54,11 +54,14 @@ function submit() {
         JSON.stringify({
           subjective: null,
           objective: [],
-          nursingDiagnosis: null,
+          diagnosis: null,
+          relatedTo: null,
+          signsAndSymptoms: [],
           shortTermGoal: [],
           longTermGoal: [],
           independent: [],
-          dependent: []
+          dependent: [],
+          collaborative: []
         })
       )
       router.push({ name: 'introduction' })

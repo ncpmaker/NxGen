@@ -20,7 +20,7 @@ defineEmits(['update:modelValue'])
     <select
       v-bind="$attrs"
       @input="$emit('update:modelValue', $event.target.value)"
-      class="select-tag cursor-pointer rounded-full border border-neutral-400 bg-transparent px-4 py-2 outline-none transition-colors hover:border-neutral-500 focus:border-neutral-950"
+      class="select-tag cursor-pointer truncate rounded-full border border-neutral-400 bg-transparent px-4 py-2 outline-none transition-colors hover:border-neutral-500 focus:border-neutral-950"
     >
       <option v-for="(option, index) in props.options" :key="index" :value="option">{{ option }}</option>
     </select>

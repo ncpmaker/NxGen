@@ -13,11 +13,13 @@ const imageLink = ref('')
 const audioLink = ref('')
 
 //assessment
-const subjectives = ref({ texts: [{ text: null }], correctValue: null })
+const subjectives = ref({ texts: [{ text: '' }], correctValue: null })
 const objectives = ref([{ text: '', isCorrect: false }])
 
 //nursing diagnosis
-const nursingDiagnosis = ref({ texts: [{ text: null }], correctValue: null })
+const diagnosis = ref({ texts: [{ text: '' }], correctValue: null })
+const relatedTo = ref({ texts: [{ text: '' }], correctValue: null })
+const signsAndSymptoms = ref([{ text: null, isCorrect: false }])
 
 //planning
 const shortTermGoalsDesc = ref(null)
@@ -26,8 +28,9 @@ const longTermGoalsDesc = ref(null)
 const longTermGoals = ref([{ text: null, isCorrect: false }])
 
 //intervention
-const independents = ref([{ text: null, rationale: null, isCorrect: false }])
 const dependents = ref([{ text: null, rationale: null, isCorrect: false }])
+const independents = ref([{ text: null, rationale: null, isCorrect: false }])
+const collaboratives = ref([{ text: null, rationale: null, isCorrect: false }])
 
 const isLoading = ref(false)
 onMounted(() => {
@@ -41,7 +44,9 @@ onMounted(() => {
       subjectives.value = res.data.assessment.subjectives
       objectives.value = res.data.assessment.objectives
 
-      nursingDiagnosis.value = res.data.nursing_diagnosis
+      diagnosis.value = res.data.nursing_diagnosis.diagnosis
+      relatedTo.value = res.data.nursing_diagnosis.relatedTo
+      signsAndSymptoms.value = res.data.nursing_diagnosis.signsAndSymptoms
 
       shortTermGoalsDesc.value = res.data.planning.shortTermGoalsDesc
       shortTermGoals.value = res.data.planning.shortTermGoals
@@ -49,10 +54,13 @@ onMounted(() => {
       longTermGoalsDesc.value = res.data.planning.longTermGoalsDesc
       longTermGoals.value = res.data.planning.longTermGoals
 
-      independents.value = res.data.intervention.independents
       dependents.value = res.data.intervention.dependents
+      independents.value = res.data.intervention.independents
+      collaboratives.value = res.data.intervention.collaboratives
 
       isLoading.value = false
+
+      console.log(res.data)
     })
   }
 })
@@ -62,16 +70,22 @@ function addTextbox(section) {
     subjectives.value.texts.push({ text: '' })
   } else if (section === 'objective') {
     objectives.value.push({ isCorrect: false, text: '' })
-  } else if (section === 'nursing diagnosis') {
-    nursingDiagnosis.value.texts.push({ text: '' })
+  } else if (section === 'diagnosis') {
+    diagnosis.value.texts.push({ text: '' })
+  } else if (section === 'related to') {
+    relatedTo.value.texts.push({ text: '' })
+  } else if (section === 'signs and symptoms') {
+    signsAndSymptoms.value.push({ isCorrect: false, text: '' })
   } else if (section === 'short term goal') {
     shortTermGoals.value.push({ isCorrect: false, text: '' })
   } else if (section === 'long term goal') {
     longTermGoals.value.push({ isCorrect: false, text: '' })
-  } else if (section === 'independent') {
-    independents.value.push({ isCorrect: false, text: '', rationale: '' })
   } else if (section === 'dependent') {
     dependents.value.push({ isCorrect: false, text: '', rationale: '' })
+  } else if (section === 'independent') {
+    independents.value.push({ isCorrect: false, text: '', rationale: '' })
+  } else if (section === 'collaborative') {
+    collaboratives.value.push({ isCorrect: false, text: '', rationale: '' })
   }
 }
 
@@ -80,8 +94,12 @@ function removeTextbox(index, section) {
     subjectives.value.texts.splice(index, 1)
   } else if (section === 'objective') {
     objectives.value.splice(index, 1)
-  } else if (section === 'nursing diagnosis') {
-    nursingDiagnosis.value.texts.splice(index, 1)
+  } else if (section === 'diagnosis') {
+    diagnosis.value.texts.splice(index, 1)
+  } else if (section === 'related to') {
+    relatedTo.value.texts.splice(index, 1)
+  } else if (section === 'signs and symptoms') {
+    signsAndSymptoms.value.splice(index, 1)
   } else if (section === 'short term goal') {
     shortTermGoals.value.splice(index, 1)
   } else if (section === 'long term goal') {
@@ -90,6 +108,8 @@ function removeTextbox(index, section) {
     independents.value.splice(index, 1)
   } else if (section === 'dependent') {
     dependents.value.splice(index, 1)
+  } else if (section === 'collaborative') {
+    collaboratives.value.splice(index, 1)
   }
 }
 
@@ -106,7 +126,11 @@ function create() {
         subjectives: subjectives.value,
         objectives: objectives.value
       },
-      nursing_diagnosis: nursingDiagnosis.value,
+      nursing_diagnosis: {
+        diagnosis: diagnosis.value,
+        relatedTo: relatedTo.value,
+        signsAndSymptoms: signsAndSymptoms.value
+      },
       planning: {
         shortTermGoalsDesc: shortTermGoalsDesc.value,
         shortTermGoals: shortTermGoals.value,
@@ -114,8 +138,9 @@ function create() {
         longTermGoals: longTermGoals.value
       },
       intervention: {
+        dependents: dependents.value,
         independents: independents.value,
-        dependents: dependents.value
+        collaboratives: collaboratives.value
       }
     })
     .then(() => {
@@ -145,7 +170,11 @@ function save() {
         subjectives: subjectives.value,
         objectives: objectives.value
       },
-      nursing_diagnosis: nursingDiagnosis.value,
+      nursing_diagnosis: {
+        diagnosis: diagnosis.value,
+        relatedTo: relatedTo.value,
+        signsAndSymptoms: signsAndSymptoms.value
+      },
       planning: {
         shortTermGoalsDesc: shortTermGoalsDesc.value,
         shortTermGoals: shortTermGoals.value,
@@ -153,8 +182,9 @@ function save() {
         longTermGoals: longTermGoals.value
       },
       intervention: {
+        dependents: dependents.value,
         independents: independents.value,
-        dependents: dependents.value
+        collaboratives: collaboratives.value
       }
     })
     .then(() => {
@@ -184,6 +214,7 @@ function save() {
     v-else
     class="flex w-full flex-col gap-6 px-64 pb-32"
   >
+    <!-- Scenario -->
     <div>
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Scenario Section</h2>
       <hr class="m-2 border-neutral-300" />
@@ -192,6 +223,7 @@ function save() {
       <VFormTextbox v-model="audioLink" label="Audio Link" placeholder="URL" />
     </div>
 
+    <!-- Assessment -->
     <div>
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Assessment Section</h2>
       <hr class="m-2 border-neutral-300" />
@@ -255,6 +287,7 @@ function save() {
       </div>
     </div>
 
+    <!-- Nursing Diagnosis -->
     <div>
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Nursing Diagnosis Section</h2>
       <hr class="m-2 border-neutral-300" />
@@ -266,16 +299,16 @@ function save() {
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
-          <div v-for="(choice, index) in nursingDiagnosis.texts" :key="index" class="flex w-full flex-row items-center gap-2">
+          <div v-for="(choice, index) in diagnosis.texts" :key="index" class="flex w-full flex-row items-center gap-2">
             <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
 
             <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
-              <input v-model="nursingDiagnosis.correctValue" :value="choice.text" name="nursing_diagnosis" type="radio" class="cursor-pointer" />
+              <input v-model="diagnosis.correctValue" :value="choice.text" name="diagnosis" type="radio" class="cursor-pointer" />
             </label>
 
             <VIconButton
-              @click.prevent="removeTextbox(index, 'nursing diagnosis')"
-              :disabled="nursingDiagnosis.texts.length <= 1"
+              @click.prevent="removeTextbox(index, 'diagnosis')"
+              :disabled="diagnosis.texts.length <= 1"
               variant="ghost"
               color="error"
               size="lg"
@@ -283,11 +316,72 @@ function save() {
             />
           </div>
 
-          <VIconButton @click.prevent="addTextbox('nursing diagnosis')" variant="ghost" icon="add" size="lg" />
+          <VIconButton @click.prevent="addTextbox('diagnosis')" variant="ghost" icon="add" size="lg" />
+        </div>
+      </div>
+
+      <hr class="m-2 border-neutral-300" />
+      <div class="flex flex-col items-center gap-1">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
+          <span class="grow">Related To *</span>
+          <span class="text-neutral-600">Correct</span>
+          <span class="basis-[32px]"></span>
+        </div>
+
+        <div class="flex w-full flex-col items-center gap-2">
+          <div v-for="(choice, index) in relatedTo.texts" :key="index" class="flex w-full flex-row items-center gap-2">
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+
+            <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
+              <input v-model="relatedTo.correctValue" :value="choice.text" name="related_to" type="radio" class="cursor-pointer" />
+            </label>
+
+            <VIconButton
+              @click.prevent="removeTextbox(index, 'related to')"
+              :disabled="relatedTo.texts.length <= 1"
+              variant="ghost"
+              color="error"
+              size="lg"
+              icon="close"
+            />
+          </div>
+
+          <VIconButton @click.prevent="addTextbox('related to')" variant="ghost" icon="add" size="lg" />
+        </div>
+      </div>
+
+      <hr class="m-2 border-neutral-300" />
+      <div class="flex flex-col items-center gap-1">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
+          <span class="grow">Signs and Symptoms *</span>
+          <span class="text-neutral-600">Correct</span>
+          <span class="basis-[32px]"></span>
+        </div>
+
+        <div class="flex w-full flex-col items-center gap-2">
+          <div v-for="(choice, index) in signsAndSymptoms" :key="index" class="flex w-full flex-row items-center gap-2">
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+
+            <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
+              <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="signs_and_symptoms" class="cursor-pointer" />
+            </label>
+
+            <VIconButton
+              @click.prevent="removeTextbox(index, 'signs and symptoms')"
+              :disabled="signsAndSymptoms.length <= 1"
+              variant="ghost"
+              color="error"
+              size="lg"
+              icon="close"
+            />
+          </div>
+
+          <VIconButton @click.prevent="addTextbox('signs and symptoms')" variant="ghost" icon="add" size="lg" />
         </div>
       </div>
     </div>
 
+    <!-- Planning -->
     <div>
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Planning Section</h2>
       <hr class="m-2 border-neutral-300" />
@@ -297,7 +391,7 @@ function save() {
           label="Short Term Goal Description *"
           type="text"
           class="w-full"
-          placeholder="Ex. Within 3 days of nursing interventions, the client will be able to"
+          placeholder="Ex. Within 3 days of nursing interventions, the client will be able to:"
           required
         />
 
@@ -336,7 +430,7 @@ function save() {
           label="Long Term Goal Description *"
           type="text"
           class="w-full"
-          placeholder="Ex. Within 1 week of nursing interventions, the client will be able to"
+          placeholder="Ex. Within 1 week of nursing interventions, the client will be able to:"
           required
         />
 
@@ -367,8 +461,45 @@ function save() {
       </div>
     </div>
 
+    <!-- Intervention and Rationale Section -->
     <div>
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Invervention and Rationale Section</h2>
+      <hr class="m-2 border-neutral-300" />
+
+      <div class="flex flex-col items-center gap-1">
+        <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
+          <span class="grow">Dependents *</span>
+          <span class="text-neutral-600">Correct</span>
+          <span class="basis-[32px]"></span>
+        </div>
+
+        <div class="flex w-full flex-col items-center gap-4">
+          <div v-for="(choice, index) in dependents" :key="index" class="flex w-full flex-row items-center gap-2">
+            <div class="flex w-full flex-col gap-2">
+              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+              <div class="flex flex-row items-center gap-2">
+                <i>Rationale:</i>
+                <VTextbox v-model="choice.rationale" type="text" class="w-full font-normal italic" :placeholder="'Rationale ' + (index + 1)" required />
+              </div>
+            </div>
+
+            <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
+              <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="dependents" class="cursor-pointer" />
+            </label>
+
+            <VIconButton
+              @click.prevent="removeTextbox(index, 'dependent')"
+              :disabled="dependents.length <= 1"
+              variant="ghost"
+              color="error"
+              size="lg"
+              icon="close"
+            />
+          </div>
+        </div>
+        <VIconButton @click.prevent="addTextbox('dependent')" variant="ghost" icon="add" size="lg" />
+      </div>
+
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
@@ -408,13 +539,13 @@ function save() {
       <hr class="m-2 border-neutral-300" />
       <div class="flex flex-col items-center gap-1">
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
-          <span class="grow">Dependents *</span>
+          <span class="grow">Collaboratives *</span>
           <span class="text-neutral-600">Correct</span>
           <span class="basis-[32px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-4">
-          <div v-for="(choice, index) in dependents" :key="index" class="flex w-full flex-row items-center gap-2">
+          <div v-for="(choice, index) in collaboratives" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
               <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
               <div class="flex flex-row items-center gap-2">
@@ -424,12 +555,12 @@ function save() {
             </div>
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
-              <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="dependents" class="cursor-pointer" />
+              <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="collaborative" class="cursor-pointer" />
             </label>
 
             <VIconButton
-              @click.prevent="removeTextbox(index, 'dependent')"
-              :disabled="dependents.length <= 1"
+              @click.prevent="removeTextbox(index, 'collaborative')"
+              :disabled="collaboratives.length <= 1"
               variant="ghost"
               color="error"
               size="lg"
@@ -437,7 +568,7 @@ function save() {
             />
           </div>
         </div>
-        <VIconButton @click.prevent="addTextbox('dependent')" variant="ghost" icon="add" size="lg" />
+        <VIconButton @click.prevent="addTextbox('collaborative')" variant="ghost" icon="add" size="lg" />
       </div>
     </div>
 

@@ -1,7 +1,8 @@
 <script setup>
-import { reactive, computed, ref, onMounted } from 'vue'
+import { reactive, computed, watchEffect, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from 'axios'
+import shuffleArray from '@/assets/scripts/shuffleArray'
 
 const route = useRoute()
 const router = useRouter()
@@ -9,12 +10,22 @@ const router = useRouter()
 const scrollableDiv = ref(null)
 const scenarioRef = ref(null)
 
-const stepLabel = ['Assessment', 'Nursing Diagnosis', 'Planning', 'Intervention']
+const stepLabel = [
+  'Assessment',
+  'Nursing Diagnosis: Part 1',
+  'Nursing Diagnosis: Part 2',
+  'Nursing Diagnosis: Part 3',
+  'Planning',
+  'Intervention: Part 1',
+  'Intervention: Part 2',
+  'Intervention: Part 3',
+  'Intervention: Rationale'
+]
 
 const step = reactive({
   count: 1,
   percent: computed(() => {
-    return (step.count / 5) * 100 + '%'
+    return (step.count / 9) * 100 + '%'
   })
 })
 
@@ -28,7 +39,11 @@ const data = reactive({
     subjectives: { texts: null, correctValue: null },
     objectives: null
   },
-  nursingDiagnosis: { texts: null, correctValue: null },
+  nursingDiagnosis: {
+    diagnosis: { texts: null, correctValue: null },
+    relatedTo: { texts: null, correctValue: null },
+    signsAndSymptoms: null
+  },
   planning: {
     shortTermGoalsDesc: null,
     shortTermGoals: null,
@@ -36,19 +51,56 @@ const data = reactive({
     longTermGoals: null
   },
   intervention: {
+    dependents: null,
     independents: null,
-    dependents: null
+    collaboratives: null
+  }
+})
+
+const possibleAnswers = reactive({
+  assessment: {
+    subjectives: { texts: null, correctValue: null },
+    objectives: null
+  },
+  nursingDiagnosis: {
+    diagnosis: { texts: null, correctValue: null },
+    relatedTo: { texts: null, correctValue: null },
+    signsAndSymptoms: null
+  },
+  planning: {
+    shortTermGoalsDesc: null,
+    shortTermGoals: null,
+    longTermGoalsDesc: null,
+    longTermGoals: null
+  },
+  intervention: {
+    dependents: null,
+    independents: null,
+    collaboratives: null
   }
 })
 
 const answers = ref({
   subjective: null,
   objective: [],
-  nursingDiagnosis: null,
+  diagnosis: null,
+  relatedTo: null,
+  signsAndSymptoms: [],
   shortTermGoal: [],
   longTermGoal: [],
+  dependent: [],
   independent: [],
-  dependent: []
+  collaborative: []
+})
+
+const dependentRationale = ref([])
+const independentRationale = ref([])
+const collabRationale = ref([])
+
+watchEffect(() => {
+  dependentRationale.value = Array(answers.value.dependent.length).fill('N/A')
+  independentRationale.value = Array(answers.value.independent.length).fill('N/A')
+  collabRationale.value = Array(answers.value.collaborative.length).fill('N/A')
 })
 
 const isLoading = ref(true)
@@ -67,7 +119,9 @@ onMounted(() => {
     data.assessment.objectives = res.data.assessment.objectives
 
     //nursing diagnosis
-    data.nursingDiagnosis = res.data.nursing_diagnosis
+    data.nursingDiagnosis.diagnosis = res.data.nursing_diagnosis.diagnosis
+    data.nursingDiagnosis.relatedTo = res.data.nursing_diagnosis.relatedTo
+    data.nursingDiagnosis.signsAndSymptoms = res.data.nursing_diagnosis.signsAndSymptoms
 
     //planning
     data.planning.shortTermGoalsDesc = res.data.planning.shortTermGoalsDesc
@@ -78,6 +132,26 @@ onMounted(() => {
     //intervention
     data.intervention.independents = res.data.intervention.independents
     data.intervention.dependents = res.data.intervention.dependents
+    data.intervention.collaboratives = res.data.intervention.collaboratives
+
+    /* This part is important, shuffleArray on a v-for while updating their answer leads to reshuffle every rerender, */
+    //assessment
+    possibleAnswers.assessment.subjectives.texts = shuffleArray(data.assessment.subjectives.texts)
+    possibleAnswers.assessment.objectives = shuffleArray(data.assessment.objectives)
+
+    //nursing diagnosis
+    possibleAnswers.nursingDiagnosis.diagnosis.texts = shuffleArray(data.nursingDiagnosis.diagnosis.texts)
+    possibleAnswers.nursingDiagnosis.relatedTo.texts = shuffleArray(data.nursingDiagnosis.relatedTo.texts)
+    possibleAnswers.nursingDiagnosis.signsAndSymptoms = shuffleArray(data.nursingDiagnosis.signsAndSymptoms)
+
+    //planning
+    possibleAnswers.planning.shortTermGoals = shuffleArray(data.planning.shortTermGoals)
+    possibleAnswers.planning.longTermGoals = shuffleArray(data.planning.longTermGoals)
+
+    //intervention
+    possibleAnswers.intervention.independents = shuffleArray(data.intervention.independents)
+    possibleAnswers.intervention.dependents = shuffleArray(data.intervention.dependents)
+    possibleAnswers.intervention.collaboratives = shuffleArray(data.intervention.collaboratives)
 
     isLoading.value = false
   })
@@ -97,24 +171,53 @@ function assessmentScore(subjAnswer, objAnswer) {
 
   if (subjAnswer === subjectives.correctValue) {
     correctAnswers++
-  } else if (correctAnswers > 0) {
+  } else {
     correctAnswers--
   }
 
   objAnswer.forEach((answer) => {
     if (objectives[objectives.map((e) => e.text).indexOf(answer)].isCorrect) {
       correctAnswers++
-    } else if (correctAnswers > 0) {
+    } else {
       correctAnswers--
     }
   })
 
-  return correctAnswers === 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
+  return correctAnswers <= 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
 }
 
-function nursingDiagScore(ndAnswer) {
-  let correctAnswer = data.nursingDiagnosis.correctValue
-  return ndAnswer === correctAnswer ? 20 : 0
+function nursingDiagScore(diagAnswer, relToAnswer, SASAnswer) {
+  let totalCorrectItems = 2 //
+  let correctAnswers = 0
+  let nursingDiagnosis = data.nursingDiagnosis
+
+  nursingDiagnosis.signsAndSymptoms.forEach((item) => {
+    if (item.isCorrect) {
+      totalCorrectItems++
+    }
+  })
+
+  if (diagAnswer !== nursingDiagnosis.diagnosis.correctValue) {
+    return 0
+  } else {
+    correctAnswers++
+  }
+
+  if (relToAnswer !== nursingDiagnosis.relatedTo.correctValue) {
+    return correctAnswers <= 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
+  } else {
+    correctAnswers++
+
+    SASAnswer.forEach((answer) => {
+      if (nursingDiagnosis.signsAndSymptoms[nursingDiagnosis.signsAndSymptoms.map((e) => e.text).indexOf(answer)].isCorrect) {
+        correctAnswers++
+      } else {
+        correctAnswers--
+      }
+    })
+  }
+
+  return correctAnswers <= 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
 }
 
 function planningScore(stgAnswer, ltgAnswer) {
@@ -138,7 +241,7 @@ function planningScore(stgAnswer, ltgAnswer) {
   stgAnswer.forEach((answer) => {
     if (shortTermGoals[shortTermGoals.map((e) => e.text).indexOf(answer)].isCorrect) {
       correctAnswers++
-    } else if (correctAnswers > 0) {
+    } else {
       correctAnswers--
     }
   })
@@ -146,25 +249,20 @@ function planningScore(stgAnswer, ltgAnswer) {
   ltgAnswer.forEach((answer) => {
     if (longTermGoals[longTermGoals.map((e) => e.text).indexOf(answer)].isCorrect) {
       correctAnswers++
-    } else if (correctAnswers > 0) {
+    } else {
       correctAnswers--
     }
   })
 
-  return correctAnswers === 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
+  return correctAnswers <= 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
 }
 
-function interventionScore(indepAnswer, depAnswer) {
+function interventionScore(depAnswer, indepAnswer, collabAnswer) {
   let totalCorrectItems = 0
   let correctAnswers = 0
-  let independents = data.intervention.independents
   let dependents = data.intervention.dependents
-
-  independents.forEach((item) => {
-    if (item.isCorrect) {
-      totalCorrectItems++
-    }
-  })
+  let independents = data.intervention.independents
+  let collaboratives = data.intervention.collaboratives
 
   dependents.forEach((item) => {
     if (item.isCorrect) {
@@ -172,23 +270,63 @@ function interventionScore(indepAnswer, depAnswer) {
     }
   })
 
-  indepAnswer.forEach((answer) => {
-    if (independents[independents.map((e) => e.text).indexOf(answer.split('::')[0])].isCorrect) {
+  independents.forEach((item) => {
+    if (item.isCorrect) {
+      totalCorrectItems++
+    }
+  })
+
+  collaboratives.forEach((item) => {
+    if (item.isCorrect) {
+      totalCorrectItems++
+    }
+  })
+
+  depAnswer.forEach((answer, index) => {
+    let ansDependent = answer.split('::')[0]
+    let ansRationale = answer.split('::')[1]
+    let dataDependent = dependents[dependents.map((e) => e.text).indexOf(ansDependent)]
+
+    if (dataDependent.isCorrect && dataDependent.rationale === ansRationale) {
       correctAnswers++
-    } else if (correctAnswers > 0) {
+    } else {
+      correctAnswers--
+    }
+
+    if (ansDependent !== dependents[index].text) {
+      correctAnswers -= 0.25
+    }
+  })
+
+  indepAnswer.forEach((answer, index) => {
+    let ansIndependent = answer.split('::')[0]
+    let ansRationale = answer.split('::')[1]
+    let dataIndependent = independents[independents.map((e) => e.text).indexOf(ansIndependent)]
+
+    if (dataIndependent.isCorrect && dataIndependent.rationale === ansRationale) {
+      correctAnswers++
+    } else {
+      correctAnswers--
+    }
+
+    if (ansIndependent !== independents[index].text) {
+      correctAnswers -= 0.25
+    }
+  })
+
+  collabAnswer.forEach((answer) => {
+    let ansCollab = answer.split('::')[0]
+    let ansRationale = answer.split('::')[1]
+    let dataCollab = collaboratives[collaboratives.map((e) => e.text).indexOf(ansCollab)]
+
+    if (dataCollab.isCorrect && dataCollab.rationale === ansRationale) {
+      correctAnswers++
+    } else {
       correctAnswers--
     }
   })
 
-  depAnswer.forEach((answer) => {
-    if (dependents[dependents.map((e) => e.text).indexOf(answer.split('::')[0])].isCorrect) {
-      correctAnswers++
-    } else if (correctAnswers > 0) {
-      correctAnswers--
-    }
-  })
-
-  return correctAnswers === 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
+  return correctAnswers <= 0 ? 0 : (correctAnswers / totalCorrectItems) * 100 * 0.2
 }
 
 function evaluationScore(score1, score2, score3, score4) {
@@ -212,20 +350,40 @@ function disableNext() {
     case 1:
       return answers.value.subjective === null || answers.value.objective.length === 0
     case 2:
-      return answers.value.nursingDiagnosis === null
+      return answers.value.diagnosis === null
     case 3:
-      return answers.value.shortTermGoal.length === 0 || answers.value.longTermGoal.length === 0
+      return answers.value.relatedTo === null
     case 4:
-      return answers.value.independent.length === 0 || answers.value.dependent.length === 0
+      return answers.value.signsAndSymptoms.length === 0
+    case 5:
+      return answers.value.shortTermGoal.length === 0 || answers.value.longTermGoal.length === 0
+    case 6:
+      return answers.value.dependent.length === 0
+    case 7:
+      return answers.value.independent.length === 0
+    case 8:
+      return answers.value.collaborative.length === 0
   }
 }
 
 const isSubmitting = ref(false)
 function submit() {
+  answers.value.dependent.forEach((dependent, index) => {
+    answers.value.dependent[index] = dependent.split('::')[0] + '::' + dependentRationale.value[index]
+  })
+
+  answers.value.independent.forEach((independent, index) => {
+    answers.value.independent[index] = independent.split('::')[0] + '::' + independentRationale.value[index]
+  })
+
+  answers.value.collaborative.forEach((collaborative, index) => {
+    answers.value.collaborative[index] = collaborative.split('::')[0] + '::' + collabRationale.value[index]
+  })
+
   let score1 = assessmentScore(answers.value.subjective, answers.value.objective)
-  let score2 = nursingDiagScore(answers.value.nursingDiagnosis)
+  let score2 = nursingDiagScore(answers.value.diagnosis, answers.value.relatedTo, answers.value.signsAndSymptoms)
   let score3 = planningScore(answers.value.shortTermGoal, answers.value.longTermGoal)
-  let score4 = interventionScore(answers.value.independent, answers.value.dependent)
+  let score4 = interventionScore(answers.value.dependent, answers.value.independent, answers.value.collaborative)
   let score5 = evaluationScore(score1, score2, score3, score4)
   let totalScore = score1 + score2 + score3 + score4 + score5
   isSubmitting.value = true
@@ -253,11 +411,14 @@ function submit() {
         JSON.stringify({
           subjective: null,
           objective: [],
-          nursingDiagnosis: null,
+          diagnosis: null,
+          relatedTo: null,
+          signsAndSymptoms: [],
           shortTermGoal: [],
           longTermGoal: [],
           independent: [],
-          dependent: []
+          dependent: [],
+          collaborative: []
         })
       )
 
@@ -269,7 +430,7 @@ function submit() {
 <template>
   <div class="flex h-[100svh] flex-col">
     <!-- case body -->
-    <div class="grow overflow-y-auto scroll-smooth pb-[78px]" ref="scrollableDiv">
+    <div class="grow overflow-y-scroll scroll-smooth pb-4" ref="scrollableDiv">
       <div class="sticky top-0 z-10 bg-blue-50/70 px-4 pb-4 pt-6 backdrop-blur-xl">
         <h1>Case Scenario {{ $route.params.number }}</h1>
       </div>
@@ -278,7 +439,7 @@ function submit() {
         <VLoader size="32px" thickness="2px" />
       </div>
 
-      <div v-else class="flex flex-col px-4">
+      <div v-else class="flex flex-col items-center px-4">
         <div class="flex flex-col items-center lg:flex-row lg:gap-4">
           <picture
             v-if="data.introduction.imageLink"
@@ -301,7 +462,7 @@ function submit() {
           </div>
         </div>
 
-        <hr class="mx-2 my-2 border-neutral-300" />
+        <hr class="mx-2 my-2 w-full border-neutral-300 pb-4" />
 
         <div v-if="isLoading" class="flex items-center justify-center p-4">
           <VLoader size="32px" thickness="2px" />
@@ -309,105 +470,218 @@ function submit() {
 
         <!-- possible answers -->
         <template v-else>
-          <div v-show="step.count === 1">
-            <h3 class="pb-2 font-medium">Subjective</h3>
-            <div class="flex flex-col gap-1">
-              <label
-                v-for="(subjective, index) in data.assessment.subjectives.texts"
-                :key="index"
-                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-              >
-                <input v-model="answers.subjective" type="radio" :value="subjective.text" />
-                {{ subjective.text }}
-              </label>
+          <transition name="fade-up" mode="out-in">
+            <div v-if="step.count === 1" class="w-full max-w-[1024px]">
+              <h3 class="pb-2 font-medium">Subjective</h3>
+              <div class="flex flex-col gap-1">
+                <label
+                  v-for="(subjective, index) in possibleAnswers.assessment.subjectives.texts"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.subjective" type="radio" :value="subjective.text" />
+                  {{ subjective.text }}
+                </label>
+              </div>
+
+              <h3 class="pb-2 font-medium">Objective</h3>
+              <div class="flex flex-col gap-1">
+                <label
+                  v-for="(objective, index) in possibleAnswers.assessment.objectives"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.objective" type="checkbox" :value="objective.text" />
+                  {{ objective.text }}
+                </label>
+              </div>
             </div>
 
-            <h3 class="pb-2 font-medium">Objective</h3>
-            <div class="flex flex-col gap-1">
-              <label
-                v-for="(objective, index) in data.assessment.objectives"
-                :key="index"
-                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-              >
-                <input v-model="answers.objective" type="checkbox" :value="objective.text" />
-                {{ objective.text }}
-              </label>
-            </div>
-          </div>
-
-          <div v-show="step.count === 2">
-            <h3 class="pb-2 font-medium">Choices</h3>
-            <div class="flex flex-col gap-1">
-              <label
-                v-for="(diagnosis, index) in data.nursingDiagnosis.texts"
-                :key="index"
-                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-              >
-                <input v-model="answers.nursingDiagnosis" type="radio" :value="diagnosis.text" />
-                {{ diagnosis.text }}
-              </label>
-            </div>
-          </div>
-
-          <div v-show="step.count === 3">
-            <h3 class="pb-2 font-medium">Short Term Goal</h3>
-            <p class="font-medium">{{ data.planning.shortTermGoalsDesc }}:</p>
-            <div class="flex flex-col gap-1">
-              <label
-                v-for="(shortTermGoal, index) in data.planning.shortTermGoals"
-                :key="index"
-                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-              >
-                <input v-model="answers.shortTermGoal" type="checkbox" :value="shortTermGoal.text" />
-                {{ shortTermGoal.text }}
-              </label>
+            <div v-else-if="step.count === 2" class="w-full max-w-[1024px]">
+              <h3 class="pb-2 font-medium">Diagnosis</h3>
+              <div class="flex flex-col gap-1">
+                <label
+                  v-for="(diagnosis, index) in possibleAnswers.nursingDiagnosis.diagnosis.texts"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.diagnosis" type="radio" :value="diagnosis.text" />
+                  {{ diagnosis.text }}
+                </label>
+              </div>
             </div>
 
-            <h3 class="pb-2 font-medium">Long Term Goal</h3>
-            <p class="font-medium">{{ data.planning.longTermGoalsDesc }}:</p>
-            <div class="flex flex-col gap-1">
-              <label
-                v-for="(longTermGoal, index) in data.planning.longTermGoals"
-                :key="index"
-                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-              >
-                <input v-model="answers.longTermGoal" type="checkbox" :value="longTermGoal.text" />
-                {{ longTermGoal.text }}
-              </label>
+            <div v-else-if="step.count === 3" class="w-full max-w-[1024px]">
+              <h3 class="font-medium">Related to</h3>
+              <p class="pb-2">"{{ answers.diagnosis }} related to..."</p>
+              <div class="flex flex-col gap-1">
+                <label
+                  v-for="(relatedTo, index) in possibleAnswers.nursingDiagnosis.relatedTo.texts"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.relatedTo" type="radio" :value="relatedTo.text" />
+                  {{ relatedTo.text }}
+                </label>
+              </div>
             </div>
-          </div>
 
-          <div v-show="step.count === 4">
-            <h3 class="pb-2 font-medium">Independent</h3>
-            <div class="flex flex-col gap-1">
-              <label
-                v-for="(independent, index) in data.intervention.independents"
-                :key="index"
-                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-              >
-                <input v-model="answers.independent" type="checkbox" :value="`${independent.text}::${independent.rationale}`" />
-                <div>
-                  {{ independent.text }}<br />
-                  <i>({{ independent.rationale }})</i>
+            <div v-else-if="step.count === 4" class="w-full max-w-[1024px]">
+              <h3 class="font-medium">Signs and Symptoms</h3>
+              <p class="pb-2">"{{ answers.diagnosis }} related to {{ answers.relatedTo }} as evidenced by..."</p>
+              <div class="flex flex-col gap-1">
+                <label
+                  v-for="(signAndSymptom, index) in possibleAnswers.nursingDiagnosis.signsAndSymptoms"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.signsAndSymptoms" type="checkbox" :value="signAndSymptom.text" />
+                  {{ signAndSymptom.text }}
+                </label>
+              </div>
+            </div>
+
+            <div v-else-if="step.count === 5" class="w-full max-w-[1024px]">
+              <h3 class="pb-2 font-medium">Short Term Goal/s</h3>
+              <p class="font-medium">{{ data.planning.shortTermGoalsDesc }}</p>
+              <div class="flex flex-col gap-1">
+                <label
+                  v-for="(shortTermGoal, index) in possibleAnswers.planning.shortTermGoals"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.shortTermGoal" type="checkbox" :value="shortTermGoal.text" />
+                  {{ shortTermGoal.text }}
+                </label>
+              </div>
+
+              <h3 class="pb-2 font-medium">Long Term Goal/s</h3>
+              <p class="font-medium">{{ data.planning.longTermGoalsDesc }}</p>
+              <div class="flex flex-col gap-1">
+                <label
+                  v-for="(longTermGoal, index) in possibleAnswers.planning.longTermGoals"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.longTermGoal" type="checkbox" :value="longTermGoal.text" />
+                  {{ longTermGoal.text }}
+                </label>
+              </div>
+            </div>
+
+            <div v-else-if="step.count === 6" class="w-full max-w-[1024px]">
+              <div class="flex items-center justify-center">
+                <div class="mb-4 w-full max-w-[1024px] rounded-lg bg-amber-400 px-12 py-4 text-center text-lg font-medium">
+                  Please take note that the order of your answer is based on the order you check.
                 </div>
-              </label>
+              </div>
+              <h3 class="pb-2 font-medium">Dependent/s</h3>
+              <div class="flex flex-col gap-1 pb-4">
+                <label
+                  v-for="(dependent, index) in possibleAnswers.intervention.dependents"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.dependent" type="checkbox" name="dependent" :value="dependent.text" />
+                  <div>
+                    {{ dependent.text }}
+                  </div>
+                </label>
+              </div>
+              <TransitionGroup name="list" tag="ul" class="space-y-2 rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
+                <p>Your answer/s:</p>
+                <li v-for="(answer, index) in answers.dependent" :key="answer">
+                  <p>{{ index + 1 }}. {{ answer }}</p>
+                </li>
+              </TransitionGroup>
             </div>
 
-            <h3 class="pb-2 font-medium">Dependent</h3>
-            <div class="flex flex-col gap-1">
-              <label
-                v-for="(dependent, index) in data.intervention.dependents"
-                :key="index"
-                class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
-              >
-                <input v-model="answers.dependent" type="checkbox" name="dependent" :value="`${dependent.text}::${dependent.rationale}`" />
-                <div>
-                  {{ dependent.text }}<br />
-                  <i>({{ dependent.rationale }})</i>
+            <div v-else-if="step.count === 7" class="w-full max-w-[1024px]">
+              <div class="flex items-center justify-center">
+                <div class="mb-4 w-full max-w-[1024px] rounded-lg bg-amber-400 px-12 py-4 text-center text-lg font-medium">
+                  Please take note that the order of your answer is based on the order you check.
                 </div>
-              </label>
+              </div>
+              <h3 class="pb-2 font-medium">Independent/s</h3>
+              <div class="flex flex-col gap-1 pb-4">
+                <label
+                  v-for="(independent, index) in possibleAnswers.intervention.independents"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.independent" type="checkbox" :value="independent.text" />
+                  <div>
+                    {{ independent.text }}
+                  </div>
+                </label>
+              </div>
+
+              <TransitionGroup name="list" tag="ul" class="space-y-2 rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
+                <p>Your answer/s:</p>
+                <li v-for="(answer, index) in answers.independent" :key="answer">
+                  <p>{{ index + 1 }}. {{ answer }}</p>
+                </li>
+              </TransitionGroup>
             </div>
-          </div>
+
+            <div v-else-if="step.count === 8" class="w-full max-w-[1024px]">
+              <h3 class="pb-2 font-medium">Collaborative/s</h3>
+              <div class="flex flex-col gap-1">
+                <label
+                  v-for="(collaborative, index) in possibleAnswers.intervention.collaboratives"
+                  :key="index"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                >
+                  <input v-model="answers.collaborative" type="checkbox" :value="collaborative.text" />
+                  <div>
+                    {{ collaborative.text }}
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div v-else-if="step.count === 9" class="w-full max-w-[1024px]">
+              <h3 class="pb-2 font-medium">Rationale</h3>
+              <div class="lg:flex lg:flex-row lg:gap-2">
+                <div class="grow pb-4 pl-2">
+                  <p class="font-medium">Your Dependents:</p>
+                  <div class="flex flex-col gap-1">
+                    <div v-for="(answer, index) in answers.dependent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
+                      <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
+                      <VSelect
+                        v-model="dependentRationale[index]"
+                        :options="['N/A', ...possibleAnswers.intervention.dependents.map((e) => e.rationale)]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="grow pb-4 pl-2">
+                  <p class="font-medium">Your Independents:</p>
+                  <div class="flex flex-col gap-1">
+                    <div v-for="(answer, index) in answers.independent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
+                      <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
+                      <VSelect
+                        v-model="independentRationale[index]"
+                        :options="['N/A', ...possibleAnswers.intervention.independents.map((e) => e.rationale)]"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="grow pl-2">
+                  <p class="font-medium">Your Collaboratives:</p>
+                  <div class="flex flex-col gap-1">
+                    <div v-for="(answer, index) in answers.collaborative" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
+                      <p class="text-neutral-600">{{ `${index + 1}. ${answer.split('::')[0]}` }}</p>
+                      <VSelect
+                        v-model="collabRationale[index]"
+                        :options="['N/A', ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </transition>
         </template>
       </div>
     </div>
@@ -418,11 +692,11 @@ function submit() {
       <div class="grid auto-cols-[max-content_auto_max-content] grid-flow-col items-center gap-4 px-4 py-2 text-start">
         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-400 text-xl font-medium">{{ step.count }}</div>
         <div class="flex flex-col">
-          <span class="text-sm leading-none">You are now on</span>
+          <span class="text-sm leading-none">You are now on </span>
           <span class="text-lg font-bold leading-none">{{ stepLabel[step.count - 1] }}</span>
         </div>
 
-        <VButton v-if="step.count < 4" @click="nextStep()" :disabled="disableNext()" color="warning" class="w-[88px] justify-center">
+        <VButton v-if="step.count < 9" @click="nextStep()" :disabled="disableNext()" color="warning" class="w-[88px] justify-center">
           <div class="flex flex-row items-center">
             <span>Next</span>
             <span class="material-icons"> chevron_right </span>
