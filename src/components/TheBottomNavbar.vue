@@ -5,6 +5,8 @@ import { studentTabStore, toastStore } from '@/store'
 import axios from 'axios'
 
 const userId = localStorage.getItem('ncp_user_id')
+const userEmail = ref(localStorage.getItem('ncp_user_email'))
+
 const router = useRouter()
 const modals = ref({
   profileModal: false,
@@ -40,6 +42,59 @@ const modals = ref({
   }
 })
 
+const email = ref(userEmail.value)
+const oldPassword = ref('')
+const newPassword = ref('')
+const isUpdating = ref(false)
+function updateEmail() {
+  isUpdating.value = true
+  axios
+    .put(`${import.meta.env.VITE_API_DOMAIN}/user/update/${userId}`, {
+      email: email.value
+    })
+    .then((res) => {
+      localStorage.setItem('ncp_user_email', res.data.newEmail)
+
+      toastStore.add({
+        msg: 'Email updated',
+        duration: 4000
+      })
+    })
+    .catch((err) => console.log(err))
+    .finally(() => {
+      isUpdating.value = false
+    })
+}
+
+function updatePassword() {
+  isUpdating.value = true
+  axios
+    .put(`${import.meta.env.VITE_API_DOMAIN}/user/update/${userId}`, {
+      oldPassword: oldPassword.value,
+      newPassword: newPassword.value
+    })
+    .then(() => {
+      oldPassword.value = ''
+      newPassword.value = ''
+
+      toastStore.add({
+        msg: 'Password updated',
+        duration: 4000
+      })
+    })
+    .catch((err) => {
+      if (err.response.status === 401) {
+        toastStore.add({
+          msg: "Old password doesn't match",
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => {
+      isUpdating.value = false
+    })
+}
+
 const isLoggingOut = ref(false)
 function logout() {
   isLoggingOut.value = true
@@ -51,6 +106,7 @@ function logout() {
     })
     .then(() => {
       localStorage.removeItem('ncp_user_id')
+      localStorage.removeItem('ncp_user_email')
       localStorage.removeItem('ncp_user_section')
       localStorage.removeItem('ncp_token')
       localStorage.removeItem('ncp_finished_pre_test')
@@ -67,7 +123,7 @@ function logout() {
       studentTabStore.set(0)
 
       toastStore.add({
-        msg: 'Logged out successfully.',
+        msg: 'Logged out successfully',
         duration: 4000
       })
     })
@@ -88,6 +144,7 @@ const deleteDialog = ref({
       .delete(`${import.meta.env.VITE_API_DOMAIN}/user/delete/${userId}`)
       .then(() => {
         localStorage.removeItem('ncp_user_id')
+        localStorage.removeItem('ncp_user_email')
         localStorage.removeItem('ncp_user_section')
         localStorage.removeItem('ncp_token')
         localStorage.removeItem('ncp_finished_pre_test')
@@ -171,10 +228,20 @@ const deleteDialog = ref({
         <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="close" />
       </div>
 
-      <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="justify-center">
-        <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
-        <span v-else>Logout</span>
+      <VFormTextbox v-model="email" label="Email" type="email" />
+      <VButton @click="updateEmail()" :disabled="email === userEmail" class="w-full justify-center">
+        <VLoader v-if="isUpdating" size="16px" thickness="2px" />
+        <span v-else>Update Email</span>
       </VButton>
+
+      <VFormTextbox v-model="oldPassword" label="Old Password" type="password" placeholder="Type your old password here" />
+      <VFormTextbox v-model="newPassword" label="New Password" type="password" placeholder="Type your new password here" />
+      <VButton @click="updatePassword" :disabled="oldPassword === '' || newPassword === ''" class="w-full justify-center">
+        <VLoader v-if="isUpdating" size="16px" thickness="2px" />
+        <span v-else>Update Password</span>
+      </VButton>
+      <hr />
+
       <VButton @click="deleteDialog.toggle()" :disabled="isDeleting" color="error" class="justify-center">
         <VLoader v-if="isDeleting" size="16px" thickness="2px" />
         <span v-else>Delete Account</span>
@@ -183,6 +250,12 @@ const deleteDialog = ref({
         <span class="material-icons-round text-[16px]"> warning </span>
         This will delete all of the data related to you including your test and case scenario histories
       </p>
+      <hr />
+
+      <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="justify-center">
+        <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
+        <span v-else>Logout</span>
+      </VButton>
     </div>
   </VModal>
 

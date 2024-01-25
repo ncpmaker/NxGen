@@ -37,6 +37,7 @@ function submit() {
     })
     .then((res) => {
       localStorage.setItem('ncp_user_id', res.data.userId)
+      localStorage.setItem('ncp_user_email', res.data.email)
       localStorage.setItem('ncp_user_section', res.data.section)
       localStorage.setItem('ncp_token', res.data.token)
       localStorage.setItem('ncp_finished_pre_test', res.data.finishedPreTest)
