@@ -76,7 +76,8 @@ const possibleAnswers = reactive({
   intervention: {
     dependents: null,
     independents: null,
-    collaboratives: null
+    collaboratives: null,
+    rationale: null
   }
 })
 
@@ -149,9 +150,18 @@ onMounted(() => {
     possibleAnswers.planning.longTermGoals = shuffleArray(data.planning.longTermGoals)
 
     //intervention
-    possibleAnswers.intervention.independents = shuffleArray(data.intervention.independents)
     possibleAnswers.intervention.dependents = shuffleArray(data.intervention.dependents)
+    possibleAnswers.intervention.independents = shuffleArray(data.intervention.independents)
     possibleAnswers.intervention.collaboratives = shuffleArray(data.intervention.collaboratives)
+
+    possibleAnswers.intervention.rationale = [
+      'N/A',
+      ...shuffleArray([
+        ...possibleAnswers.intervention.dependents.map((e) => e.rationale),
+        ...possibleAnswers.intervention.independents.map((e) => e.rationale),
+        ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)
+      ])
+    ]
 
     isLoading.value = false
   })
@@ -643,39 +653,36 @@ function submit() {
             <div v-else-if="step.count === 9" class="w-full max-w-[1024px]">
               <h3 class="pb-2 font-medium">Rationale</h3>
               <div class="lg:flex lg:flex-row lg:gap-2">
-                <div class="grow pb-4 pl-2">
+                <div class="grow">
                   <p class="font-medium">Your Dependents:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.dependent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
-                      <VSelect
-                        v-model="dependentRationale[index]"
-                        :options="['N/A', ...possibleAnswers.intervention.dependents.map((e) => e.rationale)]"
-                      />
+                      <VSelect v-model="dependentRationale[index]" :options="possibleAnswers.intervention.rationale" />
                     </div>
                   </div>
                 </div>
-                <div class="grow pb-4 pl-2">
+
+                <hr class="my-4 border-neutral-300 lg:hidden" />
+
+                <div class="grow">
                   <p class="font-medium">Your Independents:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.independent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
-                      <VSelect
-                        v-model="independentRationale[index]"
-                        :options="['N/A', ...possibleAnswers.intervention.independents.map((e) => e.rationale)]"
-                      />
+                      <VSelect v-model="independentRationale[index]" :options="possibleAnswers.intervention.rationale" />
                     </div>
                   </div>
                 </div>
-                <div class="grow pl-2">
+
+                <hr class="my-4 border-neutral-300 lg:hidden" />
+
+                <div class="grow">
                   <p class="font-medium">Your Collaboratives:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.collaborative" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}. ${answer.split('::')[0]}` }}</p>
-                      <VSelect
-                        v-model="collabRationale[index]"
-                        :options="['N/A', ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)]"
-                      />
+                      <VSelect v-model="collabRationale[index]" :options="possibleAnswers.intervention.rationale" />
                     </div>
                   </div>
                 </div>

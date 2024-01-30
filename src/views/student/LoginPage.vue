@@ -67,7 +67,7 @@ function submit() {
       )
       router.push({ name: 'introduction' })
       toastStore.add({
-        msg: 'Successfully logged in.',
+        msg: 'Successfully logged in',
         duration: 2000
       })
     })

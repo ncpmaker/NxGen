@@ -197,12 +197,22 @@ function save() {
 
   console.log(subjectives.value)
 }
+
+async function copyToClipboard(str){
+  await navigator.clipboard.writeText(str)
+}
 </script>
 
 <template>
   <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!sticky left-52 top-[100px] w-fit" />
   <div class="w-full pt-4 text-center">
     <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.number }}</h1>
+
+    <div class="flex flex-row items-center justify-center gap-2">
+      <span>ID: {{ $route.params.id }}</span>
+
+      <VIconButton @click="copyToClipboard($route.params.id)" icon="content_copy" variant="ghost" class="relative z-[11]" />
+    </div>
   </div>
 
   <div v-if="isLoading" class="flex items-center justify-center py-4">
