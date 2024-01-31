@@ -1,19 +1,40 @@
 <script setup>
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { toastStore } from '@/store'
 
+const router = useRouter()
 const histories = ref([])
 const isLoading = ref(true)
-onMounted(() => {
-  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${localStorage.getItem('ncp_user_id')}/get-all`).then((res) => {
-    histories.value = res.data
-    isLoading.value = false
+onMounted(async () => {
+  await axios({
+    method: 'get',
+    url: `${import.meta.env.VITE_API_DOMAIN}/history/case-scenario/student/${localStorage.getItem('ncp_user_id')}`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+      Role: 'student'
+    }
   })
+    .then((res) => {
+      histories.value = res.data
+    })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        router.push({ name: 'login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isLoading.value = false))
 })
 </script>
 
 <template>
-  <div class="overflow-y-auto">
+  <div>
     <template v-if="isLoading">
       <div class="flex h-[calc(100svh-137px)] flex-col items-center justify-center">
         <VLoader size="48px" thickness="2px" />

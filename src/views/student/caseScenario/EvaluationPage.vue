@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { toastStore } from '@/store'
 import generatePDF from '@/assets/scripts/pdf'
 import axios from 'axios'
 
@@ -20,17 +21,35 @@ function goHome() {
 const scores = ref([])
 const data = ref(null)
 const isLoading = ref(true)
-onMounted(() => {
-  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${route.params.id}/get`).then((res) => {
-    data.value = res.data
-    scores.value.push(data.value.score.assessment)
-    scores.value.push(data.value.score.nursingDiagnosis)
-    scores.value.push(data.value.score.planning)
-    scores.value.push(data.value.score.intervention)
-    scores.value.push(data.value.score.evaluation)
-    scores.value.push(data.value.score.overall)
-    isLoading.value = false
+onMounted(async () => {
+  await axios({
+    method: 'get',
+    url: `${import.meta.env.VITE_API_DOMAIN}/history/case-scenario/${route.params.id}`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+      Role: 'student'
+    }
   })
+    .then((res) => {
+      data.value = res.data
+      scores.value.push(data.value.score.assessment)
+      scores.value.push(data.value.score.nursingDiagnosis)
+      scores.value.push(data.value.score.planning)
+      scores.value.push(data.value.score.intervention)
+      scores.value.push(data.value.score.evaluation)
+      scores.value.push(data.value.score.overall)
+    })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        router.push({ name: 'login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isLoading.value = false))
 })
 </script>
 
@@ -42,7 +61,7 @@ onMounted(() => {
       </div>
 
       <div class="flex flex-col items-center gap-2">
-        <h3 class="pb-2 font-medium">Total Score</h3>
+        <h2 class="pb-2 font-medium">Total Score</h2>
         <div class="flex w-full justify-center">
           <VLoader v-if="isLoading" size="100px" thickness="4px" />
           <VRadialProgress v-else size="100px" color="success" thickness="12px" :progress="scores[5]" :max-value="100" class="text-xl font-semibold" />

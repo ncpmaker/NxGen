@@ -47,11 +47,11 @@ function setColor() {
     }
   } else {
     if (props.size === 'sm') {
-      size = 'h-[30px] max-h-[30px] px-2 py-1 text-sm'
+      size = ' px-2 py-1 text-sm'
     } else if (props.size === 'base') {
-      size = 'h-[42px] max-h-[42px] px-4 py-2 text-base'
+      size = ' px-4 py-2 text-base'
     } else if (props.size === 'lg') {
-      size = 'h-[54px] max-h-[54px] px-6 py-3 text-xl'
+      size = ' px-6 py-3 text-xl'
     }
   }
 

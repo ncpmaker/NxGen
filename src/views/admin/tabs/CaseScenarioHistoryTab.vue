@@ -1,11 +1,13 @@
 <script setup>
 import { onMounted, ref, watchEffect } from 'vue'
-import { scrollStore } from '@/store'
+import { scrollStore, toastStore } from '@/store'
+import { useRouter } from 'vue-router'
 import generatePDF from '@/assets/scripts/pdf'
 import debounce from '@/assets/scripts/debounce'
 import axios from 'axios'
 
-//get case scenario history
+const router = useRouter()
+
 const data = ref(null)
 const history = ref([])
 const lastFetch = ref([])
@@ -19,19 +21,25 @@ const search = ref({
   category: 'All'
 })
 
-const getHistory = debounce((text, section, category) => {
+const getHistory = debounce(async (text, section, category) => {
   if (lastFetch.value.length === 50 || lastFetch.value.length === 0) {
-    axios
-      .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/search`, {
+    await axios({
+      method: 'get',
+      url: `${import.meta.env.VITE_API_DOMAIN}/history/case-scenario/search`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+        Role: 'admin'
+      },
+      params: {
         search: text,
         section: section,
         category: category,
         cursor: lastID.value
-      })
+      }
+    })
       .then((res) => {
         lastFetch.value = res.data
         history.value.push(...lastFetch.value)
-        isLoading.value = false
 
         if (res.data.length > 0) {
           lastID.value = res.data[res.data.length - 1].id
@@ -41,6 +49,18 @@ const getHistory = debounce((text, section, category) => {
           moreLoading.value = false
         }
       })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          router.push({ name: 'admin login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
+        moreLoading.value = false
+      })
+      .finally(() => (isLoading.value = false))
   }
 })
 
@@ -70,9 +90,15 @@ onMounted(() => {
 })
 
 //generate pdf
-function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
-  axios
-    .get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${id}/get/`)
+async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
+  await axios({
+    method: 'get',
+    url: `${import.meta.env.VITE_API_DOMAIN}/history/case-scenario/${id}`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+      Role: 'admin'
+    }
+  })
     .then((res) => {
       data.value = res.data
       return data.value
@@ -88,6 +114,16 @@ function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
       scores.push(data.score.overall)
 
       generatePDF(name, category, caseId, timesTaken, new Date(dateTaken).toLocaleString(), scores)
+    })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        router.push({ name: 'admin login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
     })
 }
 </script>

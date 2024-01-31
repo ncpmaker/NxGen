@@ -30,14 +30,17 @@ function submit() {
   states.value.password.message = null
   states.value.password.color = null
 
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/user/login`, {
+  axios({
+    method: 'post',
+    url: `${import.meta.env.VITE_API_DOMAIN}/user/login`,
+    data: {
       email: formValues.value.email,
       password: formValues.value.password
-    })
+    }
+  })
     .then((res) => {
       localStorage.setItem('ncp_user_id', res.data.userId)
-      localStorage.setItem('ncp_user_email', res.data.email)
+      localStorage.setItem('ncp_name', res.data.name)
       localStorage.setItem('ncp_user_section', res.data.section)
       localStorage.setItem('ncp_token', res.data.token)
       localStorage.setItem('ncp_finished_pre_test', res.data.finishedPreTest)
@@ -90,6 +93,7 @@ function submit() {
         })
       }
     })
+    .finally(() => (isLoading.value = false))
 }
 </script>
 

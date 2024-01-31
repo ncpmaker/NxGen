@@ -32,7 +32,7 @@ const states = ref({
 })
 
 const isLoading = ref(false)
-function submit() {
+async function submit() {
   if (formValues.value.password === formValues.value.confirmPassword) {
     isLoading.value = true
     states.value.email.message = null
@@ -41,21 +41,24 @@ function submit() {
     states.value.confirmPassword.message = null
     states.value.confirmPassword.color = null
 
-    axios
-      .post(`${import.meta.env.VITE_API_DOMAIN}/user/create`, {
+    await axios({
+      method: 'post',
+      url: `${import.meta.env.VITE_API_DOMAIN}/user/signup`,
+      data: {
         email: formValues.value.email,
         password: formValues.value.password,
         name: formValues.value.firstName + ' ' + formValues.value.lastName,
         section: formValues.value.section
-      })
+      }
+    })
       .then(() => {
         toastStore.add({
-          msg: 'Account created successfully',
+          msg: 'Account created',
           duration: 2000
         })
 
         toastStore.add({
-          msg: 'Please wait for the account approval',
+          msg: 'Please wait for your account approval',
           duration: 4000
         })
 
@@ -76,8 +79,8 @@ function submit() {
             duration: 4000
           })
         }
-        isLoading.value = false
       })
+      .finally(() => (isLoading.value = false))
   } else {
     states.value.password.color = 'error'
     states.value.confirmPassword.message = 'Passwords are not the same'
@@ -152,7 +155,7 @@ function submit() {
     <div class="flex flex-col gap-2 overflow-hidden">
       <div class="overflow-y-auto px-4">
         <h1 class="sticky top-0 bg-blue-50 pt-4">Terms and Conditions</h1>
-        <div class="flex max-h-[400px] flex-col gap-4 text-justify">
+        <div class="flex max-h-[400px] flex-col gap-4 px-2 text-justify">
           <div>
             <h3><b>1. Acceptance of Terms</b></h3>
             <p class="pl-5">

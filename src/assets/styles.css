@@ -12,7 +12,7 @@
 
 @layer base {
   html {
-    @apply bg-blue-50 font-['Afacad'] text-blue-950;
+    @apply bg-blue-50 font-['Afacad'] text-blue-950 lg:text-lg;
   }
 
   h1 {

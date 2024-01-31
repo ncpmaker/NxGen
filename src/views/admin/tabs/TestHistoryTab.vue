@@ -1,10 +1,12 @@
 <script setup>
 import { onMounted, ref, watchEffect } from 'vue'
-import { scrollStore } from '@/store'
+import { scrollStore, toastStore } from '@/store'
+import { useRouter } from 'vue-router'
 import debounce from '@/assets/scripts/debounce'
 import axios from 'axios'
 
-//Get test history
+const router = useRouter()
+
 const history = ref([])
 const lastFetch = ref([])
 const isLoading = ref(true)
@@ -17,15 +19,22 @@ const search = ref({
   type: 'All'
 })
 
-const getHistory = debounce((text, section, type) => {
+const getHistory = debounce(async (text, section, type) => {
   if (lastFetch.value.length === 50 || lastFetch.value.length === 0) {
-    axios
-      .post(`${import.meta.env.VITE_API_DOMAIN}/test-history/search`, {
+    await axios({
+      method: 'get',
+      url: `${import.meta.env.VITE_API_DOMAIN}/history/test/search`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+        Role: 'admin'
+      },
+      params: {
         search: text,
         section: section,
         testType: type === 'Pre test' ? 'PRETEST' : type === 'Post test' ? 'POSTTEST' : 'All',
         cursor: lastID.value
-      })
+      }
+    })
       .then((res) => {
         lastFetch.value = res.data
         history.value.push(...lastFetch.value)
@@ -39,6 +48,17 @@ const getHistory = debounce((text, section, type) => {
           moreLoading.value = false
         }
       })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          router.push({ name: 'admin login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
+      })
+      .finally(() => (isLoading.value = false))
   }
 })
 

@@ -33,35 +33,50 @@ const independents = ref([{ text: null, rationale: null, isCorrect: false }])
 const collaboratives = ref([{ text: null, rationale: null, isCorrect: false }])
 
 const isLoading = ref(false)
-onMounted(() => {
+onMounted(async () => {
   if (route.name === 'admin edit case') {
     isLoading.value = true
-    axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
-      scenario.value = res.data.scenario
-      imageLink.value = res.data.image_link
-      audioLink.value = res.data.audio_link
-
-      subjectives.value = res.data.assessment.subjectives
-      objectives.value = res.data.assessment.objectives
-
-      diagnosis.value = res.data.nursing_diagnosis.diagnosis
-      relatedTo.value = res.data.nursing_diagnosis.relatedTo
-      signsAndSymptoms.value = res.data.nursing_diagnosis.signsAndSymptoms
-
-      shortTermGoalsDesc.value = res.data.planning.shortTermGoalsDesc
-      shortTermGoals.value = res.data.planning.shortTermGoals
-
-      longTermGoalsDesc.value = res.data.planning.longTermGoalsDesc
-      longTermGoals.value = res.data.planning.longTermGoals
-
-      dependents.value = res.data.intervention.dependents
-      independents.value = res.data.intervention.independents
-      collaboratives.value = res.data.intervention.collaboratives
-
-      isLoading.value = false
-
-      console.log(res.data)
+    await axios({
+      method: 'get',
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}/${route.params.id}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+        Role: 'admin'
+      }
     })
+      .then((res) => {
+        scenario.value = res.data.scenario
+        imageLink.value = res.data.image_link
+        audioLink.value = res.data.audio_link
+
+        subjectives.value = res.data.assessment.subjectives
+        objectives.value = res.data.assessment.objectives
+
+        diagnosis.value = res.data.nursing_diagnosis.diagnosis
+        relatedTo.value = res.data.nursing_diagnosis.relatedTo
+        signsAndSymptoms.value = res.data.nursing_diagnosis.signsAndSymptoms
+
+        shortTermGoalsDesc.value = res.data.planning.shortTermGoalsDesc
+        shortTermGoals.value = res.data.planning.shortTermGoals
+
+        longTermGoalsDesc.value = res.data.planning.longTermGoalsDesc
+        longTermGoals.value = res.data.planning.longTermGoals
+
+        dependents.value = res.data.intervention.dependents
+        independents.value = res.data.intervention.independents
+        collaboratives.value = res.data.intervention.collaboratives
+      })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          router.push({ name: 'admin login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
+      })
+      .finally(() => (isLoading.value = false))
   }
 })
 
@@ -114,10 +129,16 @@ function removeTextbox(index, section) {
 }
 
 const isCreating = ref(false)
-function create() {
+async function create() {
   isCreating.value = true
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/create`, {
+  await axios({
+    method: 'post',
+    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+      Role: 'admin'
+    },
+    data: {
       category: route.params.category,
       scenario: scenario.value,
       image_link: imageLink.value,
@@ -142,9 +163,9 @@ function create() {
         independents: independents.value,
         collaboratives: collaboratives.value
       }
-    })
+    }
+  })
     .then(() => {
-      isCreating.value = false
       router.push({ name: 'admin case scenarios', params: { category: 'neuro' } })
       toastStore.add({
         msg: 'Case created',
@@ -152,16 +173,29 @@ function create() {
       })
     })
     .catch((err) => {
-      isCreating.value = false
-      console.log(err)
+      if (err.response.status == 401) {
+        router.push({ name: 'admin login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
     })
+    .finally(() => (isCreating.value = false))
 }
 
 const isSaving = ref(false)
-function save() {
+async function save() {
   isSaving.value = true
-  axios
-    .put(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/edit/${route.params.category}/${route.params.id}`, {
+  await axios({
+    method: 'put',
+    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}/${route.params.id}`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+      Role: 'admin'
+    },
+    data: {
       category: route.params.category,
       scenario: scenario.value,
       image_link: imageLink.value,
@@ -186,25 +220,40 @@ function save() {
         independents: independents.value,
         collaboratives: collaboratives.value
       }
-    })
+    }
+  })
     .then(() => {
-      isSaving.value = false
       toastStore.add({
         msg: 'Case updated',
         duration: 4000
       })
     })
-
-  console.log(subjectives.value)
+    .catch((err) => {
+      if (err.response.status == 401) {
+        router.push({ name: 'admin login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isSaving.value = false))
 }
 
-async function copyToClipboard(str){
+async function copyToClipboard(str) {
   await navigator.clipboard.writeText(str)
 }
 </script>
 
 <template>
-  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!sticky left-52 top-[100px] w-fit" />
+  <VIconButton
+    @click="$router.push({ name: 'admin case scenarios' })"
+    icon="arrow_back"
+    variant="ghost"
+    size="lg"
+    class="!sticky left-52 top-[100px] w-fit"
+  />
   <div class="w-full pt-4 text-center">
     <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.number }}</h1>
 
