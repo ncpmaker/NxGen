@@ -631,10 +631,11 @@ async function submit() {
             </div>
 
             <div v-else-if="step.count === 6" class="w-full max-w-[1024px]">
-              <div class="flex items-center justify-center">
-                <div class="mb-4 w-full max-w-[1024px] rounded-lg bg-amber-400 px-12 py-4 text-center text-lg font-medium">
-                  Please take note that the order of your answer is based on the order you check.
-                </div>
+              <div
+                class="mb-4 flex w-full max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-12 py-4 text-lg font-medium"
+              >
+                <span class="material-icons-round">edit</span>
+                Note that the order of your answer is based on the order you check.
               </div>
               <h3 class="pb-2 font-medium">Dependent/s</h3>
               <div class="flex flex-col gap-1 pb-4">
@@ -649,7 +650,7 @@ async function submit() {
                   </div>
                 </label>
               </div>
-              <TransitionGroup name="list" tag="ul" class="space-y-2 rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
+              <TransitionGroup name="list" tag="ul" class="relative rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
                 <p key="dependent">Your answer/s:</p>
                 <li v-for="(answer, index) in answers.dependent" :key="answer">
                   <p>{{ index + 1 }}. {{ answer }}</p>
@@ -658,10 +659,11 @@ async function submit() {
             </div>
 
             <div v-else-if="step.count === 7" class="w-full max-w-[1024px]">
-              <div class="flex items-center justify-center">
-                <div class="mb-4 w-full max-w-[1024px] rounded-lg bg-amber-400 px-12 py-4 text-center text-lg font-medium">
-                  Please take note that the order of your answer is based on the order you check.
-                </div>
+              <div
+                class="mb-4 flex w-full max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-12 py-4 text-lg font-medium"
+              >
+                <span class="material-icons-round">edit</span>
+                Note that the order of your answer is based on the order you check.
               </div>
               <h3 class="pb-2 font-medium">Independent/s</h3>
               <div class="flex flex-col gap-1 pb-4">
@@ -677,7 +679,7 @@ async function submit() {
                 </label>
               </div>
 
-              <TransitionGroup name="list" tag="ul" class="space-y-2 rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
+              <TransitionGroup name="list" tag="ul" class="relative rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
                 <p key="independent">Your answer/s:</p>
                 <li v-for="(answer, index) in answers.independent" :key="answer">
                   <p>{{ index + 1 }}. {{ answer }}</p>
@@ -685,7 +687,7 @@ async function submit() {
               </TransitionGroup>
             </div>
 
-            <div v-else-if="step.count === 8" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 8" class="w-full max-w-[1366px]">
               <h3 class="pb-2 font-medium">Collaborative/s</h3>
               <div class="flex flex-col gap-1">
                 <label
@@ -701,7 +703,7 @@ async function submit() {
               </div>
             </div>
 
-            <div v-else-if="step.count === 9" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 9" class="w-full max-w-[1366px]">
               <h3 class="pb-2 font-medium">Rationale</h3>
               <div class="lg:flex lg:flex-row lg:gap-2">
                 <div class="grow">

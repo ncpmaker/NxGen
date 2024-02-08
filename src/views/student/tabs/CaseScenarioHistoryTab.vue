@@ -42,7 +42,7 @@ onMounted(async () => {
     </template>
 
     <template v-else>
-      <div v-if="histories.length !== 0" class="flex flex-col px-4 pb-[69px] xl:px-24">
+      <div v-if="histories.length !== 0" class="flex flex-col px-4 xl:px-24">
         <template v-for="(history, index) in histories" :key="index">
           <router-link
             :to="{ name: 'evaluation', params: { id: history.id } }"
@@ -52,8 +52,8 @@ onMounted(async () => {
               <span class="text-xl font-bold md:text-2xl">{{ index + 1 }}</span>
             </div>
             <div class="flex flex-col pl-2">
-              <span class="text-lg font-medium leading-none md:text-[20px]">
-                {{ new Date(history.dateTaken).toLocaleString().replace(',', ' -') }}
+              <span class="text-lg leading-none md:text-[20px]">
+                <b>{{ new Date(history.dateTaken).toLocaleString().replace(',', ' -') }}</b>
               </span>
               <p class="leading-none md:text-[18px]">
                 Case ID: <b>{{ history.caseId }}</b>
@@ -71,7 +71,7 @@ onMounted(async () => {
         </template>
       </div>
 
-      <div v-else class="flex h-[calc(100svh-137px)] flex-col items-center justify-center">
+      <div v-else class="flex h-[calc(100svh-153px)] flex-col items-center justify-center">
         <div class="flex flex-col items-center text-neutral-400/50">
           <span class="material-icons pr-2 text-[125px] text-neutral-400/50"> history </span>
           <h2 class="font-medium">No case history found</h2>

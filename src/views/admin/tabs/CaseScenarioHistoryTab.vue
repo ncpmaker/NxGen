@@ -130,7 +130,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
 
 <template>
   <div class="w-full">
-    <div class="sticky top-[61px] flex w-full flex-row items-center gap-6 bg-blue-50 px-4 py-2">
+    <div class="sticky top-[68.5px] flex w-full flex-row items-center gap-6 bg-blue-50 px-4 py-2">
       <h3>Case Scenario History</h3>
       <VFormTextbox v-model="search.text" placeholder="Search for Name or Case ID" class="w-72" />
       <div class="flex flex-row items-center gap-2">
@@ -143,8 +143,9 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
         <VSelect v-model="search.category" :options="['All', 'Neuro', 'Etc.']" class="w-40" />
       </div>
     </div>
+
     <table class="w-full table-fixed">
-      <tr class="sticky top-[119px] bg-blue-200">
+      <tr class="sticky top-[138px] bg-blue-200">
         <th class="w-16">#</th>
         <th class="px-6 py-4 text-start">Name</th>
         <th class="px-6 py-4 text-start">Section</th>

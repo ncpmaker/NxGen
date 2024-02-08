@@ -262,7 +262,7 @@ async function copyToClipboard(str) {
   <div class="w-full pt-4 text-center">
     <h1>{{ $route.params.category.charAt(0).toUpperCase() + $route.params.category.slice(1) }} - Case Scenario {{ $route.params.number }}</h1>
 
-    <div class="flex flex-row items-center justify-center gap-2">
+    <div v-if="$route.name === 'admin edit case'" class="flex flex-row items-center justify-center gap-2">
       <span>ID: {{ $route.params.id }}</span>
 
       <VIconButton @click="copyToClipboard($route.params.id)" icon="content_copy" variant="ghost" class="relative z-[11]" />
@@ -283,8 +283,8 @@ async function copyToClipboard(str) {
       <h2 class="sticky top-[61px] z-10 bg-blue-50 pt-4">Scenario Section</h2>
       <hr class="m-2 border-neutral-300" />
       <VFormTextbox v-model="scenario" label="Scenario *" placeholder="Put any scenario description here" textarea required />
-      <VFormTextbox v-model="imageLink" label="Image Link" placeholder="URL" />
-      <VFormTextbox v-model="audioLink" label="Audio Link" placeholder="URL" />
+      <VFormTextbox v-model="imageLink" label="Image Preview Link" placeholder="URL" />
+      <VFormTextbox v-model="audioLink" label="Audio Sample Link" placeholder="URL" />
     </div>
 
     <!-- Assessment -->
@@ -295,12 +295,12 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Subjectives *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in subjectives.texts" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Subjective ' + (index + 1)" required />
 
             <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="subjectives.correctValue" :value="choice.text" name="subjective" type="radio" class="cursor-pointer" />
@@ -325,12 +325,12 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Objectives *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in objectives" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Objective ' + (index + 1)" required />
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="subjective" class="cursor-pointer" />
@@ -359,12 +359,12 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Diagnoses *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in diagnosis.texts" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Diagnoses ' + (index + 1)" required />
 
             <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="diagnosis.correctValue" :value="choice.text" name="diagnosis" type="radio" class="cursor-pointer" />
@@ -389,12 +389,12 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Related To *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in relatedTo.texts" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Related to ' + (index + 1)" required />
 
             <label class="flex h-fit w-fit cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="relatedTo.correctValue" :value="choice.text" name="related_to" type="radio" class="cursor-pointer" />
@@ -419,12 +419,12 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Signs and Symptoms *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in signsAndSymptoms" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Signs and symptoms ' + (index + 1)" required />
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="signs_and_symptoms" class="cursor-pointer" />
@@ -462,12 +462,12 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Short Term Goals *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-2">
           <div v-for="(choice, index) in shortTermGoals" :key="index" class="flex w-full flex-row items-center gap-2">
-            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Goal ' + (index + 1)" required />
+            <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Short term goal ' + (index + 1)" required />
 
             <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
               <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="short_term_goals" class="cursor-pointer" />
@@ -501,11 +501,11 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Long Term Goals *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div v-for="(choice, index) in longTermGoals" :key="index" class="flex w-full flex-row items-center gap-2">
-          <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Goal ' + (index + 1)" required />
+          <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Long term goal ' + (index + 1)" required />
 
           <label class="flex cursor-pointer items-center justify-center rounded-full p-4 hover:bg-neutral-400/20">
             <input v-model="choice.isCorrect" :value="choice.isCorrect" type="checkbox" name="long_term_goals" class="cursor-pointer" />
@@ -534,13 +534,13 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Dependents *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-4">
           <div v-for="(choice, index) in dependents" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
-              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Dependent ' + (index + 1)" required />
               <div class="flex flex-row items-center gap-2">
                 <i>Rationale:</i>
                 <VTextbox v-model="choice.rationale" type="text" class="w-full font-normal italic" :placeholder="'Rationale ' + (index + 1)" required />
@@ -569,13 +569,13 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Independents *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-4">
           <div v-for="(choice, index) in independents" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
-              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Independent ' + (index + 1)" required />
               <div class="flex flex-row items-center gap-2">
                 <i>Rationale:</i>
                 <VTextbox v-model="choice.rationale" type="text" class="w-full font-normal italic" :placeholder="'Rationale ' + (index + 1)" required />
@@ -605,13 +605,13 @@ async function copyToClipboard(str) {
         <div class="flex w-full flex-row items-center place-self-start text-sm lg:text-base">
           <span class="grow">Collaboratives *</span>
           <span class="text-neutral-600">Correct</span>
-          <span class="basis-[32px]"></span>
+          <span class="basis-[36px]"></span>
         </div>
 
         <div class="flex w-full flex-col items-center gap-4">
           <div v-for="(choice, index) in collaboratives" :key="index" class="flex w-full flex-row items-center gap-2">
             <div class="flex w-full flex-col gap-2">
-              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Choice ' + (index + 1)" required />
+              <VTextbox v-model="choice.text" type="text" class="w-full" :placeholder="'Collaborative ' + (index + 1)" required />
               <div class="flex flex-row items-center gap-2">
                 <i>Rationale:</i>
                 <VTextbox v-model="choice.rationale" type="text" class="w-full font-normal italic" :placeholder="'Rationale ' + (index + 1)" required />

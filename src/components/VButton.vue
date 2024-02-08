@@ -85,7 +85,7 @@ function btnStyle() {
   } else if (props.size === 'base') {
     btnVariant = 'h-[42px] max-h-[42px] lg:h-[47px] lg:max-h-[47px] gap-2 px-4 py-2 text-base'
   } else if (props.size === 'lg') {
-    btnVariant = 'h-[54px] max-h-[54px] gap-3 px-6 py-3 text-xl'
+    btnVariant = 'h-[54px] max-h-[54px] lg:h-[61px] lg:max-h-[61px] gap-3 px-6 py-3 text-xl'
   }
 
   return btnColor + ' ' + btnVariant
