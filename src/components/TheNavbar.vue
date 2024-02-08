@@ -137,7 +137,7 @@ async function updateEnablePostTest() {
     <div v-if="$route.name !== 'admin login'" class="sticky top-0 z-20 grid grid-cols-3 items-center border-b bg-blue-50 px-6 py-2 shadow-lg">
       <!-- logo -->
       <div>
-        <button @click="goHome()" class="text-2xl">App Name</button>
+        <button @click="goHome()" class="text-2xl">NCP admin</button>
       </div>
 
       <!-- middle  -->

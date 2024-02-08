@@ -150,7 +150,7 @@ const modals = ref({
         <td class="px-6 py-1 text-start">{{ entry.section }}</td>
         <td class="px-6 py-1 text-start">{{ entry.testType }}</td>
         <td class="px-6 py-1 text-start">{{ entry.score }}</td>
-        <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString() }}</td>
+        <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString().replace(',', ' -') }}</td>
         <td class="px-6 py-1">
           <div class="flex h-full w-full flex-row items-center justify-center">
             <VButton

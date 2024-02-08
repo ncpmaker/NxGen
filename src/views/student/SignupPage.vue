@@ -142,7 +142,7 @@ async function submit() {
           </VButton>
 
           <div class="text-right text-sm lg:text-base">
-            Already have and account?
+            Already have an account?
             <VLinkButton :to="{ name: 'login' }"> Login here </VLinkButton>
           </div>
         </div>
@@ -154,7 +154,7 @@ async function submit() {
   <VModal v-model:go-open="tacModal" :click-outside="false">
     <div class="flex flex-col gap-2 overflow-hidden">
       <div class="overflow-y-auto px-4">
-        <h1 class="sticky top-0 bg-blue-50 pt-4">Terms and Conditions</h1>
+        <h1 class="sticky top-0 bg-blue-50 pb-2 pt-4">Terms and Conditions</h1>
         <div class="flex max-h-[400px] flex-col gap-4 px-2 text-justify">
           <div>
             <h3><b>1. Acceptance of Terms</b></h3>

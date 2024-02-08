@@ -23,14 +23,14 @@ const states = ref({
 })
 
 const isLoading = ref(false)
-function submit() {
+async function submit() {
   isLoading.value = true
   states.value.email.message = null
   states.value.email.color = null
   states.value.password.message = null
   states.value.password.color = null
 
-  axios({
+  await axios({
     method: 'post',
     url: `${import.meta.env.VITE_API_DOMAIN}/user/login`,
     data: {
@@ -76,15 +76,15 @@ function submit() {
     })
     .catch((err) => {
       isLoading.value = false
-      if (err.response.data.message === 'Account not yet approved.' || err.response.status === 401 || err.response.status === 400) {
-        states.value.email.message = err.response.data.message
+      if (err.response.data === 'Account not yet approved' || err.response.status === 400) {
+        states.value.email.message = err.response.data
         states.value.email.color = 'error'
         states.value.password.message = null
         states.value.password.color = 'error'
-      } else if (err.response.data.message === 'Wrong password!') {
+      } else if (err.response.data === 'Wrong password!') {
         states.value.email.message = null
         states.value.email.color = null
-        states.value.password.message = err.response.data.message
+        states.value.password.message = err.response.data
         states.value.password.color = 'error'
       } else {
         toastStore.add({
@@ -100,7 +100,7 @@ function submit() {
 <template>
   <div class="flex h-[100svh] flex-col justify-end bg-gradient-to-b from-blue-300 to-blue-500 sm:items-center sm:justify-center">
     <div class="flex w-full flex-col gap-2 sm:max-w-[600px] sm:p-4">
-      <h1 class="px-4 drop-shadow-lg">Welcome to TakeCare</h1>
+      <h1 class="px-4 drop-shadow-xl">Welcome to NCP</h1>
 
       <!-- login form -->
       <form @submit.prevent="submit()" class="flex w-full flex-col gap-2 rounded-t-2xl bg-blue-50 px-4 py-4 sm:rounded-2xl">

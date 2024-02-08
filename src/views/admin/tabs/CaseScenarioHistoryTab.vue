@@ -113,7 +113,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
       scores.push(data.score.evaluation)
       scores.push(data.score.overall)
 
-      generatePDF(name, category, caseId, timesTaken, new Date(dateTaken).toLocaleString(), scores)
+      generatePDF(name, category, caseId, timesTaken, new Date(dateTaken).toLocaleString().replace(',', ' -'), scores)
     })
     .catch((err) => {
       if (err.response.status == 401) {
@@ -170,7 +170,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
         <td class="px-6 py-1 text-start">{{ entry.category }}</td>
         <td class="px-6 py-1 text-start">{{ entry.caseId }}</td>
         <td class="px-6 py-1 text-start">{{ entry.timesTaken }}</td>
-        <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString() }}</td>
+        <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString().replace(',', ' -') }}</td>
         <td class="px-6 py-1">
           <div class="flex h-full w-full flex-row items-center justify-center">
             <VButton

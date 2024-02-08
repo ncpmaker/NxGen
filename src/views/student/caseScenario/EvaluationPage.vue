@@ -61,18 +61,28 @@ onMounted(async () => {
       </div>
 
       <div class="flex flex-col items-center gap-2">
-        <h2 class="pb-2 font-medium">Total Score</h2>
+        <h2 class="pb-2 font-medium leading-none">Total Score</h2>
         <div class="flex w-full justify-center">
           <VLoader v-if="isLoading" size="100px" thickness="4px" />
           <VRadialProgress v-else size="100px" color="success" thickness="12px" :progress="scores[5]" :max-value="100" class="text-xl font-semibold" />
         </div>
         <VButton
-          @click="generatePDF(data.name, data.category, data.caseId, data.timesTaken, new Date(data.dateTaken).toLocaleString(), scores)"
+          @click="
+            generatePDF(data.name, data.category, data.caseId, data.timesTaken, new Date(data.dateTaken).toLocaleString().replace(',', ' -'), scores)
+          "
           start-icon="print"
           class="w-fit"
         >
           Nursing Care Plan
         </VButton>
+        <div class="flex flex-col items-center leading-none">
+          <p v-if="!isLoading" class="text-center text-sm italic">
+            Case ID: <b>{{ data.caseId }}</b>
+          </p>
+          <p v-if="!isLoading" class="text-center text-sm italic">
+            Date Taken: <b>{{ new Date(data.dateTaken).toLocaleString().replace(',', ' -') }}</b>
+          </p>
+        </div>
       </div>
 
       <hr class="mx-2 my-2 border-neutral-300" />

@@ -67,7 +67,7 @@ async function submit() {
 <template>
   <div class="flex h-[100svh] w-screen flex-col items-center justify-center bg-gradient-to-b from-blue-300 to-blue-400">
     <div class="flex w-full max-w-[600px] flex-col gap-2">
-      <h1 class="px-4">Admin Login</h1>
+      <h1 class="px-4">NCP Administrator Login</h1>
 
       <!-- login form -->
       <form @submit.prevent="submit()" ref="formRef" class="flex w-full flex-col gap-2 rounded-2xl bg-blue-50 px-4 py-4 shadow-lg">

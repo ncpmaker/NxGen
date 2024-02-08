@@ -53,9 +53,14 @@ onMounted(async () => {
             </div>
             <div class="flex flex-col pl-2">
               <span class="text-lg font-medium leading-none md:text-[20px]">
-                {{ new Date(history.dateTaken).toLocaleString() }}
+                {{ new Date(history.dateTaken).toLocaleString().replace(',', ' -') }}
               </span>
-              <span class="leading-none md:text-[18px]"> Category: {{ history.category }} </span>
+              <p class="leading-none md:text-[18px]">
+                Case ID: <b>{{ history.caseId }}</b>
+              </p>
+              <p class="leading-none md:text-[18px]">
+                Category: <b>{{ history.category }}</b>
+              </p>
             </div>
             <div class="flex flex-row items-center gap-1 pr-2">
               <span class="material-icons"> chevron_right </span>

@@ -85,7 +85,7 @@ const deleteDialog = ref({
 
 <template>
   <VIconButton
-    @click="$router.push({ name: 'admin dashboard' })"
+    @click="$router.replace({ name: 'admin dashboard' })"
     icon="arrow_back"
     variant="ghost"
     size="lg"

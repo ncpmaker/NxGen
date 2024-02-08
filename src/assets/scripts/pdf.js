@@ -28,7 +28,7 @@ export default function generatePDF(name, category, caseNo, timesTaken, dateHand
   doc.text('NURSING CARE PLAN', pageWidth / 2, 4, { align: 'center' })
 
   doc.setFont(undefined, 'bold').text(`Name: ${name}        Category: ${category}        Case ID: ${caseNo}`, 2, 5)
-  doc.setFont(undefined, 'bold').text(`No. of Times Taken: ${timesTaken}        Date Handled: ${dateHandled}`, pageWidth - 2, 5, { align: 'right' })
+  doc.setFont(undefined, 'bold').text(`Times Taken: ${timesTaken}        Date Handled: ${dateHandled}`, pageWidth - 2, 5, { align: 'right' })
 
   doc.autoTable({
     html: '#table',

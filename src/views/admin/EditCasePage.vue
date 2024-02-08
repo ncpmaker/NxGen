@@ -242,13 +242,18 @@ async function save() {
 }
 
 async function copyToClipboard(str) {
-  await navigator.clipboard.writeText(str)
+  await navigator.clipboard.writeText(str).then(() => {
+    toastStore.add({
+      msg: 'ID copied',
+      duration: 1000
+    })
+  })
 }
 </script>
 
 <template>
   <VIconButton
-    @click="$router.push({ name: 'admin case scenarios' })"
+    @click="$router.replace({ name: 'admin case scenarios' })"
     icon="arrow_back"
     variant="ghost"
     size="lg"
