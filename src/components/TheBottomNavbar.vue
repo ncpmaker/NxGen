@@ -80,7 +80,14 @@ async function updatePassword() {
         duration: 4000
       })
 
-      await logout()
+      Object.keys(localStorage).forEach(function (key) {
+        if (/^ncp_/.test(key)) {
+          localStorage.removeItem(key)
+        }
+      })
+
+      router.push({ name: 'login' })
+      studentTabStore.set(0)
     })
     .catch((err) => {
       if (err.response.status === 401 && err.response.data === 'wrong old password') {
@@ -89,6 +96,11 @@ async function updatePassword() {
           duration: 4000
         })
       } else if (err.response.status == 401 && err.response.data === 'Account is unauthenticated') {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
         router.push({ name: 'login' })
       } else {
         toastStore.add({
@@ -129,6 +141,12 @@ async function logout() {
     })
     .catch((err) => {
       if (err.response.status == 401) {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+
         router.push({ name: 'login' })
       } else {
         toastStore.add({

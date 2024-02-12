@@ -51,6 +51,12 @@ onMounted(async () => {
     })
     .catch((err) => {
       if (err.response.status == 401) {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+
         router.push({ name: 'login' })
       } else {
         toastStore.add({

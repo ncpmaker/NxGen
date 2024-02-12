@@ -75,7 +75,7 @@ async function submit() {
       })
     })
     .catch((err) => {
-      isLoading.value = false
+      console.log(err)
       if (err.response.data === 'Account not yet approved' || err.response.status === 400) {
         states.value.email.message = err.response.data
         states.value.email.color = 'error'
