@@ -75,7 +75,7 @@ function formatAnswers(answers) {
 
 const formRef = ref(null)
 const isLoading = ref(false)
-function submit() {
+async function submit() {
   isLoading.value = true
   const formData = new FormData(formRef.value)
   const formDataObj = {}
@@ -99,13 +99,20 @@ function submit() {
     })
   })
 
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/test-history/create`, {
+  await axios({
+    method: 'post',
+    url: `${import.meta.env.VITE_API_DOMAIN}/history/test`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+      Role: 'student'
+    },
+    data: {
       userId: localStorage.getItem('ncp_user_id'),
       testType: route.name === 'pre-test' ? 'PRETEST' : route.name === 'post-test' ? 'POSTTEST' : '',
       answers: formatAnswers(formDataObj),
       score: testScore(formDataObj)
-    })
+    }
+  })
     .then(() => {
       studentTabStore.set(0)
 
@@ -127,6 +134,22 @@ function submit() {
 
       router.push({ name: 'home', params: { userId: localStorage.getItem('ncp_user_id') } })
     })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+        router.push({ name: 'login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isLoading.value = false))
 }
 </script>
 

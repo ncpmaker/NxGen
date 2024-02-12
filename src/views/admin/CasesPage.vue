@@ -1,17 +1,36 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { toastStore } from '@/store'
 import axios from 'axios'
 
 const route = useRoute()
+const router = useRouter()
 const cases = ref(null)
 const isLoading = ref(true)
-onMounted(() => {
-  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get-all/${route.params.category}`).then((res) => {
-    cases.value = res.data
-    isLoading.value = false
+onMounted(async () => {
+  await axios({
+    method: 'get',
+    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+      Role: 'admin'
+    }
   })
+    .then((res) => {
+      cases.value = res.data
+    })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        router.push({ name: 'admin login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isLoading.value = false))
 })
 
 const isDeleting = ref(false)
@@ -24,7 +43,7 @@ const deleteDialog = ref({
     this.id = id
     this.index = index
   },
-  confirm() {
+  async confirm() {
     this.state = !this.state
 
     toastStore.add({
@@ -34,20 +53,44 @@ const deleteDialog = ref({
 
     isDeleting.value = true
 
-    axios.delete(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/delete/${route.params.category}/${this.id}`).then(() => {
-      cases.value.splice(this.index, 1)
-      isDeleting.value = false
-      toastStore.add({
-        msg: 'Case deleted',
-        duration: 4000
-      })
+    await axios({
+      method: 'delete',
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}/${this.id}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+        Role: 'admin'
+      }
     })
+      .then(() => {
+        cases.value.splice(this.index, 1)
+        toastStore.add({
+          msg: 'Case deleted',
+          duration: 4000
+        })
+      })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          router.push({ name: 'admin login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
+      })
+      .finally(() => (isDeleting.value = false))
   }
 })
 </script>
 
 <template>
-  <VIconButton @click="$router.go(-1)" icon="arrow_back" variant="ghost" size="lg" class="!sticky left-52 top-[100px] !w-fit" />
+  <VIconButton
+    @click="$router.replace({ name: 'admin dashboard' })"
+    icon="arrow_back"
+    variant="ghost"
+    size="lg"
+    class="!sticky left-52 top-[100px] !w-fit"
+  />
   <div class="flex w-full flex-col gap-2 px-64 pb-4">
     <div class="my-4 flex h-96 flex-row items-end justify-between rounded-2xl bg-gradient-to-b from-blue-300 to-blue-400 p-8 shadow-xl">
       <div class="flex flex-col">

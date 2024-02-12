@@ -23,16 +23,22 @@ function goHome() {
 //logout
 const isLoggingOut = ref(false)
 
-function logout() {
+async function logout() {
   isLoggingOut.value = true
-  axios
-    .delete(`${import.meta.env.VITE_API_DOMAIN}/admin/logout`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('ncp_admin_token')}`
-      }
-    })
+  await axios({
+    method: 'delete',
+    url: `${import.meta.env.VITE_API_DOMAIN}/admin/logout`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+      Role: 'admin'
+    }
+  })
     .then(() => {
-      localStorage.removeItem('ncp_admin_token')
+      Object.keys(localStorage).forEach(function (key) {
+        if (/^ncpadmin_/.test(key)) {
+          localStorage.removeItem(key)
+        }
+      })
       router.push({ name: 'admin login' })
       adminTabStore.set(0)
 
@@ -41,7 +47,17 @@ function logout() {
         duration: 4000
       })
     })
-    .catch((err) => console.log(err))
+    .catch((err) => {
+      if (err.response.status == 401) {
+        router.push({ name: 'admin login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isLoggingOut.value = false))
 }
 
 //Enabled sections
@@ -54,30 +70,65 @@ const enabledSections = ref({
 })
 
 onMounted(async () => {
-  await axios.get(`${import.meta.env.VITE_API_DOMAIN}/enable-post-test/get`).then((res) => {
-    enabledSections.value.A1 = res.data.A1
-    enabledSections.value.B1 = res.data.B1
-    enabledSections.value.C1 = res.data.C1
-    enabledSections.value.D1 = res.data.D1
+  await axios({
+    method: 'get',
+    url: `${import.meta.env.VITE_API_DOMAIN}/enable-post-test`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+      Role: 'admin'
+    }
   })
+    .then((res) => {
+      enabledSections.value.A1 = res.data.A1
+      enabledSections.value.B1 = res.data.B1
+      enabledSections.value.C1 = res.data.C1
+      enabledSections.value.D1 = res.data.D1
+    })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        router.push({ name: 'admin login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
 })
 
-function updateEnablePostTest() {
+async function updateEnablePostTest() {
   isUpdating.value = true
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/enable-post-test`, {
+  await axios({
+    method: 'post',
+    url: `${import.meta.env.VITE_API_DOMAIN}/enable-post-test`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+      Role: 'admin'
+    },
+    data: {
       A1: enabledSections.value.A1,
       B1: enabledSections.value.B1,
       C1: enabledSections.value.C1,
       D1: enabledSections.value.D1
-    })
+    }
+  })
     .then(() => {
-      isUpdating.value = false
       toastStore.add({
-        msg: 'Enabled/disabled successfully',
+        msg: 'Post test availablity updated',
         duration: 4000
       })
     })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        router.push({ name: 'admin login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isUpdating.value = false))
 }
 </script>
 
@@ -86,7 +137,7 @@ function updateEnablePostTest() {
     <div v-if="$route.name !== 'admin login'" class="sticky top-0 z-20 grid grid-cols-3 items-center border-b bg-blue-50 px-6 py-2 shadow-lg">
       <!-- logo -->
       <div>
-        <button @click="goHome()" class="text-2xl">App Name</button>
+        <button @click="goHome()" class="text-2xl">NCP admin</button>
       </div>
 
       <!-- middle  -->

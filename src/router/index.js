@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { goToPostTestStore } from '@/store'
-import axios from 'axios'
 
 //student pages
 import LoginPage from '@/views/student/LoginPage.vue'
@@ -29,14 +28,25 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
+      component: LoginPage,
       meta: { auth: { isRequired: false, role: 'student' } },
-      component: LoginPage
+
+      beforeEnter: () => {
+        if (localStorage.getItem('ncp_token')) {
+          return { name: 'home', replace: true }
+        }
+      }
     },
     {
       path: '/signup',
       name: 'signup',
+      component: SignupPage,
       meta: { auth: { isRequired: false, role: 'student' } },
-      component: SignupPage
+      beforeEnter: () => {
+        if (localStorage.getItem('ncp_token')) {
+          return { name: 'home', replace: true }
+        }
+      }
     },
     {
       path: '/introduction',
@@ -131,7 +141,12 @@ const router = createRouter({
           path: 'login',
           name: 'admin login',
           meta: { auth: { isRequired: false, role: 'admin' } },
-          component: () => import('@/views/admin/LoginPage.vue')
+          component: () => import('@/views/admin/LoginPage.vue'),
+          beforeEnter: () => {
+            if (localStorage.getItem('ncp_admin_token')) {
+              return { name: 'admin home', replace: true }
+            }
+          }
         },
         {
           path: 'home',
@@ -171,8 +186,7 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  if (to.meta.auth.role === 'student') {
-    const isAuth = await checkAuth('student')
+  if (to.meta.auth.role === 'student' && to.meta.auth.isRequired) {
     const onPreTest = JSON.parse(localStorage.getItem('ncp_pre_test_session'))
     const onPostTest = JSON.parse(localStorage.getItem('ncp_post_test_session'))
     const onCaseScenario = JSON.parse(localStorage.getItem('ncp_case_scenario_session'))
@@ -180,66 +194,18 @@ router.beforeEach(async (to) => {
     const csNumber = parseInt(localStorage.getItem('ncp_case_scenario_number'))
     const csId = localStorage.getItem('ncp_case_scenario_id')
 
-    if (to.meta.auth.isRequired) {
-      if (!isAuth && to.name !== 'login') {
-        return { name: 'login', replace: true }
-      }
-
-      if (onPreTest && to.name !== 'pre-test') {
-        return { name: 'pre-test', replace: true }
-      }
-
-      if (onPostTest && to.name !== 'post-test') {
-        return { name: 'post-test', replace: true }
-      }
-
-      if (onCaseScenario && to.name !== 'case scenario') {
-        return { name: 'case scenario', params: { number: csNumber, id: csId, category: csCategory }, replace: true }
-      }
-    } else {
-      if (isAuth) {
-        return { name: 'home', params: { userId: localStorage.getItem('ncp_user_id') }, replace: true }
-      }
+    if (onPreTest && to.name !== 'pre-test') {
+      return { name: 'pre-test', replace: true }
     }
-  } else if (to.meta.auth.role === 'admin') {
-    const isAuth = await checkAuth('admin')
 
-    if (to.meta.auth.isRequired) {
-      if (!isAuth && to.name !== 'admin login') {
-        return { name: 'admin login', replace: true }
-      }
-    } else {
-      if (isAuth) {
-        return { name: 'admin dashboard', replace: true }
-      }
+    if (onPostTest && to.name !== 'post-test') {
+      return { name: 'post-test', replace: true }
+    }
+
+    if (onCaseScenario && to.name !== 'case scenario') {
+      return { name: 'case scenario', params: { number: csNumber, id: csId, category: csCategory }, replace: true }
     }
   }
 })
-
-async function checkAuth(role) {
-  let isAuthenticated = null
-  const token = localStorage.getItem(`${role === 'student' ? 'ncp_token' : role === 'admin' ? 'ncp_admin_token' : ''}`)
-
-  isAuthenticated = await axios
-    .post(
-      `${import.meta.env.VITE_API_DOMAIN}/auth/${role === 'student' ? 'student' : role === 'admin' ? 'admin' : ''}`,
-      { ...(role === 'student' ? { userId: localStorage.getItem('ncp_user_id') } : role === 'admin' ? {} : {}) },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
-    .then((res) => {
-      if (res.status === 200) {
-        return true
-      } else if (res.status === 401) {
-        return false
-      }
-    })
-    .catch((err) => console.log(err))
-
-  return isAuthenticated
-}
 
 export default router

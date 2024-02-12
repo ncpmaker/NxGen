@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { toastStore } from '@/store'
 import generatePDF from '@/assets/scripts/pdf'
 import axios from 'axios'
 
@@ -20,17 +21,41 @@ function goHome() {
 const scores = ref([])
 const data = ref(null)
 const isLoading = ref(true)
-onMounted(() => {
-  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/${route.params.id}/get`).then((res) => {
-    data.value = res.data
-    scores.value.push(data.value.score.assessment)
-    scores.value.push(data.value.score.nursingDiagnosis)
-    scores.value.push(data.value.score.planning)
-    scores.value.push(data.value.score.intervention)
-    scores.value.push(data.value.score.evaluation)
-    scores.value.push(data.value.score.overall)
-    isLoading.value = false
+onMounted(async () => {
+  await axios({
+    method: 'get',
+    url: `${import.meta.env.VITE_API_DOMAIN}/history/case-scenario/${route.params.id}`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+      Role: 'student'
+    }
   })
+    .then((res) => {
+      data.value = res.data
+      scores.value.push(data.value.score.assessment)
+      scores.value.push(data.value.score.nursingDiagnosis)
+      scores.value.push(data.value.score.planning)
+      scores.value.push(data.value.score.intervention)
+      scores.value.push(data.value.score.evaluation)
+      scores.value.push(data.value.score.overall)
+    })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+
+        router.push({ name: 'login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isLoading.value = false))
 })
 </script>
 
@@ -42,18 +67,28 @@ onMounted(() => {
       </div>
 
       <div class="flex flex-col items-center gap-2">
-        <h3 class="pb-2 font-medium">Total Score</h3>
+        <h2 class="pb-2 font-medium leading-none">Total Score</h2>
         <div class="flex w-full justify-center">
           <VLoader v-if="isLoading" size="100px" thickness="4px" />
           <VRadialProgress v-else size="100px" color="success" thickness="12px" :progress="scores[5]" :max-value="100" class="text-xl font-semibold" />
         </div>
         <VButton
-          @click="generatePDF(data.name, data.category, data.caseId, data.timesTaken, new Date(data.dateTaken).toLocaleString(), scores)"
+          @click="
+            generatePDF(data.name, data.category, data.caseId, data.timesTaken, new Date(data.dateTaken).toLocaleString().replace(',', ' -'), scores)
+          "
           start-icon="print"
           class="w-fit"
         >
           Nursing Care Plan
         </VButton>
+        <div class="flex flex-col items-center leading-none">
+          <p v-if="!isLoading" class="text-center text-sm italic">
+            Case ID: <b>{{ data.caseId }}</b>
+          </p>
+          <p v-if="!isLoading" class="text-center text-sm italic">
+            Date Taken: <b>{{ new Date(data.dateTaken).toLocaleString().replace(',', ' -') }}</b>
+          </p>
+        </div>
       </div>
 
       <hr class="mx-2 my-2 border-neutral-300" />

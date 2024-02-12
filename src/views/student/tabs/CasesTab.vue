@@ -2,6 +2,7 @@
 import { ref, reactive } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { toastStore } from '@/store'
 
 const router = useRouter()
 
@@ -10,14 +11,32 @@ const isLoading = ref(true)
 const modals = reactive({
   categoryModal: false,
   category: '',
-  categoryToggle(category) {
+  async categoryToggle(category) {
     this.categoryModal = !this.categoryModal
     this.category = category
 
-    axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get-all/${category}`).then((res) => {
-      cases.value = res.data
-      isLoading.value = false
+    await axios({
+      method: 'get',
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${category}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+        Role: 'student'
+      }
     })
+      .then((res) => {
+        cases.value = res.data
+      })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          router.push({ name: 'login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
+      })
+      .finally(() => (isLoading.value = false))
   }
 })
 
@@ -28,6 +47,22 @@ function takeCase(number, id, category) {
 
   router.push({ name: 'case scenario', params: { number: number, id: id, category: category } })
 }
+
+const caseScenarioDialog = ref({
+  state: false,
+  number: null,
+  id: null,
+  category: null,
+  toggle(number, id, category) {
+    this.number = number
+    this.id = id
+    this.category = category
+    this.state = true
+  },
+  confirm() {
+    takeCase(this.number, this.id, this.category)
+  }
+})
 </script>
 
 <template>
@@ -59,11 +94,26 @@ function takeCase(number, id, category) {
           <VLoader size="32px" thickness="2px" />
         </div>
 
-        <VButton v-else v-for="(item, index) in cases" :key="item" @click="takeCase(index + 1, item.id, 'neuro')" class="justify-center">
+        <VButton
+          v-else
+          v-for="(item, index) in cases"
+          :key="item"
+          @click="caseScenarioDialog.toggle(index + 1, item.id, 'neuro')"
+          class="justify-center"
+        >
           Case Scenario {{ index + 1 }}
         </VButton>
       </div>
     </VBottomSheet>
+
+    <VDialog
+      v-model:go-open="caseScenarioDialog.state"
+      header="Case Scenario"
+      :body="`Ready to take Case Scenario ${caseScenarioDialog.number} of ${caseScenarioDialog.category}?`"
+      cancel-label="No"
+      confirm-label="Yes"
+      @confirm="caseScenarioDialog.confirm()"
+    />
   </div>
 </template>
 

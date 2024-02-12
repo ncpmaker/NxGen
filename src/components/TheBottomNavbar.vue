@@ -5,7 +5,7 @@ import { studentTabStore, toastStore } from '@/store'
 import axios from 'axios'
 
 const userId = localStorage.getItem('ncp_user_id')
-const userEmail = ref(localStorage.getItem('ncp_user_email'))
+const userName = localStorage.getItem('ncp_name')
 
 const router = useRouter()
 const modals = ref({
@@ -18,62 +18,60 @@ const modals = ref({
     this.postTestModal = !this.postTestModal
 
     toastStore.add({
-      msg: 'Updating information...',
+      msg: 'Updating information',
       duration: 2000
     })
 
-    await axios
-      .put(`${import.meta.env.VITE_API_DOMAIN}/user/update/${userId}`, {
+    await axios({
+      method: 'put',
+      url: `${import.meta.env.VITE_API_DOMAIN}/user/${userId}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+        Role: 'student'
+      },
+      data: {
         finished_intro: true
-      })
+      }
+    })
       .then(() => {
         localStorage.setItem('ncp_finished_intro', true)
         toastStore.add({
-          msg: 'Successfully updated.',
+          msg: 'Information updated',
           duration: 4000
         })
       })
-      .catch(() => {
-        toastStore.add({
-          msg: 'Update failed',
-          duration: 4000
-        })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          router.push({ name: 'login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
       })
   }
 })
 
-const email = ref(userEmail.value)
 const oldPassword = ref('')
 const newPassword = ref('')
 const isUpdating = ref(false)
-function updateEmail() {
-  isUpdating.value = true
-  axios
-    .put(`${import.meta.env.VITE_API_DOMAIN}/user/update/${userId}`, {
-      email: email.value
-    })
-    .then((res) => {
-      localStorage.setItem('ncp_user_email', res.data.newEmail)
 
-      toastStore.add({
-        msg: 'Email updated',
-        duration: 4000
-      })
-    })
-    .catch((err) => console.log(err))
-    .finally(() => {
-      isUpdating.value = false
-    })
-}
-
-function updatePassword() {
+async function updatePassword() {
   isUpdating.value = true
-  axios
-    .put(`${import.meta.env.VITE_API_DOMAIN}/user/update/${userId}`, {
+  await axios({
+    method: 'put',
+    url: `${import.meta.env.VITE_API_DOMAIN}/user/${userId}`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+      Role: 'student'
+    },
+    data: {
       oldPassword: oldPassword.value,
       newPassword: newPassword.value
-    })
-    .then(() => {
+    }
+  })
+    .then(async () => {
       oldPassword.value = ''
       newPassword.value = ''
 
@@ -81,11 +79,32 @@ function updatePassword() {
         msg: 'Password updated',
         duration: 4000
       })
+
+      Object.keys(localStorage).forEach(function (key) {
+        if (/^ncp_/.test(key)) {
+          localStorage.removeItem(key)
+        }
+      })
+
+      router.push({ name: 'login' })
+      studentTabStore.set(0)
     })
     .catch((err) => {
-      if (err.response.status === 401) {
+      if (err.response.status === 401 && err.response.data === 'wrong old password') {
         toastStore.add({
-          msg: "Old password doesn't match",
+          msg: "Old password doesn't match on your current one",
+          duration: 4000
+        })
+      } else if (err.response.status == 401 && err.response.data === 'Account is unauthenticated') {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+        router.push({ name: 'login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
           duration: 4000
         })
       }
@@ -96,38 +115,47 @@ function updatePassword() {
 }
 
 const isLoggingOut = ref(false)
-function logout() {
+async function logout() {
   isLoggingOut.value = true
-  axios
-    .delete(`${import.meta.env.VITE_API_DOMAIN}/user/logout`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('ncp_token')}`
-      }
-    })
+  await axios({
+    method: 'delete',
+    url: `${import.meta.env.VITE_API_DOMAIN}/user/logout`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+      Role: 'student'
+    }
+  })
     .then(() => {
-      localStorage.removeItem('ncp_user_id')
-      localStorage.removeItem('ncp_user_email')
-      localStorage.removeItem('ncp_user_section')
-      localStorage.removeItem('ncp_token')
-      localStorage.removeItem('ncp_finished_pre_test')
-      localStorage.removeItem('ncp_finished_post_test')
-      localStorage.removeItem('ncp_pre_test_session')
-      localStorage.removeItem('ncp_post_test_session')
-      localStorage.removeItem('ncp_case_scenario_category')
-      localStorage.removeItem('ncp_case_scenario_number')
-      localStorage.removeItem('ncp_case_scenario_id')
-      localStorage.removeItem('ncp_case_scenario_session')
-      localStorage.removeItem('ncp_case_scenario_step')
-      localStorage.removeItem('ncp_case_scenario_answers')
+      Object.keys(localStorage).forEach(function (key) {
+        if (/^ncp_/.test(key)) {
+          localStorage.removeItem(key)
+        }
+      })
       router.push({ name: 'login' })
       studentTabStore.set(0)
 
       toastStore.add({
-        msg: 'Logged out successfully',
+        msg: 'Successfully logged out',
         duration: 4000
       })
     })
-    .catch((err) => console.log(err))
+    .catch((err) => {
+      if (err.response.status == 401) {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+
+        router.push({ name: 'login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isLoggingOut.value = false))
 }
 
 const isDeleting = ref(false)
@@ -136,15 +164,21 @@ const deleteDialog = ref({
   toggle() {
     this.state = !this.state
   },
-  confirm() {
+  async confirm() {
     isDeleting.value = true
+    isLoggingOut.value = true
     this.toggle()
 
-    axios
-      .delete(`${import.meta.env.VITE_API_DOMAIN}/user/delete/${userId}`)
+    await axios({
+      method: 'delete',
+      url: `${import.meta.env.VITE_API_DOMAIN}/user/${userId}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+        Role: 'student'
+      }
+    })
       .then(() => {
         localStorage.removeItem('ncp_user_id')
-        localStorage.removeItem('ncp_user_email')
         localStorage.removeItem('ncp_user_section')
         localStorage.removeItem('ncp_token')
         localStorage.removeItem('ncp_finished_pre_test')
@@ -161,14 +195,23 @@ const deleteDialog = ref({
         studentTabStore.set(0)
 
         toastStore.add({
-          msg: 'Account deleted successfully',
+          msg: 'Account deleted',
           duration: 4000
         })
       })
       .catch((err) => {
+        if (err.response.status == 401) {
+          router.push({ name: 'login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
+      })
+      .finally(() => {
         isLoggingOut.value = false
         isDeleting.value = false
-        console.log(err)
       })
   }
 })
@@ -178,7 +221,10 @@ const deleteDialog = ref({
   <div class="flex h-[100svh] flex-col">
     <div class="flex grow flex-col overflow-y-scroll">
       <div class="sticky top-0 flex flex-row items-center justify-between bg-blue-50/70 px-4 pb-4 pt-6 backdrop-blur-xl">
-        <h1>App Name</h1>
+        <div class="flex flex-col leading-none">
+          <h1>NCP</h1>
+          <p>Hello, {{ userName }}</p>
+        </div>
 
         <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="settings" />
       </div>
@@ -228,19 +274,18 @@ const deleteDialog = ref({
         <VIconButton @click="modals.profileToggle()" variant="ghost" size="lg" icon="close" />
       </div>
 
-      <VFormTextbox v-model="email" label="Email" type="email" />
-      <VButton @click="updateEmail()" :disabled="email === userEmail" class="w-full justify-center">
-        <VLoader v-if="isUpdating" size="16px" thickness="2px" />
-        <span v-else>Update Email</span>
-      </VButton>
-
       <VFormTextbox v-model="oldPassword" label="Old Password" type="password" placeholder="Type your old password here" />
       <VFormTextbox v-model="newPassword" label="New Password" type="password" placeholder="Type your new password here" />
       <VButton @click="updatePassword" :disabled="oldPassword === '' || newPassword === ''" class="w-full justify-center">
         <VLoader v-if="isUpdating" size="16px" thickness="2px" />
         <span v-else>Update Password</span>
       </VButton>
-      <hr />
+
+      <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="justify-center">
+        <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
+        <span v-else>Logout</span>
+      </VButton>
+      <hr class="my-4 border-neutral-300" />
 
       <VButton @click="deleteDialog.toggle()" :disabled="isDeleting" color="error" class="justify-center">
         <VLoader v-if="isDeleting" size="16px" thickness="2px" />
@@ -250,12 +295,6 @@ const deleteDialog = ref({
         <span class="material-icons-round text-[16px]"> warning </span>
         This will delete all of the data related to you including your test and case scenario histories
       </p>
-      <hr />
-
-      <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="justify-center">
-        <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
-        <span v-else>Logout</span>
-      </VButton>
     </div>
   </VModal>
 
@@ -265,6 +304,7 @@ const deleteDialog = ref({
     body="Do you really want to delete your account?"
     cancel-label="No"
     confirm-label="Yes"
+    confirm-state="error"
     @confirm="deleteDialog.confirm()"
   />
 </template>

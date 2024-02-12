@@ -1,10 +1,12 @@
 <script setup>
 import { onMounted, ref, watchEffect } from 'vue'
-import { scrollStore } from '@/store'
+import { scrollStore, toastStore } from '@/store'
+import { useRouter } from 'vue-router'
 import debounce from '@/assets/scripts/debounce'
 import axios from 'axios'
 
-//Get test history
+const router = useRouter()
+
 const history = ref([])
 const lastFetch = ref([])
 const isLoading = ref(true)
@@ -17,15 +19,22 @@ const search = ref({
   type: 'All'
 })
 
-const getHistory = debounce((text, section, type) => {
+const getHistory = debounce(async (text, section, type) => {
   if (lastFetch.value.length === 50 || lastFetch.value.length === 0) {
-    axios
-      .post(`${import.meta.env.VITE_API_DOMAIN}/test-history/search`, {
+    await axios({
+      method: 'get',
+      url: `${import.meta.env.VITE_API_DOMAIN}/history/test/search`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+        Role: 'admin'
+      },
+      params: {
         search: text,
         section: section,
         testType: type === 'Pre test' ? 'PRETEST' : type === 'Post test' ? 'POSTTEST' : 'All',
         cursor: lastID.value
-      })
+      }
+    })
       .then((res) => {
         lastFetch.value = res.data
         history.value.push(...lastFetch.value)
@@ -39,6 +48,17 @@ const getHistory = debounce((text, section, type) => {
           moreLoading.value = false
         }
       })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          router.push({ name: 'admin login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
+      })
+      .finally(() => (isLoading.value = false))
   }
 })
 
@@ -91,7 +111,7 @@ const modals = ref({
 
 <template>
   <div class="w-full">
-    <div class="sticky top-[61px] flex w-full flex-row items-center gap-6 bg-blue-50 px-4 py-2">
+    <div class="sticky top-[68.5px] flex w-full flex-row items-center gap-6 bg-blue-50 px-4 py-2">
       <h3>Test History</h3>
       <VFormTextbox v-model="search.text" placeholder="Search for Name" class="w-72" />
       <div class="flex flex-row items-center gap-2">
@@ -106,11 +126,11 @@ const modals = ref({
     </div>
 
     <table class="w-full table-fixed">
-      <tr class="sticky top-[119px] bg-blue-200">
+      <tr class="sticky top-[138px] bg-blue-200">
         <th class="w-16">#</th>
         <th class="px-6 py-4 text-start">Name</th>
         <th class="px-6 py-4 text-start">Section</th>
-        <th class="px-6 py-4 text-start">Test Type</th>
+        <th class="px-6 py-4 text-start">Type</th>
         <th class="px-6 py-4 text-start">Score</th>
         <th class="px-6 py-4 text-start">Date Taken</th>
         <th class="px-6 py-4">Answers</th>
@@ -130,7 +150,7 @@ const modals = ref({
         <td class="px-6 py-1 text-start">{{ entry.section }}</td>
         <td class="px-6 py-1 text-start">{{ entry.testType }}</td>
         <td class="px-6 py-1 text-start">{{ entry.score }}</td>
-        <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString() }}</td>
+        <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString().replace(',', ' -') }}</td>
         <td class="px-6 py-1">
           <div class="flex h-full w-full flex-row items-center justify-center">
             <VButton

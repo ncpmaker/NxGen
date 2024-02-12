@@ -4,7 +4,11 @@ const props = defineProps({
   header: String,
   body: String,
   confirmLabel: String,
-  cancelLabel: String
+  cancelLabel: String,
+  confirmState: {
+    type: String,
+    default: 'success'
+  }
 })
 
 defineEmits(['update:goOpen'])
@@ -26,7 +30,7 @@ defineEmits(['update:goOpen'])
         <VButton @click="$emit('update:goOpen', !props.goOpen)" color="neutral" variant="ghost" class="w-full justify-center md:w-fit">
           {{ props.cancelLabel }}
         </VButton>
-        <VButton @click="$emit('confirm')" color="error" variant="ghost" class="w-full justify-center md:w-fit">
+        <VButton @click="$emit('confirm')" :color="props.confirmState" variant="ghost" class="w-full justify-center md:w-fit">
           {{ props.confirmLabel }}
         </VButton>
       </div>

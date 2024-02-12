@@ -1,6 +1,7 @@
 <script setup>
 import { reactive, computed, watchEffect, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { toastStore } from '@/store'
 import axios from 'axios'
 import shuffleArray from '@/assets/scripts/shuffleArray'
 
@@ -76,7 +77,8 @@ const possibleAnswers = reactive({
   intervention: {
     dependents: null,
     independents: null,
-    collaboratives: null
+    collaboratives: null,
+    rationale: null
   }
 })
 
@@ -104,57 +106,88 @@ watchEffect(() => {
 })
 
 const isLoading = ref(true)
-onMounted(() => {
+onMounted(async () => {
   step.count = parseInt(localStorage.getItem('ncp_case_scenario_step'))
   answers.value = JSON.parse(localStorage.getItem('ncp_case_scenario_answers'))
 
-  axios.get(`${import.meta.env.VITE_API_DOMAIN}/case-scenarios/get/${route.params.category}/${route.params.id}`).then((res) => {
-    //introduction
-    data.introduction.scenario = res.data.scenario
-    data.introduction.imageLink = res.data.image_link.replace(/dl=0/g, 'raw=1')
-    data.introduction.audioLink = res.data.audio_link.replace(/dl=0/g, 'raw=1')
-
-    //assessment
-    data.assessment.subjectives = res.data.assessment.subjectives
-    data.assessment.objectives = res.data.assessment.objectives
-
-    //nursing diagnosis
-    data.nursingDiagnosis.diagnosis = res.data.nursing_diagnosis.diagnosis
-    data.nursingDiagnosis.relatedTo = res.data.nursing_diagnosis.relatedTo
-    data.nursingDiagnosis.signsAndSymptoms = res.data.nursing_diagnosis.signsAndSymptoms
-
-    //planning
-    data.planning.shortTermGoalsDesc = res.data.planning.shortTermGoalsDesc
-    data.planning.shortTermGoals = res.data.planning.shortTermGoals
-    data.planning.longTermGoalsDesc = res.data.planning.longTermGoalsDesc
-    data.planning.longTermGoals = res.data.planning.longTermGoals
-
-    //intervention
-    data.intervention.independents = res.data.intervention.independents
-    data.intervention.dependents = res.data.intervention.dependents
-    data.intervention.collaboratives = res.data.intervention.collaboratives
-
-    /* This part is important, shuffleArray on a v-for while updating their answer leads to reshuffle every rerender, */
-    //assessment
-    possibleAnswers.assessment.subjectives.texts = shuffleArray(data.assessment.subjectives.texts)
-    possibleAnswers.assessment.objectives = shuffleArray(data.assessment.objectives)
-
-    //nursing diagnosis
-    possibleAnswers.nursingDiagnosis.diagnosis.texts = shuffleArray(data.nursingDiagnosis.diagnosis.texts)
-    possibleAnswers.nursingDiagnosis.relatedTo.texts = shuffleArray(data.nursingDiagnosis.relatedTo.texts)
-    possibleAnswers.nursingDiagnosis.signsAndSymptoms = shuffleArray(data.nursingDiagnosis.signsAndSymptoms)
-
-    //planning
-    possibleAnswers.planning.shortTermGoals = shuffleArray(data.planning.shortTermGoals)
-    possibleAnswers.planning.longTermGoals = shuffleArray(data.planning.longTermGoals)
-
-    //intervention
-    possibleAnswers.intervention.independents = shuffleArray(data.intervention.independents)
-    possibleAnswers.intervention.dependents = shuffleArray(data.intervention.dependents)
-    possibleAnswers.intervention.collaboratives = shuffleArray(data.intervention.collaboratives)
-
-    isLoading.value = false
+  await axios({
+    method: 'get',
+    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}/${route.params.id}`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+      Role: 'student'
+    }
   })
+    .then((res) => {
+      //introduction
+      data.introduction.scenario = res.data.scenario
+      data.introduction.imageLink = res.data.image_link.replace(/dl=0/g, 'raw=1')
+      data.introduction.audioLink = res.data.audio_link.replace(/dl=0/g, 'raw=1')
+
+      //assessment
+      data.assessment.subjectives = res.data.assessment.subjectives
+      data.assessment.objectives = res.data.assessment.objectives
+
+      //nursing diagnosis
+      data.nursingDiagnosis.diagnosis = res.data.nursing_diagnosis.diagnosis
+      data.nursingDiagnosis.relatedTo = res.data.nursing_diagnosis.relatedTo
+      data.nursingDiagnosis.signsAndSymptoms = res.data.nursing_diagnosis.signsAndSymptoms
+
+      //planning
+      data.planning.shortTermGoalsDesc = res.data.planning.shortTermGoalsDesc
+      data.planning.shortTermGoals = res.data.planning.shortTermGoals
+      data.planning.longTermGoalsDesc = res.data.planning.longTermGoalsDesc
+      data.planning.longTermGoals = res.data.planning.longTermGoals
+
+      //intervention
+      data.intervention.independents = res.data.intervention.independents
+      data.intervention.dependents = res.data.intervention.dependents
+      data.intervention.collaboratives = res.data.intervention.collaboratives
+
+      /* This part is important, shuffleArray on a v-for while updating their answer leads to reshuffle every rerender, */
+      //assessment
+      possibleAnswers.assessment.subjectives.texts = shuffleArray(data.assessment.subjectives.texts)
+      possibleAnswers.assessment.objectives = shuffleArray(data.assessment.objectives)
+
+      //nursing diagnosis
+      possibleAnswers.nursingDiagnosis.diagnosis.texts = shuffleArray(data.nursingDiagnosis.diagnosis.texts)
+      possibleAnswers.nursingDiagnosis.relatedTo.texts = shuffleArray(data.nursingDiagnosis.relatedTo.texts)
+      possibleAnswers.nursingDiagnosis.signsAndSymptoms = shuffleArray(data.nursingDiagnosis.signsAndSymptoms)
+
+      //planning
+      possibleAnswers.planning.shortTermGoals = shuffleArray(data.planning.shortTermGoals)
+      possibleAnswers.planning.longTermGoals = shuffleArray(data.planning.longTermGoals)
+
+      //intervention
+      possibleAnswers.intervention.dependents = shuffleArray(data.intervention.dependents)
+      possibleAnswers.intervention.independents = shuffleArray(data.intervention.independents)
+      possibleAnswers.intervention.collaboratives = shuffleArray(data.intervention.collaboratives)
+
+      possibleAnswers.intervention.rationale = [
+        'N/A',
+        ...shuffleArray([
+          ...possibleAnswers.intervention.dependents.map((e) => e.rationale),
+          ...possibleAnswers.intervention.independents.map((e) => e.rationale),
+          ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)
+        ])
+      ]
+    })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+        router.push({ name: 'login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isLoading.value = false))
 })
 
 function assessmentScore(subjAnswer, objAnswer) {
@@ -367,7 +400,8 @@ function disableNext() {
 }
 
 const isSubmitting = ref(false)
-function submit() {
+async function submit() {
+  isSubmitting.value = true
   answers.value.dependent.forEach((dependent, index) => {
     answers.value.dependent[index] = dependent.split('::')[0] + '::' + dependentRationale.value[index]
   })
@@ -386,10 +420,15 @@ function submit() {
   let score4 = interventionScore(answers.value.dependent, answers.value.independent, answers.value.collaborative)
   let score5 = evaluationScore(score1, score2, score3, score4)
   let totalScore = score1 + score2 + score3 + score4 + score5
-  isSubmitting.value = true
 
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/case-scenario-history/create`, {
+  await axios({
+    method: 'post',
+    url: `${import.meta.env.VITE_API_DOMAIN}/history/case-scenario`,
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
+      Role: 'student'
+    },
+    data: {
       userId: localStorage.getItem('ncp_user_id'),
       caseId: route.params.id,
       answers: answers.value,
@@ -399,7 +438,8 @@ function submit() {
       interventionScore: score4,
       evaluationScore: score5,
       overallScore: totalScore
-    })
+    }
+  })
     .then((res) => {
       localStorage.setItem('ncp_case_scenario_category', undefined)
       localStorage.setItem('ncp_case_scenario_number', undefined)
@@ -422,8 +462,29 @@ function submit() {
         })
       )
 
+      toastStore.add({
+        msg: 'Case scenario submitted',
+        duration: 4000
+      })
+
       router.push({ name: 'evaluation', params: { id: res.data.historyId } })
     })
+    .catch((err) => {
+      if (err.response.status == 401) {
+        Object.keys(localStorage).forEach(function (key) {
+          if (/^ncp_/.test(key)) {
+            localStorage.removeItem(key)
+          }
+        })
+        router.push({ name: 'login' })
+      } else {
+        toastStore.add({
+          msg: err.response.data,
+          duration: 4000
+        })
+      }
+    })
+    .finally(() => (isSubmitting.value = false))
 }
 </script>
 
@@ -443,7 +504,7 @@ function submit() {
         <div class="flex flex-col items-center lg:flex-row lg:gap-4">
           <picture
             v-if="data.introduction.imageLink"
-            class="relative block w-full max-w-[512px] overflow-hidden rounded-2xl pt-[56.25%] sm:h-[288px] sm:pt-0 lg:shrink-0"
+            class="relative block w-full max-w-[640px] overflow-hidden rounded-2xl pt-[56.25%] sm:h-[360px] sm:pt-0 lg:shrink-0"
           >
             <img
               :src="data.introduction.imageLink"
@@ -570,10 +631,11 @@ function submit() {
             </div>
 
             <div v-else-if="step.count === 6" class="w-full max-w-[1024px]">
-              <div class="flex items-center justify-center">
-                <div class="mb-4 w-full max-w-[1024px] rounded-lg bg-amber-400 px-12 py-4 text-center text-lg font-medium">
-                  Please take note that the order of your answer is based on the order you check.
-                </div>
+              <div
+                class="mb-4 flex w-full max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-12 py-4 text-lg font-medium"
+              >
+                <span class="material-icons-round">edit</span>
+                Note that the order of your answer is based on the order you check.
               </div>
               <h3 class="pb-2 font-medium">Dependent/s</h3>
               <div class="flex flex-col gap-1 pb-4">
@@ -588,8 +650,8 @@ function submit() {
                   </div>
                 </label>
               </div>
-              <TransitionGroup name="list" tag="ul" class="space-y-2 rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
-                <p>Your answer/s:</p>
+              <TransitionGroup name="list" tag="ul" class="relative rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
+                <p key="dependent">Your answer/s:</p>
                 <li v-for="(answer, index) in answers.dependent" :key="answer">
                   <p>{{ index + 1 }}. {{ answer }}</p>
                 </li>
@@ -597,10 +659,11 @@ function submit() {
             </div>
 
             <div v-else-if="step.count === 7" class="w-full max-w-[1024px]">
-              <div class="flex items-center justify-center">
-                <div class="mb-4 w-full max-w-[1024px] rounded-lg bg-amber-400 px-12 py-4 text-center text-lg font-medium">
-                  Please take note that the order of your answer is based on the order you check.
-                </div>
+              <div
+                class="mb-4 flex w-full max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-12 py-4 text-lg font-medium"
+              >
+                <span class="material-icons-round">edit</span>
+                Note that the order of your answer is based on the order you check.
               </div>
               <h3 class="pb-2 font-medium">Independent/s</h3>
               <div class="flex flex-col gap-1 pb-4">
@@ -616,15 +679,15 @@ function submit() {
                 </label>
               </div>
 
-              <TransitionGroup name="list" tag="ul" class="space-y-2 rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
-                <p>Your answer/s:</p>
+              <TransitionGroup name="list" tag="ul" class="relative rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
+                <p key="independent">Your answer/s:</p>
                 <li v-for="(answer, index) in answers.independent" :key="answer">
                   <p>{{ index + 1 }}. {{ answer }}</p>
                 </li>
               </TransitionGroup>
             </div>
 
-            <div v-else-if="step.count === 8" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 8" class="w-full max-w-[1366px]">
               <h3 class="pb-2 font-medium">Collaborative/s</h3>
               <div class="flex flex-col gap-1">
                 <label
@@ -640,42 +703,39 @@ function submit() {
               </div>
             </div>
 
-            <div v-else-if="step.count === 9" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 9" class="w-full max-w-[1366px]">
               <h3 class="pb-2 font-medium">Rationale</h3>
               <div class="lg:flex lg:flex-row lg:gap-2">
-                <div class="grow pb-4 pl-2">
+                <div class="grow">
                   <p class="font-medium">Your Dependents:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.dependent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
-                      <VSelect
-                        v-model="dependentRationale[index]"
-                        :options="['N/A', ...possibleAnswers.intervention.dependents.map((e) => e.rationale)]"
-                      />
+                      <VSelect v-model="dependentRationale[index]" :options="possibleAnswers.intervention.rationale" />
                     </div>
                   </div>
                 </div>
-                <div class="grow pb-4 pl-2">
+
+                <hr class="my-4 border-neutral-300 lg:hidden" />
+
+                <div class="grow">
                   <p class="font-medium">Your Independents:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.independent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
-                      <VSelect
-                        v-model="independentRationale[index]"
-                        :options="['N/A', ...possibleAnswers.intervention.independents.map((e) => e.rationale)]"
-                      />
+                      <VSelect v-model="independentRationale[index]" :options="possibleAnswers.intervention.rationale" />
                     </div>
                   </div>
                 </div>
-                <div class="grow pl-2">
+
+                <hr class="my-4 border-neutral-300 lg:hidden" />
+
+                <div class="grow">
                   <p class="font-medium">Your Collaboratives:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.collaborative" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}. ${answer.split('::')[0]}` }}</p>
-                      <VSelect
-                        v-model="collabRationale[index]"
-                        :options="['N/A', ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)]"
-                      />
+                      <VSelect v-model="collabRationale[index]" :options="possibleAnswers.intervention.rationale" />
                     </div>
                   </div>
                 </div>

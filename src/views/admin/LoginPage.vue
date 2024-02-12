@@ -21,20 +21,23 @@ const states = ref({
   }
 })
 const isLoading = ref(false)
-function submit() {
+async function submit() {
   isLoading.value = true
   states.value.username.message = null
   states.value.username.color = null
   states.value.password.message = null
   states.value.password.color = null
 
-  axios
-    .post(`${import.meta.env.VITE_API_DOMAIN}/admin/login`, {
+  await axios({
+    method: 'post',
+    url: `${import.meta.env.VITE_API_DOMAIN}/admin/login`,
+    data: {
       username: formValues.value.username,
       password: formValues.value.password
-    })
+    }
+  })
     .then((res) => {
-      localStorage.setItem('ncp_admin_token', res.data.adminToken)
+      localStorage.setItem('ncpadmin_token', res.data.adminToken)
       isLoading.value = false
       router.push({ name: 'admin dashboard' })
       toastStore.add({
@@ -43,7 +46,6 @@ function submit() {
       })
     })
     .catch((err) => {
-      isLoading.value = false
       if (err.response.status === 400) {
         states.value.username.message = 'Wrong username or password'
         states.value.username.color = 'error'
@@ -58,13 +60,14 @@ function submit() {
         states.value.password.color = 'error'
       }
     })
+    .finally(() => (isLoading.value = false))
 }
 </script>
 
 <template>
   <div class="flex h-[100svh] w-screen flex-col items-center justify-center bg-gradient-to-b from-blue-300 to-blue-400">
     <div class="flex w-full max-w-[600px] flex-col gap-2">
-      <h1 class="px-4">Admin Login</h1>
+      <h1 class="px-4">NCP Administrator Login</h1>
 
       <!-- login form -->
       <form @submit.prevent="submit()" ref="formRef" class="flex w-full flex-col gap-2 rounded-2xl bg-blue-50 px-4 py-4 shadow-lg">
