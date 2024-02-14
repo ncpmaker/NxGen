@@ -1,12 +1,20 @@
 <script setup>
-import { reactive, computed, watchEffect, ref, onMounted } from 'vue'
+import { reactive, computed, watchEffect, watch, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toastStore } from '@/store'
 import axios from 'axios'
+import draggable from 'vuedraggable'
 import shuffleArray from '@/assets/scripts/shuffleArray'
 
 const route = useRoute()
 const router = useRouter()
+
+const transitionOptions = {
+  animation: 150,
+  group: 'description',
+  disabled: false,
+  ghostClass: 'ghost'
+}
 
 const scrollableDiv = ref(null)
 const scenarioRef = ref(null)
@@ -50,12 +58,12 @@ const data = reactive({
     shortTermGoals: null,
     longTermGoalsDesc: null,
     longTermGoals: null
-  },
-  intervention: {
-    dependents: null,
-    independents: null,
-    collaboratives: null
   }
+  // intervention: {
+  //   dependents: null,
+  //   independents: null,
+  //   collaboratives: null
+  // }
 })
 
 const possibleAnswers = reactive({
@@ -74,6 +82,7 @@ const possibleAnswers = reactive({
     longTermGoalsDesc: null,
     longTermGoals: null
   },
+  interventions: [],
   intervention: {
     dependents: null,
     independents: null,
@@ -95,15 +104,15 @@ const answers = ref({
   collaborative: []
 })
 
-const dependentRationale = ref([])
-const independentRationale = ref([])
-const collabRationale = ref([])
+// const dependentRationale = ref([])
+// const independentRationale = ref([])
+// const collabRationale = ref([])
 
-watchEffect(() => {
-  dependentRationale.value = Array(answers.value.dependent.length).fill('N/A')
-  independentRationale.value = Array(answers.value.independent.length).fill('N/A')
-  collabRationale.value = Array(answers.value.collaborative.length).fill('N/A')
-})
+// watchEffect(() => {
+//   dependentRationale.value = Array(answers.value.dependent.length).fill('N/A')
+//   independentRationale.value = Array(answers.value.independent.length).fill('N/A')
+//   collabRationale.value = Array(answers.value.collaborative.length).fill('N/A')
+// })
 
 const isLoading = ref(true)
 onMounted(async () => {
@@ -140,9 +149,9 @@ onMounted(async () => {
       data.planning.longTermGoals = res.data.planning.longTermGoals
 
       //intervention
-      data.intervention.independents = res.data.intervention.independents
-      data.intervention.dependents = res.data.intervention.dependents
-      data.intervention.collaboratives = res.data.intervention.collaboratives
+      // data.intervention.independents = res.data.intervention.independents
+      // data.intervention.dependents = res.data.intervention.dependents
+      // data.intervention.collaboratives = res.data.intervention.collaboratives
 
       /* This part is important, shuffleArray on a v-for while updating their answer leads to reshuffle every rerender, */
       //assessment
@@ -159,18 +168,18 @@ onMounted(async () => {
       possibleAnswers.planning.longTermGoals = shuffleArray(data.planning.longTermGoals)
 
       //intervention
-      possibleAnswers.intervention.dependents = shuffleArray(data.intervention.dependents)
-      possibleAnswers.intervention.independents = shuffleArray(data.intervention.independents)
-      possibleAnswers.intervention.collaboratives = shuffleArray(data.intervention.collaboratives)
+      // possibleAnswers.intervention.dependents = shuffleArray(data.intervention.dependents)
+      // possibleAnswers.intervention.independents = shuffleArray(data.intervention.independents)
+      // possibleAnswers.intervention.collaboratives = shuffleArray(data.intervention.collaboratives)
 
-      possibleAnswers.intervention.rationale = [
-        'N/A',
-        ...shuffleArray([
-          ...possibleAnswers.intervention.dependents.map((e) => e.rationale),
-          ...possibleAnswers.intervention.independents.map((e) => e.rationale),
-          ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)
-        ])
-      ]
+      // possibleAnswers.intervention.rationale = [
+      //   'N/A',
+      //   ...shuffleArray([
+      //     ...possibleAnswers.intervention.dependents.map((e) => e.rationale),
+      //     ...possibleAnswers.intervention.independents.map((e) => e.rationale),
+      //     ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)
+      //   ])
+      // ]
     })
     .catch((err) => {
       if (err.response.status == 401) {
@@ -188,6 +197,32 @@ onMounted(async () => {
       }
     })
     .finally(() => (isLoading.value = false))
+
+  watch(
+    () => step.count,
+    () => {
+      if (step.count >= 6) {
+        let diagnosisIndex = data.nursingDiagnosis.diagnosis.texts.map((e) => e.text).indexOf(answers.value.diagnosis)
+
+        //intervention
+        possibleAnswers.interventions = [
+          ...shuffleArray(data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.independents.map((e) => e.text)),
+          ...shuffleArray(data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.dependents.map((e) => e.text)),
+          ...shuffleArray(data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.collaboratives.map((e) => e.text))
+        ]
+
+        possibleAnswers.intervention.rationale = [
+          'N/A',
+          ...shuffleArray([
+            ...possibleAnswers.intervention.dependents.map((e) => e.rationale),
+            ...possibleAnswers.intervention.independents.map((e) => e.rationale),
+            ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)
+          ])
+        ]
+      }
+    },
+    { immediate: true }
+  )
 })
 
 function assessmentScore(subjAnswer, objAnswer) {
@@ -212,7 +247,7 @@ function assessmentScore(subjAnswer, objAnswer) {
     if (objectives[objectives.map((e) => e.text).indexOf(answer)].isCorrect) {
       correctAnswers++
     } else {
-      correctAnswers--
+      correctAnswers -= 0.5
     }
   })
 
@@ -402,17 +437,17 @@ function disableNext() {
 const isSubmitting = ref(false)
 async function submit() {
   isSubmitting.value = true
-  answers.value.dependent.forEach((dependent, index) => {
-    answers.value.dependent[index] = dependent.split('::')[0] + '::' + dependentRationale.value[index]
-  })
+  // answers.value.dependent.forEach((dependent, index) => {
+  //   answers.value.dependent[index] = dependent.split('::')[0] + '::' + dependentRationale.value[index]
+  // })
 
-  answers.value.independent.forEach((independent, index) => {
-    answers.value.independent[index] = independent.split('::')[0] + '::' + independentRationale.value[index]
-  })
+  // answers.value.independent.forEach((independent, index) => {
+  //   answers.value.independent[index] = independent.split('::')[0] + '::' + independentRationale.value[index]
+  // })
 
-  answers.value.collaborative.forEach((collaborative, index) => {
-    answers.value.collaborative[index] = collaborative.split('::')[0] + '::' + collabRationale.value[index]
-  })
+  // answers.value.collaborative.forEach((collaborative, index) => {
+  //   answers.value.collaborative[index] = collaborative.split('::')[0] + '::' + collabRationale.value[index]
+  // })
 
   let score1 = assessmentScore(answers.value.subjective, answers.value.objective)
   let score2 = nursingDiagScore(answers.value.diagnosis, answers.value.relatedTo, answers.value.signsAndSymptoms)
@@ -538,7 +573,7 @@ async function submit() {
                 <label
                   v-for="(subjective, index) in possibleAnswers.assessment.subjectives.texts"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex shrink-0 cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
                 >
                   <input v-model="answers.subjective" type="radio" :value="subjective.text" />
                   {{ subjective.text }}
@@ -550,7 +585,7 @@ async function submit() {
                 <label
                   v-for="(objective, index) in possibleAnswers.assessment.objectives"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex shrink-0 cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
                 >
                   <input v-model="answers.objective" type="checkbox" :value="objective.text" />
                   {{ objective.text }}
@@ -564,7 +599,7 @@ async function submit() {
                 <label
                   v-for="(diagnosis, index) in possibleAnswers.nursingDiagnosis.diagnosis.texts"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex shrink-0 cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
                 >
                   <input v-model="answers.diagnosis" type="radio" :value="diagnosis.text" />
                   {{ diagnosis.text }}
@@ -579,7 +614,7 @@ async function submit() {
                 <label
                   v-for="(relatedTo, index) in possibleAnswers.nursingDiagnosis.relatedTo.texts"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex shrink-0 cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
                 >
                   <input v-model="answers.relatedTo" type="radio" :value="relatedTo.text" />
                   {{ relatedTo.text }}
@@ -594,7 +629,7 @@ async function submit() {
                 <label
                   v-for="(signAndSymptom, index) in possibleAnswers.nursingDiagnosis.signsAndSymptoms"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex shrink-0 cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
                 >
                   <input v-model="answers.signsAndSymptoms" type="checkbox" :value="signAndSymptom.text" />
                   {{ signAndSymptom.text }}
@@ -609,7 +644,7 @@ async function submit() {
                 <label
                   v-for="(shortTermGoal, index) in possibleAnswers.planning.shortTermGoals"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex shrink-0 cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
                 >
                   <input v-model="answers.shortTermGoal" type="checkbox" :value="shortTermGoal.text" />
                   {{ shortTermGoal.text }}
@@ -622,7 +657,7 @@ async function submit() {
                 <label
                   v-for="(longTermGoal, index) in possibleAnswers.planning.longTermGoals"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex shrink-0 cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
                 >
                   <input v-model="answers.longTermGoal" type="checkbox" :value="longTermGoal.text" />
                   {{ longTermGoal.text }}
@@ -635,14 +670,100 @@ async function submit() {
                 class="mb-4 flex w-full max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-12 py-4 text-lg font-medium"
               >
                 <span class="material-icons-round">edit</span>
-                Note that the order of your answer is based on the order you check.
+                Move the Interventions to their appropriate boxes by clicking and dragging <span class="material-icons-round"> drag_handle </span>.
               </div>
-              <h3 class="pb-2 font-medium">Dependent/s</h3>
-              <div class="flex flex-col gap-1 pb-4">
+              <div class="flex flex-row gap-4">
+                <div class="flex w-full basis-1/2 flex-col gap-1">
+                  <h3 class="pb-2 font-medium">Interventions</h3>
+                  <draggable
+                    :list="possibleAnswers.interventions"
+                    v-bind="transitionOptions"
+                    tag="ul"
+                    handle=".handle"
+                    group="interventions"
+                    item-key="order"
+                    force-fallback="true"
+                    class="max-h-[50vh] min-h-12 w-full space-y-2 overflow-y-auto border border-gray-300 p-1"
+                  >
+                    <template #item="{ element }">
+                      <li class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <span class="material-icons-round handle cursor-move"> drag_handle </span>
+                        {{ element }}
+                      </li>
+                    </template>
+                  </draggable>
+                </div>
+
+                <div class="flex basis-1/2 flex-col gap-4">
+                  <div class="flex w-full flex-col gap-1">
+                    <h3 class="pb-2 font-medium">Independent</h3>
+                    <draggable
+                      v-model="answers.independent"
+                      v-bind="transitionOptions"
+                      tag="ul"
+                      handle=".handle"
+                      group="interventions"
+                      item-key="order"
+                      force-fallback="true"
+                      class="min-h-12 w-full space-y-2 overflow-y-auto border border-gray-300 p-1"
+                    >
+                      <template #item="{ element }">
+                        <li class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                          <span class="material-icons-round handle cursor-move"> drag_handle </span>
+                          {{ element }}
+                        </li>
+                      </template>
+                    </draggable>
+                  </div>
+
+                  <div class="flex w-full flex-col gap-1">
+                    <h3 class="pb-2 font-medium">Dependent</h3>
+                    <draggable
+                      v-model="answers.dependent"
+                      v-bind="transitionOptions"
+                      tag="ul"
+                      handle=".handle"
+                      group="interventions"
+                      item-key="order"
+                      force-fallback="true"
+                      class="min-h-12 w-full space-y-2 overflow-y-auto border border-gray-300 p-1"
+                    >
+                      <template #item="{ element }">
+                        <li class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                          <span class="material-icons-round handle cursor-move"> drag_handle </span>
+                          {{ element }}
+                        </li>
+                      </template>
+                    </draggable>
+                  </div>
+
+                  <div class="flex w-full flex-col gap-1">
+                    <h3 class="pb-2 font-medium">Collaborative</h3>
+                    <draggable
+                      v-model="answers.collaborative"
+                      v-bind="transitionOptions"
+                      tag="ul"
+                      handle=".handle"
+                      group="interventions"
+                      item-key="order"
+                      force-fallback="true"
+                      class="min-h-12 w-full space-y-2 overflow-y-auto border border-gray-300 p-1"
+                    >
+                      <template #item="{ element }">
+                        <li class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                          <span class="material-icons-round handle cursor-move"> drag_handle </span>
+                          {{ element }}
+                        </li>
+                      </template>
+                    </draggable>
+                  </div>
+                </div>
+              </div>
+              <!-- <div class="flex flex-col gap-1 pb-4">
                 <label
                   v-for="(dependent, index) in possibleAnswers.intervention.dependents"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100 shrink-0"
                 >
                   <input v-model="answers.dependent" type="checkbox" name="dependent" :value="dependent.text" />
                   <div>
@@ -655,10 +776,10 @@ async function submit() {
                 <li v-for="(answer, index) in answers.dependent" :key="answer">
                   <p>{{ index + 1 }}. {{ answer }}</p>
                 </li>
-              </TransitionGroup>
+              </TransitionGroup> -->
             </div>
 
-            <div v-else-if="step.count === 7" class="w-full max-w-[1024px]">
+            <!-- <div v-else-if="step.count === 7" class="w-full max-w-[1024px]">
               <div
                 class="mb-4 flex w-full max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-12 py-4 text-lg font-medium"
               >
@@ -670,7 +791,7 @@ async function submit() {
                 <label
                   v-for="(independent, index) in possibleAnswers.intervention.independents"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100 shrink-0"
                 >
                   <input v-model="answers.independent" type="checkbox" :value="independent.text" />
                   <div>
@@ -693,7 +814,7 @@ async function submit() {
                 <label
                   v-for="(collaborative, index) in possibleAnswers.intervention.collaboratives"
                   :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100"
+                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100 shrink-0"
                 >
                   <input v-model="answers.collaborative" type="checkbox" :value="collaborative.text" />
                   <div>
@@ -740,7 +861,7 @@ async function submit() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> -->
           </transition>
         </template>
       </div>
@@ -780,5 +901,9 @@ async function submit() {
   transition-property: width;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
+}
+
+.ghost {
+  @apply border-gray-200 bg-gray-200 text-gray-200;
 }
 </style>
