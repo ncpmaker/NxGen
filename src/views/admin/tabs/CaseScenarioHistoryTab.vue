@@ -170,6 +170,7 @@ const answersData = reactive({
 
         parsedAnswers.independents = []
         answers.independent.forEach((element, eIndex) => {
+          let currentLength = parsedAnswers.independents.length
           res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.independents.forEach((item, iIndex) => {
             if (element.split('::')[0] === item.text) {
               if (eIndex === iIndex) {
@@ -189,10 +190,20 @@ const answersData = reactive({
               }
             }
           })
+
+          if (currentLength === parsedAnswers.independents.length) {
+            parsedAnswers.independents.push({
+              answer: element,
+              isCorrect: false,
+              rationaleCorrect: false,
+              orderCorrect: false
+            })
+          }
         })
 
         parsedAnswers.dependents = []
         answers.dependent.forEach((element, eIndex) => {
+          let currentLength = parsedAnswers.dependents.length
           res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.dependents.forEach((item, iIndex) => {
             if (element.split('::')[0] === item.text) {
               if (eIndex === iIndex) {
@@ -212,10 +223,20 @@ const answersData = reactive({
               }
             }
           })
+
+          if (currentLength === parsedAnswers.dependents.length) {
+            parsedAnswers.dependents.push({
+              answer: element,
+              isCorrect: false,
+              rationaleCorrect: false,
+              orderCorrect: false
+            })
+          }
         })
 
         parsedAnswers.collaboratives = []
         answers.collaborative.forEach((element, eIndex) => {
+          let currentLength = parsedAnswers.collaboratives.length
           res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.collaboratives.forEach((item, iIndex) => {
             if (element.split('::')[0] === item.text) {
               if (eIndex === iIndex) {
@@ -235,6 +256,15 @@ const answersData = reactive({
               }
             }
           })
+
+          if (currentLength === parsedAnswers.collaboratives.length) {
+            parsedAnswers.collaboratives.push({
+              answer: element,
+              isCorrect: false,
+              rationaleCorrect: false,
+              orderCorrect: false
+            })
+          }
         })
 
         this.parsedAnswers = parsedAnswers
