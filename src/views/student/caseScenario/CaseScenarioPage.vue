@@ -34,7 +34,7 @@ const stepLabel = [
 const step = reactive({
   count: 1,
   percent: computed(() => {
-    return (step.count / 9) * 100 + '%'
+    return (step.count / 7) * 100 + '%'
   })
 })
 
@@ -104,15 +104,15 @@ const answers = ref({
   collaborative: []
 })
 
-// const dependentRationale = ref([])
-// const independentRationale = ref([])
-// const collabRationale = ref([])
+const dependentRationale = ref([])
+const independentRationale = ref([])
+const collabRationale = ref([])
 
-// watchEffect(() => {
-//   dependentRationale.value = Array(answers.value.dependent.length).fill('N/A')
-//   independentRationale.value = Array(answers.value.independent.length).fill('N/A')
-//   collabRationale.value = Array(answers.value.collaborative.length).fill('N/A')
-// })
+watchEffect(() => {
+  dependentRationale.value = Array(answers.value.dependent.length).fill('N/A')
+  independentRationale.value = Array(answers.value.independent.length).fill('N/A')
+  collabRationale.value = Array(answers.value.collaborative.length).fill('N/A')
+})
 
 const isLoading = ref(true)
 onMounted(async () => {
@@ -211,12 +211,12 @@ onMounted(async () => {
           ...shuffleArray(data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.collaboratives.map((e) => e.text))
         ]
 
-        possibleAnswers.intervention.rationale = [
+        possibleAnswers.interventions.rationale = [
           'N/A',
           ...shuffleArray([
-            ...possibleAnswers.intervention.dependents.map((e) => e.rationale),
-            ...possibleAnswers.intervention.independents.map((e) => e.rationale),
-            ...possibleAnswers.intervention.collaboratives.map((e) => e.rationale)
+            ...data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.independents.map((e) => e.rationale),
+            ...data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.dependents.map((e) => e.rationale),
+            ...data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.collaboratives.map((e) => e.rationale)
           ])
         ]
       }
@@ -326,11 +326,13 @@ function planningScore(stgAnswer, ltgAnswer) {
 }
 
 function interventionScore(depAnswer, indepAnswer, collabAnswer) {
+  let diagnosisIndex = data.nursingDiagnosis.diagnosis.texts.map((e) => e.text).indexOf(answers.value.diagnosis)
+
   let totalCorrectItems = 0
   let correctAnswers = 0
-  let dependents = data.intervention.dependents
-  let independents = data.intervention.independents
-  let collaboratives = data.intervention.collaboratives
+  let dependents = data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.dependents
+  let independents = data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.independents
+  let collaboratives = data.nursingDiagnosis.diagnosis.texts[diagnosisIndex].intervention.collaboratives
 
   dependents.forEach((item) => {
     if (item.isCorrect) {
@@ -355,8 +357,10 @@ function interventionScore(depAnswer, indepAnswer, collabAnswer) {
     let ansRationale = answer.split('::')[1]
     let dataDependent = dependents[dependents.map((e) => e.text).indexOf(ansDependent)]
 
-    if (dataDependent.isCorrect && dataDependent.rationale === ansRationale) {
-      correctAnswers++
+    if (dataDependent !== undefined) {
+      if (dataDependent.isCorrect && dataDependent.rationale === ansRationale) {
+        correctAnswers++
+      }
     } else {
       correctAnswers--
     }
@@ -371,8 +375,10 @@ function interventionScore(depAnswer, indepAnswer, collabAnswer) {
     let ansRationale = answer.split('::')[1]
     let dataIndependent = independents[independents.map((e) => e.text).indexOf(ansIndependent)]
 
-    if (dataIndependent.isCorrect && dataIndependent.rationale === ansRationale) {
-      correctAnswers++
+    if (dataIndependent !== undefined) {
+      if (dataIndependent.isCorrect && dataIndependent.rationale === ansRationale) {
+        correctAnswers++
+      }
     } else {
       correctAnswers--
     }
@@ -387,8 +393,10 @@ function interventionScore(depAnswer, indepAnswer, collabAnswer) {
     let ansRationale = answer.split('::')[1]
     let dataCollab = collaboratives[collaboratives.map((e) => e.text).indexOf(ansCollab)]
 
-    if (dataCollab.isCorrect && dataCollab.rationale === ansRationale) {
-      correctAnswers++
+    if (dataCollab !== undefined) {
+      if (dataCollab.isCorrect && dataCollab.rationale === ansRationale) {
+        correctAnswers++
+      }
     } else {
       correctAnswers--
     }
@@ -426,28 +434,24 @@ function disableNext() {
     case 5:
       return answers.value.shortTermGoal.length === 0 || answers.value.longTermGoal.length === 0
     case 6:
-      return answers.value.dependent.length === 0
-    case 7:
-      return answers.value.independent.length === 0
-    case 8:
-      return answers.value.collaborative.length === 0
+      return answers.value.dependent.length === 0 || answers.value.independent.length === 0 || answers.value.collaborative.length === 0
   }
 }
 
 const isSubmitting = ref(false)
 async function submit() {
   isSubmitting.value = true
-  // answers.value.dependent.forEach((dependent, index) => {
-  //   answers.value.dependent[index] = dependent.split('::')[0] + '::' + dependentRationale.value[index]
-  // })
+  answers.value.dependent.forEach((dependent, index) => {
+    answers.value.dependent[index] = dependent + '::' + dependentRationale.value[index]
+  })
 
-  // answers.value.independent.forEach((independent, index) => {
-  //   answers.value.independent[index] = independent.split('::')[0] + '::' + independentRationale.value[index]
-  // })
+  answers.value.independent.forEach((independent, index) => {
+    answers.value.independent[index] = independent + '::' + independentRationale.value[index]
+  })
 
-  // answers.value.collaborative.forEach((collaborative, index) => {
-  //   answers.value.collaborative[index] = collaborative.split('::')[0] + '::' + collabRationale.value[index]
-  // })
+  answers.value.collaborative.forEach((collaborative, index) => {
+    answers.value.collaborative[index] = collaborative + '::' + collabRationale.value[index]
+  })
 
   let score1 = assessmentScore(answers.value.subjective, answers.value.objective)
   let score2 = nursingDiagScore(answers.value.diagnosis, answers.value.relatedTo, answers.value.signsAndSymptoms)
@@ -535,8 +539,8 @@ async function submit() {
         <VLoader size="32px" thickness="2px" />
       </div>
 
-      <div v-else class="flex flex-col items-center px-4">
-        <div class="flex flex-col items-center lg:flex-row lg:gap-4">
+      <div v-else class="flex flex-col items-center">
+        <div class="flex flex-col items-center px-4 lg:flex-row lg:gap-4">
           <picture
             v-if="data.introduction.imageLink"
             class="relative block w-full max-w-[640px] overflow-hidden rounded-2xl pt-[56.25%] sm:h-[360px] sm:pt-0 lg:shrink-0"
@@ -558,16 +562,16 @@ async function submit() {
           </div>
         </div>
 
-        <hr class="mx-2 my-2 w-full border-neutral-300 pb-4" />
+        <hr class="my-2 w-[calc(100%-32px)] border-neutral-300 px-4 pb-4" />
 
-        <div v-if="isLoading" class="flex items-center justify-center p-4">
+        <div v-if="isLoading" class="flex items-center justify-center px-8 py-4">
           <VLoader size="32px" thickness="2px" />
         </div>
 
         <!-- possible answers -->
         <template v-else>
           <transition name="fade-up" mode="out-in">
-            <div v-if="step.count === 1" class="w-full max-w-[1024px]">
+            <div v-if="step.count === 1" class="w-full max-w-[1024px] px-4">
               <h3 class="pb-2 font-medium">Subjective</h3>
               <div class="flex flex-col gap-1">
                 <label
@@ -593,7 +597,7 @@ async function submit() {
               </div>
             </div>
 
-            <div v-else-if="step.count === 2" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 2" class="w-full max-w-[1024px] px-4">
               <h3 class="pb-2 font-medium">Diagnosis</h3>
               <div class="flex flex-col gap-1">
                 <label
@@ -607,7 +611,7 @@ async function submit() {
               </div>
             </div>
 
-            <div v-else-if="step.count === 3" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 3" class="w-full max-w-[1024px] px-4">
               <h3 class="font-medium">Related to</h3>
               <p class="pb-2">"{{ answers.diagnosis }} related to..."</p>
               <div class="flex flex-col gap-1">
@@ -622,7 +626,7 @@ async function submit() {
               </div>
             </div>
 
-            <div v-else-if="step.count === 4" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 4" class="w-full max-w-[1024px] px-4">
               <h3 class="font-medium">Signs and Symptoms</h3>
               <p class="pb-2">"{{ answers.diagnosis }} related to {{ answers.relatedTo }} as evidenced by..."</p>
               <div class="flex flex-col gap-1">
@@ -637,7 +641,7 @@ async function submit() {
               </div>
             </div>
 
-            <div v-else-if="step.count === 5" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 5" class="w-full max-w-[1024px] px-4">
               <h3 class="pb-2 font-medium">Short Term Goal/s</h3>
               <p class="font-medium">{{ data.planning.shortTermGoalsDesc }}</p>
               <div class="flex flex-col gap-1">
@@ -665,15 +669,17 @@ async function submit() {
               </div>
             </div>
 
-            <div v-else-if="step.count === 6" class="w-full max-w-[1024px]">
+            <div v-else-if="step.count === 6" class="flex w-full max-w-[1024px] flex-col items-center">
               <div
-                class="mb-4 flex w-full max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-12 py-4 text-lg font-medium"
+                class="mb-4 flex w-[calc(100%-32px)] max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-4 py-4 text-lg font-medium lg:px-12"
               >
                 <span class="material-icons-round">edit</span>
-                Move the Interventions to their appropriate boxes by clicking and dragging <span class="material-icons-round"> drag_handle </span>.
+                <p>
+                  Move the Interventions to their appropriate boxes by clicking and dragging <span class="material-icons-round"> drag_handle </span>.
+                </p>
               </div>
-              <div class="flex flex-row gap-4">
-                <div class="flex w-full basis-1/2 flex-col gap-1">
+              <div class="flex w-full flex-row gap-4 overflow-x-auto px-4">
+                <div class="flex min-w-[calc(100vw-64px)] shrink-0 flex-col gap-1 md:basis-1/2 lg:min-w-fit lg:shrink-[1]">
                   <h3 class="pb-2 font-medium">Interventions</h3>
                   <draggable
                     :list="possibleAnswers.interventions"
@@ -694,7 +700,7 @@ async function submit() {
                   </draggable>
                 </div>
 
-                <div class="flex basis-1/2 flex-col gap-4">
+                <div class="flex min-w-[calc(100vw-64px)] shrink-0 flex-col gap-4 md:basis-1/2 lg:min-w-fit lg:shrink-[1]">
                   <div class="flex w-full flex-col gap-1">
                     <h3 class="pb-2 font-medium">Independent</h3>
                     <draggable
@@ -759,80 +765,17 @@ async function submit() {
                   </div>
                 </div>
               </div>
-              <!-- <div class="flex flex-col gap-1 pb-4">
-                <label
-                  v-for="(dependent, index) in possibleAnswers.intervention.dependents"
-                  :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100 shrink-0"
-                >
-                  <input v-model="answers.dependent" type="checkbox" name="dependent" :value="dependent.text" />
-                  <div>
-                    {{ dependent.text }}
-                  </div>
-                </label>
-              </div>
-              <TransitionGroup name="list" tag="ul" class="relative rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
-                <p key="dependent">Your answer/s:</p>
-                <li v-for="(answer, index) in answers.dependent" :key="answer">
-                  <p>{{ index + 1 }}. {{ answer }}</p>
-                </li>
-              </TransitionGroup> -->
             </div>
 
-            <!-- <div v-else-if="step.count === 7" class="w-full max-w-[1024px]">
-              <div
-                class="mb-4 flex w-full max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-12 py-4 text-lg font-medium"
-              >
-                <span class="material-icons-round">edit</span>
-                Note that the order of your answer is based on the order you check.
-              </div>
-              <h3 class="pb-2 font-medium">Independent/s</h3>
-              <div class="flex flex-col gap-1 pb-4">
-                <label
-                  v-for="(independent, index) in possibleAnswers.intervention.independents"
-                  :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100 shrink-0"
-                >
-                  <input v-model="answers.independent" type="checkbox" :value="independent.text" />
-                  <div>
-                    {{ independent.text }}
-                  </div>
-                </label>
-              </div>
-
-              <TransitionGroup name="list" tag="ul" class="relative rounded-lg bg-emerald-100 p-8 font-medium text-emerald-950">
-                <p key="independent">Your answer/s:</p>
-                <li v-for="(answer, index) in answers.independent" :key="answer">
-                  <p>{{ index + 1 }}. {{ answer }}</p>
-                </li>
-              </TransitionGroup>
-            </div>
-
-            <div v-else-if="step.count === 8" class="w-full max-w-[1366px]">
-              <h3 class="pb-2 font-medium">Collaborative/s</h3>
-              <div class="flex flex-col gap-1">
-                <label
-                  v-for="(collaborative, index) in possibleAnswers.intervention.collaboratives"
-                  :key="index"
-                  class="flex cursor-pointer flex-row items-center gap-4 rounded-xl px-2 py-1 transition-colors hover:bg-blue-100 shrink-0"
-                >
-                  <input v-model="answers.collaborative" type="checkbox" :value="collaborative.text" />
-                  <div>
-                    {{ collaborative.text }}
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div v-else-if="step.count === 9" class="w-full max-w-[1366px]">
+            <div v-else-if="step.count === 7" class="w-full max-w-[1366px] px-4">
               <h3 class="pb-2 font-medium">Rationale</h3>
               <div class="lg:flex lg:flex-row lg:gap-2">
                 <div class="grow">
-                  <p class="font-medium">Your Dependents:</p>
+                  <p class="font-medium">Your Independents:</p>
                   <div class="flex flex-col gap-1">
-                    <div v-for="(answer, index) in answers.dependent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
+                    <div v-for="(answer, index) in answers.independent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
-                      <VSelect v-model="dependentRationale[index]" :options="possibleAnswers.intervention.rationale" />
+                      <VSelect v-model="independentRationale[index]" :options="possibleAnswers.interventions.rationale" />
                     </div>
                   </div>
                 </div>
@@ -840,11 +783,11 @@ async function submit() {
                 <hr class="my-4 border-neutral-300 lg:hidden" />
 
                 <div class="grow">
-                  <p class="font-medium">Your Independents:</p>
+                  <p class="font-medium">Your Dependents:</p>
                   <div class="flex flex-col gap-1">
-                    <div v-for="(answer, index) in answers.independent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
+                    <div v-for="(answer, index) in answers.dependent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
-                      <VSelect v-model="independentRationale[index]" :options="possibleAnswers.intervention.rationale" />
+                      <VSelect v-model="dependentRationale[index]" :options="possibleAnswers.interventions.rationale" />
                     </div>
                   </div>
                 </div>
@@ -856,12 +799,12 @@ async function submit() {
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.collaborative" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}. ${answer.split('::')[0]}` }}</p>
-                      <VSelect v-model="collabRationale[index]" :options="possibleAnswers.intervention.rationale" />
+                      <VSelect v-model="collabRationale[index]" :options="possibleAnswers.interventions.rationale" />
                     </div>
                   </div>
                 </div>
               </div>
-            </div> -->
+            </div>
           </transition>
         </template>
       </div>
@@ -877,7 +820,7 @@ async function submit() {
           <span class="text-lg font-bold leading-none">{{ stepLabel[step.count - 1] }}</span>
         </div>
 
-        <VButton v-if="step.count < 9" @click="nextStep()" :disabled="disableNext()" color="warning" class="w-[88px] justify-center">
+        <VButton v-if="step.count < 7" @click="nextStep()" :disabled="disableNext()" color="warning" class="w-[88px] justify-center">
           <div class="flex flex-row items-center">
             <span>Next</span>
             <span class="material-icons"> chevron_right </span>

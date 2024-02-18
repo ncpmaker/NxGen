@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watchEffect } from 'vue'
+import { onMounted, reactive, ref, watchEffect } from 'vue'
 import { scrollStore, toastStore } from '@/store'
 import { useRouter } from 'vue-router'
 import generatePDF from '@/assets/scripts/pdf'
@@ -89,6 +89,191 @@ onMounted(() => {
   })
 })
 
+//show entry test answers
+const answersData = reactive({
+  answers: null,
+  parsedAnswers: null,
+  isLoading: false,
+  async goParse(answers, category, id) {
+    this.isLoading = true
+    await axios({
+      method: 'get',
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${category}/${id}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
+        Role: 'admin'
+      }
+    })
+      .then((res) => {
+        let parsedAnswers = {}
+        let diagnosisIndex = res.data.nursing_diagnosis.diagnosis.texts.map((e) => e.text).indexOf(answers.diagnosis)
+
+        parsedAnswers.subjective = {
+          answer: answers.subjective,
+          isCorrect: answers.subjective === res.data.assessment.subjectives.correctValue
+        }
+
+        parsedAnswers.objectives = []
+        answers.objective.forEach((element) => {
+          res.data.assessment.objectives.forEach((item) => {
+            if (element === item.text) {
+              parsedAnswers.objectives.push({
+                answer: element,
+                isCorrect: item.isCorrect
+              })
+            }
+          })
+        })
+
+        parsedAnswers.diagnosis = {
+          answer: answers.diagnosis,
+          isCorrect: answers.diagnosis === res.data.nursing_diagnosis.diagnosis.correctValue
+        }
+        parsedAnswers.relatedTo = {
+          answer: answers.relatedTo,
+          isCorrect: answers.relatedTo === res.data.nursing_diagnosis.relatedTo.correctValue
+        }
+        parsedAnswers.signsAndSymptoms = []
+        answers.signsAndSymptoms.forEach((element) => {
+          res.data.nursing_diagnosis.signsAndSymptoms.forEach((item) => {
+            if (element === item.text) {
+              parsedAnswers.signsAndSymptoms.push({
+                answer: element,
+                isCorrect: item.isCorrect
+              })
+            }
+          })
+        })
+
+        parsedAnswers.shortTermGoals = []
+        answers.shortTermGoal.forEach((element) => {
+          res.data.planning.shortTermGoals.forEach((item) => {
+            if (element === item.text) {
+              parsedAnswers.shortTermGoals.push({
+                answer: element,
+                isCorrect: item.isCorrect
+              })
+            }
+          })
+        })
+        parsedAnswers.longTermGoals = []
+        answers.longTermGoal.forEach((element) => {
+          res.data.planning.longTermGoals.forEach((item) => {
+            if (element === item.text) {
+              parsedAnswers.longTermGoals.push({
+                answer: element,
+                isCorrect: item.isCorrect
+              })
+            }
+          })
+        })
+
+        parsedAnswers.independents = []
+        answers.independent.forEach((element, eIndex) => {
+          res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.independents.forEach((item, iIndex) => {
+            if (element.split('::')[0] === item.text) {
+              if (eIndex === iIndex) {
+                parsedAnswers.independents.push({
+                  answer: element,
+                  isCorrect: item.isCorrect,
+                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
+                  orderCorrect: true
+                })
+              } else {
+                parsedAnswers.independents.push({
+                  answer: element,
+                  isCorrect: item.isCorrect,
+                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
+                  orderCorrect: false
+                })
+              }
+            }
+          })
+        })
+
+        parsedAnswers.dependents = []
+        answers.dependent.forEach((element, eIndex) => {
+          res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.dependents.forEach((item, iIndex) => {
+            if (element.split('::')[0] === item.text) {
+              if (eIndex === iIndex) {
+                parsedAnswers.dependents.push({
+                  answer: element,
+                  isCorrect: item.isCorrect,
+                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
+                  orderCorrect: true
+                })
+              } else {
+                parsedAnswers.dependents.push({
+                  answer: element,
+                  isCorrect: item.isCorrect,
+                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
+                  orderCorrect: false
+                })
+              }
+            }
+          })
+        })
+
+        parsedAnswers.collaboratives = []
+        answers.collaborative.forEach((element, eIndex) => {
+          res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.collaboratives.forEach((item, iIndex) => {
+            if (element.split('::')[0] === item.text) {
+              if (eIndex === iIndex) {
+                parsedAnswers.collaboratives.push({
+                  answer: element,
+                  isCorrect: item.isCorrect,
+                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
+                  orderCorrect: true
+                })
+              } else {
+                parsedAnswers.collaboratives.push({
+                  answer: element,
+                  isCorrect: item.isCorrect,
+                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
+                  orderCorrect: false
+                })
+              }
+            }
+          })
+        })
+
+        this.parsedAnswers = parsedAnswers
+      })
+      .catch((err) => {
+        console.log(err)
+        if (err.response.status == 401) {
+          router.push({ name: 'admin login' })
+        } else {
+          toastStore.add({
+            msg: err.response.data,
+            duration: 4000
+          })
+        }
+      })
+      .finally(() => (this.isLoading = false))
+  },
+  name: ''
+})
+//Answers modal
+const modals = ref({
+  showAnswersModal: false,
+  showAnswersOpen(entryAnswers, name, category, id) {
+    answersData.answers = entryAnswers
+    answersData.name = name
+
+    answersData.goParse(entryAnswers, category, id)
+    this.showAnswersModal = true
+  },
+  showAnswersClose() {
+    setTimeout(() => {
+      answersData.answers = null
+      answersData.parsedAnswers = null
+      answersData.name = null
+    }, 150)
+    this.showAnswersModal = false
+  }
+})
+
 //generate pdf
 async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTaken) {
   await axios({
@@ -153,11 +338,12 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
         <th class="px-6 py-4 text-start">Case ID</th>
         <th class="px-6 py-4 text-start">Times Taken</th>
         <th class="px-6 py-4 text-start">Date Taken</th>
+        <th class="px-6 py-4">Answers</th>
         <th class="px-6 py-4">Nursing Care Plan</th>
       </tr>
 
       <tr v-if="isLoading">
-        <td colspan="8">
+        <td colspan="9">
           <div class="flex w-full items-center justify-center py-6">
             <VLoader size="40px" thickness="2px" />
           </div>
@@ -172,6 +358,18 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
         <td class="px-6 py-1 text-start">{{ entry.caseId }}</td>
         <td class="px-6 py-1 text-start">{{ entry.timesTaken }}</td>
         <td class="px-6 py-1 text-start">{{ new Date(entry.dateTaken).toLocaleString().replace(',', ' -') }}</td>
+        <td class="px-6 py-1 text-start">
+          <div class="flex h-full w-full flex-row items-center justify-center">
+            <VButton
+              @click="modals.showAnswersOpen(entry.answers, entry.name, entry.category, entry.caseId)"
+              variant="filled"
+              start-icon="visibility"
+              color="success"
+            >
+              Show
+            </VButton>
+          </div>
+        </td>
         <td class="px-6 py-1">
           <div class="flex h-full w-full flex-row items-center justify-center">
             <VButton
@@ -187,19 +385,286 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
       </tr>
 
       <tr v-else>
-        <td colspan="8">
+        <td colspan="9">
           <div class="flex w-full items-center justify-center py-6">No entries found</div>
         </td>
       </tr>
 
       <tr v-show="moreLoading && !isLoading" ref="moreLoadingRef">
-        <td colspan="8">
+        <td colspan="9">
           <div class="flex w-full items-center justify-center py-6">
             <VLoader size="40px" thickness="2px" />
           </div>
         </td>
       </tr>
     </table>
+
+    <!-- Modal for answers -->
+    <VModal v-model:go-open="modals.showAnswersModal" :click-outside="false">
+      <div class="flex max-h-[calc(100svh-32px)] flex-col overflow-y-auto overflow-x-hidden px-4 pb-4">
+        <div class="sticky top-0 z-10 flex flex-row items-center justify-between bg-blue-50 py-4">
+          <div>
+            <h2 class="leading-none">Answers</h2>
+          </div>
+
+          <VIconButton @click="modals.showAnswersClose()" variant="ghost" size="lg" icon="close" />
+        </div>
+
+        <div v-if="answersData.answers && !answersData.parsedAnswers" class="relative flex flex-col">
+          <!-- assessment -->
+          <div>
+            <h2>Assessment</h2>
+            <div class="flex flex-col gap-2 px-2">
+              <div>
+                <h3>Subjective</h3>
+                <p>{{ answersData.answers.subjective }}</p>
+              </div>
+              <div>
+                <h3>Objectives</h3>
+                <ul class="list-disc pl-4">
+                  <li v-for="objective in answersData.answers.objective" :key="objective">
+                    {{ objective }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+          <!-- Nursing Diagnosis -->
+          <div>
+            <h2>Nursing Diagnosis</h2>
+            <div class="px-2">
+              <p>
+                <span>{{ answersData.answers.diagnosis }}</span>
+                related to
+                <span>{{ answersData.answers.relatedTo }}</span>
+                as evidenced by
+                <span v-for="(sas, index) in answersData.answers.signsAndSymptoms" :key="sas">
+                  {{ `${sas}${index + 1 < answersData.answers.signsAndSymptoms.length ? ', ' : '.'}` }}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+          <!--  -->
+          <div>
+            <h2>Planning</h2>
+            <div class="flex flex-col gap-2 px-2">
+              <div>
+                <h3>Short Term Goals</h3>
+                <ul class="list-disc pl-4">
+                  <li v-for="goal in answersData.answers.shortTermGoal" :key="goal">
+                    {{ goal }}
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3>Long Term Goals</h3>
+                <ul class="list-disc pl-4">
+                  <li v-for="goal in answersData.answers.longTermGoal" :key="goal">
+                    {{ goal }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+          <!--  -->
+          <div>
+            <h2>Interventions and Rationale</h2>
+            <div class="flex flex-col gap-4 px-2 pt-2">
+              <table class="w-full table-fixed">
+                <tr>
+                  <th class="border border-black">Independents</th>
+                  <th class="border border-black">Rationale</th>
+                </tr>
+
+                <tr v-for="independent in answersData.answers.independent" :key="independent">
+                  <td class="border border-black p-2">
+                    {{ independent.split('::')[0] }}
+                  </td>
+                  <td class="border border-black p-2">
+                    {{ independent.split('::')[0] }}
+                  </td>
+                </tr>
+              </table>
+
+              <table class="w-full table-fixed">
+                <tr>
+                  <th class="border border-black">Dependents</th>
+                  <th class="border border-black">Rationale</th>
+                </tr>
+
+                <tr v-for="dependent in answersData.answers.dependent" :key="dependent">
+                  <td class="border border-black p-2">
+                    {{ dependent.split('::')[0] }}
+                  </td>
+                  <td class="border border-black p-2">
+                    {{ dependent.split('::')[0] }}
+                  </td>
+                </tr>
+              </table>
+
+              <table class="w-full table-fixed">
+                <tr>
+                  <th class="border border-black">Collaborative</th>
+                  <th class="border border-black">Rationale</th>
+                </tr>
+
+                <tr v-for="collaborative in answersData.answers.collaborative" :key="collaborative">
+                  <td class="border border-black p-2">
+                    {{ collaborative.split('::')[0] }}
+                  </td>
+                  <td class="border border-black p-2">
+                    {{ collaborative.split('::')[0] }}
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <VLoader size="40px" thickness="2px" class="fixed right-4 top-[68px]" />
+        </div>
+
+        <div v-else-if="answersData.parsedAnswers" class="flex flex-col">
+          <!-- assessment -->
+          <div>
+            <h2>Assessment</h2>
+            <div class="flex flex-col gap-2 px-2">
+              <div>
+                <h3>Subjective</h3>
+                <p :class="answersData.parsedAnswers.subjective.isCorrect ? 'text-emerald-400' : 'text-red-400'">
+                  {{ answersData.parsedAnswers.subjective.answer }}
+                </p>
+              </div>
+              <div>
+                <h3>Objectives</h3>
+                <ul class="list-disc pl-4">
+                  <li
+                    v-for="objective in answersData.parsedAnswers.objectives"
+                    :class="objective.isCorrect ? 'text-emerald-400' : 'text-red-400'"
+                    :key="objective"
+                  >
+                    {{ objective.answer }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+          <!-- Nursing Diagnosis -->
+          <div>
+            <h2>Nursing Diagnosis</h2>
+            <div class="px-2">
+              <p>
+                <span :class="answersData.parsedAnswers.diagnosis.isCorrect ? 'text-emerald-400' : 'text-red-400'">
+                  {{ answersData.parsedAnswers.diagnosis.answer }}
+                </span>
+                related to
+                <span :class="answersData.parsedAnswers.relatedTo.isCorrect ? 'text-emerald-400' : 'text-red-400'">
+                  {{ answersData.parsedAnswers.relatedTo.answer }}
+                </span>
+                as evidenced by
+                <span
+                  v-for="(sas, index) in answersData.parsedAnswers.signsAndSymptoms"
+                  :key="sas"
+                  :class="sas.isCorrect ? 'text-emerald-400' : 'text-red-400'"
+                >
+                  {{ `${sas.answer}${index + 1 < answersData.parsedAnswers.signsAndSymptoms.length ? ', ' : '.'}` }}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+          <!--  -->
+          <div>
+            <h2>Planning</h2>
+            <div class="flex flex-col gap-2 px-2">
+              <div>
+                <h3>Short Term Goals</h3>
+                <ul class="list-disc pl-4">
+                  <li
+                    v-for="goal in answersData.parsedAnswers.shortTermGoals"
+                    :key="goal"
+                    :class="goal.isCorrect ? 'text-emerald-400' : 'text-red-400'"
+                  >
+                    {{ goal.answer }}
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3>Long Term Goals</h3>
+                <ul class="list-disc pl-4">
+                  <li v-for="goal in answersData.parsedAnswers.longTermGoals" :key="goal" :class="goal.isCorrect ? 'text-emerald-400' : 'text-red-400'">
+                    {{ goal.answer }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4" />
+          <!--  -->
+          <div>
+            <h2>Interventions and Rationale</h2>
+            <div class="flex flex-col gap-4 px-2 pt-2">
+              <table class="w-full table-fixed">
+                <tr>
+                  <th class="border border-black">Independents</th>
+                  <th class="border border-black">Rationale</th>
+                </tr>
+
+                <tr v-for="independent in answersData.parsedAnswers.independents" :key="independent">
+                  <td :class="['border border-black p-2', independent.isCorrect ? 'text-emerald-400' : 'text-red-400']">
+                    {{ independent.orderCorrect ? '' : '*' }} {{ independent.answer.split('::')[0] }}
+                  </td>
+                  <td :class="['border border-black p-2', independent.rationaleCorrect ? 'text-emerald-400' : 'text-red-400']">
+                    {{ independent.answer.split('::')[1] }}
+                  </td>
+                </tr>
+              </table>
+
+              <table class="w-full table-fixed">
+                <tr>
+                  <th class="border border-black">Dependents</th>
+                  <th class="border border-black">Rationale</th>
+                </tr>
+
+                <tr v-for="dependent in answersData.parsedAnswers.dependents" :key="dependent">
+                  <td :class="['border border-black p-2', dependent.isCorrect ? 'text-emerald-400' : 'text-red-400']">
+                    {{ dependent.orderCorrect ? '' : '*' }} {{ dependent.answer.split('::')[0] }}
+                  </td>
+                  <td :class="['border border-black p-2', dependent.rationaleCorrect ? 'text-emerald-400' : 'text-red-400']">
+                    {{ dependent.answer.split('::')[1] }}
+                  </td>
+                </tr>
+              </table>
+
+              <table class="w-full table-fixed">
+                <tr>
+                  <th class="border border-black">Collaborative</th>
+                  <th class="border border-black">Rationale</th>
+                </tr>
+
+                <tr v-for="collaborative in answersData.parsedAnswers.collaboratives" :key="collaborative">
+                  <td :class="['border border-black p-2', collaborative.isCorrect ? 'text-emerald-400' : 'text-red-400']">
+                    {{ collaborative.answer.split('::')[0] }}
+                  </td>
+                  <td :class="['border border-black p-2', collaborative.rationaleCorrect ? 'text-emerald-400' : 'text-red-400']">
+                    {{ collaborative.answer.split('::')[1] }}
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </VModal>
 
     <!-- for pdf generation -->
     <table v-if="data" class="hidden w-full table-fixed border-collapse border border-black bg-white font-['Times'] text-[15px] text-black" id="table">
