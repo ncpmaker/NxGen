@@ -162,16 +162,16 @@ onMounted(async () => {
         </template>
       </td>
       <td class="border border-black px-4 py-2 text-start align-top">
-        Dependent:<br />
-        <template v-for="(dependent, index) in data.answers.dependent" :key="index">
-          <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[0] }} <br /><br /> </template>
-          <template v-else> • {{ dependent.split('::')[0] }} <br /> </template>
-        </template>
-
-        <br />Independent:<br />
+        Independent:<br />
         <template v-for="(independent, index) in data.answers.independent" :key="index">
           <template v-if="index + 1 !== data.answers.independent.length"> • {{ independent.split('::')[0] }} <br /><br /> </template>
           <template v-else> • {{ independent.split('::')[0] }} <br /> </template>
+        </template>
+
+        <br />Dependent:<br />
+        <template v-for="(dependent, index) in data.answers.dependent" :key="index">
+          <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[0] }} <br /><br /> </template>
+          <template v-else> • {{ dependent.split('::')[0] }} <br /> </template>
         </template>
 
         <br />Collaborative:<br />
@@ -181,16 +181,16 @@ onMounted(async () => {
         </template>
       </td>
       <td class="border border-black px-4 py-2 text-start align-top">
-        Dependent:<br />
-        <template v-for="(dependent, index) in data.answers.dependent" :key="index">
-          <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[1] }} <br /><br /> </template>
-          <template v-else> • {{ dependent.split('::')[1] }} <br /> </template>
-        </template>
-
-        <br />Independent:<br />
+        Independent:<br />
         <template v-for="(independent, index) in data.answers.independent" :key="index">
           <template v-if="index + 1 !== data.answers.independent.length"> • {{ independent.split('::')[1] }} <br /><br /> </template>
           <template v-else> • {{ independent.split('::')[1] }} <br /> </template>
+        </template>
+
+        <br />Dependent:<br />
+        <template v-for="(dependent, index) in data.answers.dependent" :key="index">
+          <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[1] }} <br /><br /> </template>
+          <template v-else> • {{ dependent.split('::')[1] }} <br /> </template>
         </template>
 
         <br />Collaborative:<br />

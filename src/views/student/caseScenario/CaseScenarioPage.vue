@@ -769,7 +769,7 @@ async function submit() {
 
             <div v-else-if="step.count === 7" class="w-full max-w-[1366px] px-4">
               <h3 class="pb-2 font-medium">Rationale</h3>
-              <div class="lg:flex lg:flex-row lg:gap-2">
+              <div class="xl:flex xl:flex-row xl:gap-2">
                 <div class="grow">
                   <p class="font-medium">Your Independents:</p>
                   <div class="flex flex-col gap-1">
@@ -780,7 +780,7 @@ async function submit() {
                   </div>
                 </div>
 
-                <hr class="my-4 border-neutral-300 lg:hidden" />
+                <hr class="my-4 border-neutral-300 xl:hidden" />
 
                 <div class="grow">
                   <p class="font-medium">Your Dependents:</p>
@@ -792,7 +792,7 @@ async function submit() {
                   </div>
                 </div>
 
-                <hr class="my-4 border-neutral-300 lg:hidden" />
+                <hr class="my-4 border-neutral-300 xl:hidden" />
 
                 <div class="grow">
                   <p class="font-medium">Your Collaboratives:</p>

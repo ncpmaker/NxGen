@@ -566,7 +566,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
             <div class="flex flex-col gap-2 px-2">
               <div>
                 <h3>Subjective</h3>
-                <p :class="answersData.parsedAnswers.subjective.isCorrect ? 'text-emerald-400' : 'text-red-400'">
+                <p :class="answersData.parsedAnswers.subjective.isCorrect ? 'text-emerald-500' : 'text-red-400'">
                   {{ answersData.parsedAnswers.subjective.answer }}
                 </p>
               </div>
@@ -575,7 +575,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
                 <ul class="list-disc pl-4">
                   <li
                     v-for="objective in answersData.parsedAnswers.objectives"
-                    :class="objective.isCorrect ? 'text-emerald-400' : 'text-red-400'"
+                    :class="objective.isCorrect ? 'text-emerald-500' : 'text-red-400'"
                     :key="objective"
                   >
                     {{ objective.answer }}
@@ -591,18 +591,18 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
             <h2>Nursing Diagnosis</h2>
             <div class="px-2">
               <p>
-                <span :class="answersData.parsedAnswers.diagnosis.isCorrect ? 'text-emerald-400' : 'text-red-400'">
+                <span :class="answersData.parsedAnswers.diagnosis.isCorrect ? 'text-emerald-500' : 'text-red-400'">
                   {{ answersData.parsedAnswers.diagnosis.answer }}
                 </span>
                 related to
-                <span :class="answersData.parsedAnswers.relatedTo.isCorrect ? 'text-emerald-400' : 'text-red-400'">
+                <span :class="answersData.parsedAnswers.relatedTo.isCorrect ? 'text-emerald-500' : 'text-red-400'">
                   {{ answersData.parsedAnswers.relatedTo.answer }}
                 </span>
                 as evidenced by
                 <span
                   v-for="(sas, index) in answersData.parsedAnswers.signsAndSymptoms"
                   :key="sas"
-                  :class="sas.isCorrect ? 'text-emerald-400' : 'text-red-400'"
+                  :class="sas.isCorrect ? 'text-emerald-500' : 'text-red-400'"
                 >
                   {{ `${sas.answer}${index + 1 < answersData.parsedAnswers.signsAndSymptoms.length ? ', ' : '.'}` }}
                 </span>
@@ -621,7 +621,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
                   <li
                     v-for="goal in answersData.parsedAnswers.shortTermGoals"
                     :key="goal"
-                    :class="goal.isCorrect ? 'text-emerald-400' : 'text-red-400'"
+                    :class="goal.isCorrect ? 'text-emerald-500' : 'text-red-400'"
                   >
                     {{ goal.answer }}
                   </li>
@@ -630,7 +630,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
               <div>
                 <h3>Long Term Goals</h3>
                 <ul class="list-disc pl-4">
-                  <li v-for="goal in answersData.parsedAnswers.longTermGoals" :key="goal" :class="goal.isCorrect ? 'text-emerald-400' : 'text-red-400'">
+                  <li v-for="goal in answersData.parsedAnswers.longTermGoals" :key="goal" :class="goal.isCorrect ? 'text-emerald-500' : 'text-red-400'">
                     {{ goal.answer }}
                   </li>
                 </ul>
@@ -650,10 +650,10 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
                 </tr>
 
                 <tr v-for="independent in answersData.parsedAnswers.independents" :key="independent">
-                  <td :class="['border border-black p-2', independent.isCorrect ? 'text-emerald-400' : 'text-red-400']">
+                  <td :class="['border border-black p-2', independent.isCorrect ? 'text-emerald-500' : 'text-red-400']">
                     {{ independent.orderCorrect ? '' : '*' }} {{ independent.answer.split('::')[0] }}
                   </td>
-                  <td :class="['border border-black p-2', independent.rationaleCorrect ? 'text-emerald-400' : 'text-red-400']">
+                  <td :class="['border border-black p-2', independent.rationaleCorrect ? 'text-emerald-500' : 'text-red-400']">
                     {{ independent.answer.split('::')[1] }}
                   </td>
                 </tr>
@@ -666,10 +666,10 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
                 </tr>
 
                 <tr v-for="dependent in answersData.parsedAnswers.dependents" :key="dependent">
-                  <td :class="['border border-black p-2', dependent.isCorrect ? 'text-emerald-400' : 'text-red-400']">
+                  <td :class="['border border-black p-2', dependent.isCorrect ? 'text-emerald-500' : 'text-red-400']">
                     {{ dependent.orderCorrect ? '' : '*' }} {{ dependent.answer.split('::')[0] }}
                   </td>
-                  <td :class="['border border-black p-2', dependent.rationaleCorrect ? 'text-emerald-400' : 'text-red-400']">
+                  <td :class="['border border-black p-2', dependent.rationaleCorrect ? 'text-emerald-500' : 'text-red-400']">
                     {{ dependent.answer.split('::')[1] }}
                   </td>
                 </tr>
@@ -682,10 +682,10 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
                 </tr>
 
                 <tr v-for="collaborative in answersData.parsedAnswers.collaboratives" :key="collaborative">
-                  <td :class="['border border-black p-2', collaborative.isCorrect ? 'text-emerald-400' : 'text-red-400']">
+                  <td :class="['border border-black p-2', collaborative.isCorrect ? 'text-emerald-500' : 'text-red-400']">
                     {{ collaborative.answer.split('::')[0] }}
                   </td>
-                  <td :class="['border border-black p-2', collaborative.rationaleCorrect ? 'text-emerald-400' : 'text-red-400']">
+                  <td :class="['border border-black p-2', collaborative.rationaleCorrect ? 'text-emerald-500' : 'text-red-400']">
                     {{ collaborative.answer.split('::')[1] }}
                   </td>
                 </tr>
@@ -738,16 +738,16 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
           </template>
         </td>
         <td class="border border-black px-4 py-2 text-start align-top">
-          Dependent:<br />
-          <template v-for="(dependent, index) in data.answers.dependent" :key="index">
-            <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[0] }} <br /><br /> </template>
-            <template v-else> • {{ dependent.split('::')[0] }} <br /> </template>
-          </template>
-
-          <br />Independent:<br />
+          Independent:<br />
           <template v-for="(independent, index) in data.answers.independent" :key="index">
             <template v-if="index + 1 !== data.answers.independent.length"> • {{ independent.split('::')[0] }} <br /><br /> </template>
             <template v-else> • {{ independent.split('::')[0] }} <br /> </template>
+          </template>
+
+          <br />Dependent:<br />
+          <template v-for="(dependent, index) in data.answers.dependent" :key="index">
+            <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[0] }} <br /><br /> </template>
+            <template v-else> • {{ dependent.split('::')[0] }} <br /> </template>
           </template>
 
           <br />Collaborative:<br />
@@ -757,16 +757,16 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
           </template>
         </td>
         <td class="border border-black px-4 py-2 text-start align-top">
-          Dependent:<br />
-          <template v-for="(dependent, index) in data.answers.dependent" :key="index">
-            <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[1] }} <br /><br /> </template>
-            <template v-else> • {{ dependent.split('::')[1] }} <br /> </template>
-          </template>
-
-          <br />Independent:<br />
+          Independent:<br />
           <template v-for="(independent, index) in data.answers.independent" :key="index">
             <template v-if="index + 1 !== data.answers.independent.length"> • {{ independent.split('::')[1] }} <br /><br /> </template>
             <template v-else> • {{ independent.split('::')[1] }} <br /> </template>
+          </template>
+
+          <br />Dependent:<br />
+          <template v-for="(dependent, index) in data.answers.dependent" :key="index">
+            <template v-if="index + 1 !== data.answers.dependent.length"> • {{ dependent.split('::')[1] }} <br /><br /> </template>
+            <template v-else> • {{ dependent.split('::')[1] }} <br /> </template>
           </template>
 
           <br />Collaborative:<br />
