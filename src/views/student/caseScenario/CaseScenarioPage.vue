@@ -679,7 +679,7 @@ async function submit() {
                 </p>
               </div>
               <div class="flex w-full flex-row gap-4 overflow-x-auto px-4">
-                <div class="flex min-w-[calc(100vw-64px)] shrink-0 flex-col gap-1 md:basis-1/2 lg:min-w-fit lg:shrink-[1]">
+                <div class="flex w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-1 md:w-[calc(100%-8px)] md:shrink-[1]">
                   <h3 class="pb-2 font-medium">Interventions</h3>
                   <draggable
                     :list="possibleAnswers.interventions"
@@ -700,7 +700,7 @@ async function submit() {
                   </draggable>
                 </div>
 
-                <div class="flex min-w-[calc(100vw-64px)] shrink-0 flex-col gap-4 md:basis-1/2 lg:min-w-fit lg:shrink-[1]">
+                <div class="flex w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-4 md:w-[calc(100%-8px)] md:shrink-[1]">
                   <div class="flex w-full flex-col gap-1">
                     <h3 class="pb-2 font-medium">Independent</h3>
                     <draggable
