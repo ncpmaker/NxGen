@@ -770,36 +770,36 @@ async function submit() {
             <div v-else-if="step.count === 7" class="w-full max-w-[1366px] px-4">
               <h3 class="pb-2 font-medium">Rationale</h3>
               <div class="xl:flex xl:flex-row xl:gap-2">
-                <div class="xl:basis-1/3">
+                <div class="xl:shrink-0 xl:basis-1/3">
                   <p class="font-medium">Your Independents:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.independent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
-                      <VSelect v-model="independentRationale[index]" :options="possibleAnswers.interventions.rationale" />
+                      <VSelect v-model="independentRationale[index]" :options="possibleAnswers.interventions.rationale" class="w-full" />
                     </div>
                   </div>
                 </div>
 
                 <hr class="my-4 border-neutral-300 xl:hidden" />
 
-                <div class="xl:basis-1/3">
+                <div class="xl:shrink-0 xl:basis-1/3">
                   <p class="font-medium">Your Dependents:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.dependent" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}.  ${answer.split('::')[0]}` }}</p>
-                      <VSelect v-model="dependentRationale[index]" :options="possibleAnswers.interventions.rationale" />
+                      <VSelect v-model="dependentRationale[index]" :options="possibleAnswers.interventions.rationale" class="w-full" />
                     </div>
                   </div>
                 </div>
 
                 <hr class="my-4 border-neutral-300 xl:hidden" />
 
-                <div class="xl:basis-1/3">
+                <div class="xl:shrink-0 xl:basis-1/3">
                   <p class="font-medium">Your Collaboratives:</p>
                   <div class="flex flex-col gap-1">
                     <div v-for="(answer, index) in answers.collaborative" :key="index" class="flex cursor-pointer flex-col gap-1 rounded-xl py-1">
                       <p class="text-neutral-600">{{ `${index + 1}. ${answer.split('::')[0]}` }}</p>
-                      <VSelect v-model="collabRationale[index]" :options="possibleAnswers.interventions.rationale" />
+                      <VSelect v-model="collabRationale[index]" :options="possibleAnswers.interventions.rationale" class="w-full" />
                     </div>
                   </div>
                 </div>
