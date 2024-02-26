@@ -1,6 +1,5 @@
 <script setup>
 import { ref } from 'vue'
-// import temp from '@/temp'
 import axios from 'axios'
 import { studentTabStore, toastStore } from '@/store'
 import { useRoute, useRouter } from 'vue-router'
@@ -10,20 +9,16 @@ const router = useRouter()
 
 const questionsAndAnswers = JSON.parse(import.meta.env.VITE_TEST_QUESTIONS)
 
-// console.log(JSON.stringify(temp))
-// console.log(temp)
-
 function testScore(answers) {
+  console.log(answers)
   let totalCorrectItems = 0
   let correctAnswers = 0
 
-  /*
-   * This lets me check dynamically kung ilan yung total correct items sa test
-   */
   questionsAndAnswers.forEach((question) => {
     question.possibleAnswers.forEach((answer) => {
       if (answer.isCorrect) {
         totalCorrectItems++
+        console.log(totalCorrectItems)
       } else if (correctAnswers > 0) {
         correctAnswers--
       }
@@ -76,7 +71,7 @@ function formatAnswers(answers) {
 const formRef = ref(null)
 const isLoading = ref(false)
 async function submit() {
-  isLoading.value = true
+  /*   isLoading.value = true */
   const formData = new FormData(formRef.value)
   const formDataObj = {}
 
@@ -89,14 +84,12 @@ async function submit() {
   })
 
   formData.forEach((value, key) => {
-    mulTypeQuestions.forEach((number) => {
-      if (key === `question_${number + 1}`) {
-        //check if a question has multiple answers
-        formDataObj[key] = formData.getAll(key)
-      } else {
-        formDataObj[key] = value
-      }
-    })
+    if (mulTypeQuestions.includes(parseInt(key.replace('question_', '')) - 1)) {
+      //check if a question has multiple answers
+      formDataObj[key] = formData.getAll(key)
+    } else {
+      formDataObj[key] = value
+    }
   })
 
   await axios({
