@@ -674,7 +674,7 @@ async function submit() {
                 class="mb-4 flex w-[calc(100%-32px)] max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-4 py-4 text-lg font-medium lg:px-12"
               >
                 <span class="material-icons-round">edit</span>
-                <p>
+                <p class="flex flex-row items-center">
                   Move the Interventions to their appropriate boxes by clicking and dragging <span class="material-icons-round"> drag_handle </span>.
                 </p>
               </div>
