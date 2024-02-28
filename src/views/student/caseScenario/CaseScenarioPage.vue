@@ -689,7 +689,7 @@ async function submit() {
                     group="interventions"
                     item-key="order"
                     force-fallback="true"
-                    class="max-h-[calc(100vh-25vh)] min-h-12 w-full space-y-2 overflow-y-auto border border-gray-300 p-1"
+                    class="max-h-[75vh] min-h-12 w-full space-y-2 overflow-y-auto border border-gray-300 p-1"
                   >
                     <template #item="{ element }">
                       <li class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -701,7 +701,7 @@ async function submit() {
                 </div>
 
                 <div
-                  class="flex max-h-[calc(100vh-25vh)] w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-4 overflow-y-auto md:w-[calc(100%-8px)] md:max-w-[calc(100%-8px)] md:shrink-[1]"
+                  class="flex max-h-[calc(75vh-40.5px-4px)] w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-4 overflow-y-auto md:w-[calc(100%-8px)] md:max-w-[calc(100%-8px)] md:shrink-[1]"
                 >
                   <div class="flex w-full flex-col gap-1">
                     <h3 class="pb-2 font-medium">Independent</h3>
