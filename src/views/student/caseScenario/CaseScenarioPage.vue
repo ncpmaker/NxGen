@@ -701,7 +701,7 @@ async function submit() {
                 </div>
 
                 <div
-                  class="flex max-h-[calc(75vh+40.5px+4px)] w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-4 overflow-y-auto md:w-[calc(100%-8px)] md:max-w-[calc(100%-8px)] md:shrink-[1] lg:max-h-[calc(75vh+40.5px+4px)]"
+                  class="flex max-h-[calc(75vh+36px+4px)] w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-4 overflow-y-auto md:w-[calc(100%-8px)] md:max-w-[calc(100%-8px)] md:shrink-[1] lg:max-h-[calc(75vh+40.5px+4px)]"
                 >
                   <div class="flex w-full flex-col gap-1">
                     <h3 class="pb-2 font-medium">Independent</h3>
