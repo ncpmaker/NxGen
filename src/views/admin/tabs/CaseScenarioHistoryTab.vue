@@ -170,101 +170,43 @@ const answersData = reactive({
 
         parsedAnswers.independents = []
         answers.independent.forEach((element, eIndex) => {
-          let currentLength = parsedAnswers.independents.length
           res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.independents.forEach((item, iIndex) => {
             if (element.split('::')[0] === item.text) {
-              if (eIndex === iIndex) {
-                parsedAnswers.independents.push({
-                  answer: element,
-                  isCorrect: item.isCorrect,
-                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
-                  orderCorrect: true
-                })
-              } else {
-                parsedAnswers.independents.push({
-                  answer: element,
-                  isCorrect: item.isCorrect,
-                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
-                  orderCorrect: false
-                })
-              }
+              parsedAnswers.independents.push({
+                answer: element,
+                isCorrect: item.isCorrect && eIndex === iIndex,
+                rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
+                order: iIndex + 1
+              })
             }
           })
-
-          if (currentLength === parsedAnswers.independents.length) {
-            parsedAnswers.independents.push({
-              answer: element,
-              isCorrect: false,
-              rationaleCorrect: false,
-              orderCorrect: false
-            })
-          }
         })
 
         parsedAnswers.dependents = []
         answers.dependent.forEach((element, eIndex) => {
-          let currentLength = parsedAnswers.dependents.length
           res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.dependents.forEach((item, iIndex) => {
             if (element.split('::')[0] === item.text) {
-              if (eIndex === iIndex) {
-                parsedAnswers.dependents.push({
-                  answer: element,
-                  isCorrect: item.isCorrect,
-                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
-                  orderCorrect: true
-                })
-              } else {
-                parsedAnswers.dependents.push({
-                  answer: element,
-                  isCorrect: item.isCorrect,
-                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
-                  orderCorrect: false
-                })
-              }
+              parsedAnswers.dependents.push({
+                answer: element,
+                isCorrect: item.isCorrect && eIndex === iIndex,
+                rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
+                order: iIndex + 1
+              })
             }
           })
-
-          if (currentLength === parsedAnswers.dependents.length) {
-            parsedAnswers.dependents.push({
-              answer: element,
-              isCorrect: false,
-              rationaleCorrect: false,
-              orderCorrect: false
-            })
-          }
         })
 
         parsedAnswers.collaboratives = []
-        answers.collaborative.forEach((element, eIndex) => {
-          let currentLength = parsedAnswers.collaboratives.length
+        answers.collaborative.forEach((element) => {
           res.data.nursing_diagnosis.diagnosis.texts[diagnosisIndex].intervention.collaboratives.forEach((item, iIndex) => {
             if (element.split('::')[0] === item.text) {
-              if (eIndex === iIndex) {
-                parsedAnswers.collaboratives.push({
-                  answer: element,
-                  isCorrect: item.isCorrect,
-                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
-                  orderCorrect: true
-                })
-              } else {
-                parsedAnswers.collaboratives.push({
-                  answer: element,
-                  isCorrect: item.isCorrect,
-                  rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect,
-                  orderCorrect: false
-                })
-              }
+              parsedAnswers.collaboratives.push({
+                answer: element,
+                isCorrect: item.isCorrect,
+                rationaleCorrect: element.split('::')[1] === item.rationale && item.isCorrect
+              })
             }
           })
-
-          if (currentLength === parsedAnswers.collaboratives.length) {
-            parsedAnswers.collaboratives.push({
-              answer: element,
-              isCorrect: false,
-              rationaleCorrect: false,
-              orderCorrect: false
-            })
-          }
         })
 
         this.parsedAnswers = parsedAnswers
@@ -651,7 +593,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
 
                 <tr v-for="independent in answersData.parsedAnswers.independents" :key="independent">
                   <td :class="['border border-black p-2', independent.isCorrect ? 'text-emerald-500' : 'text-red-400']">
-                    {{ independent.orderCorrect ? '' : '*' }} {{ independent.answer.split('::')[0] }}
+                    {{ independent.order }}. {{ independent.answer.split('::')[0] }}
                   </td>
                   <td :class="['border border-black p-2', independent.rationaleCorrect ? 'text-emerald-500' : 'text-red-400']">
                     {{ independent.answer.split('::')[1] }}
@@ -667,7 +609,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
 
                 <tr v-for="dependent in answersData.parsedAnswers.dependents" :key="dependent">
                   <td :class="['border border-black p-2', dependent.isCorrect ? 'text-emerald-500' : 'text-red-400']">
-                    {{ dependent.orderCorrect ? '' : '*' }} {{ dependent.answer.split('::')[0] }}
+                    {{ dependent.order }}. {{ dependent.answer.split('::')[0] }}
                   </td>
                   <td :class="['border border-black p-2', dependent.rationaleCorrect ? 'text-emerald-500' : 'text-red-400']">
                     {{ dependent.answer.split('::')[1] }}

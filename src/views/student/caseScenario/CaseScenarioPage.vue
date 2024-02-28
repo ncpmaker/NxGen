@@ -674,12 +674,12 @@ async function submit() {
                 class="mb-4 flex w-[calc(100%-32px)] max-w-[1024px] flex-row items-center justify-center gap-1 rounded-lg bg-amber-400 px-4 py-4 text-lg font-medium lg:px-12"
               >
                 <span class="material-icons-round">edit</span>
-                <p class="flex flex-row items-center">
-                  Move the Interventions to their appropriate boxes by clicking and dragging <span class="material-icons-round"> drag_handle </span>.
-                </p>
+                <p>Move the Interventions to their appropriate boxes by clicking and dragging the icon.</p>
               </div>
               <div class="flex w-full flex-row gap-4 overflow-x-auto px-4">
-                <div class="flex w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-1 md:w-[calc(100%-8px)] md:shrink-[1]">
+                <div
+                  class="flex w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-1 md:w-[calc(100%-8px)] md:max-w-[calc(100%-8px)] md:shrink-[1]"
+                >
                   <h3 class="pb-2 font-medium">Interventions</h3>
                   <draggable
                     :list="possibleAnswers.interventions"
@@ -689,7 +689,7 @@ async function submit() {
                     group="interventions"
                     item-key="order"
                     force-fallback="true"
-                    class="max-h-[50vh] min-h-12 w-full space-y-2 overflow-y-auto border border-gray-300 p-1"
+                    class="max-h-[calc(100vh-25vh)] min-h-12 w-full space-y-2 overflow-y-auto border border-gray-300 p-1"
                   >
                     <template #item="{ element }">
                       <li class="flex flex-row items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -700,7 +700,9 @@ async function submit() {
                   </draggable>
                 </div>
 
-                <div class="flex w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-4 md:w-[calc(100%-8px)] md:shrink-[1]">
+                <div
+                  class="flex max-h-[calc(100vh-25vh)] w-[calc(100vw-100px)] max-w-[calc(100vw-100px)] shrink-0 flex-col gap-4 overflow-y-auto md:w-[calc(100%-8px)] md:max-w-[calc(100%-8px)] md:shrink-[1]"
+                >
                   <div class="flex w-full flex-col gap-1">
                     <h3 class="pb-2 font-medium">Independent</h3>
                     <draggable
