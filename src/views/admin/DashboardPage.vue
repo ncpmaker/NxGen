@@ -8,7 +8,7 @@
   <div class="relative z-10 grid w-full grid-cols-2 gap-2 px-32 pb-4">
     <router-link
       :to="{ name: 'admin case scenarios', params: { category: 'neuro' } }"
-      v-for="x in 7"
+      v-for="x in 10"
       :key="x"
       class="flex h-32 flex-col justify-end rounded-2xl bg-blue-400 p-4 shadow-xl transition-all hover:bg-blue-500 hover:py-6"
     >
