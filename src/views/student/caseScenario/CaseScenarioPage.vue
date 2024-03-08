@@ -543,7 +543,7 @@ async function submit() {
       </div>
 
       <div v-else class="flex flex-col items-center">
-        <div class="flex flex-col items-center px-4 lg:flex-row lg:gap-4">
+        <div class="flex w-full flex-col items-center px-4 lg:flex-row lg:gap-4">
           <picture
             v-if="data.introduction.imageLink"
             class="relative block w-full max-w-[640px] overflow-hidden rounded-2xl pt-[56.25%] sm:h-[360px] sm:pt-0 lg:shrink-0"
