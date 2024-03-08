@@ -11,13 +11,13 @@ export default defineConfig({
     vue(),
     VitePWA({
       manifest: {
-        name: 'NCP',
-        short_name: 'NCP',
-        start_url: '/ncp/',
+        name: 'NxGen',
+        short_name: 'NxGen',
+        start_url: '/NxGen/',
         display: 'standalone',
         background_color: '#ecfdf5',
         lang: 'en',
-        scope: '/ncp/',
+        scope: '/NxGen/',
         icons: [
           {
             src: 'icons/manifest-icon-192.maskable.png',
