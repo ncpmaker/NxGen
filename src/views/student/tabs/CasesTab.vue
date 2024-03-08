@@ -17,10 +17,13 @@ const modals = reactive({
 
     await axios({
       method: 'get',
-      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${category}`,
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
         Role: 'student'
+      },
+      params: {
+        category: category
       }
     })
       .then((res) => {
@@ -140,7 +143,7 @@ const categories = [
           v-else
           v-for="(item, index) in cases"
           :key="item"
-          @click="caseScenarioDialog.toggle(index + 1, item.id, 'neuro')"
+          @click="caseScenarioDialog.toggle(index + 1, item.id, modals.category)"
           class="justify-center"
         >
           Case Scenario {{ index + 1 }}

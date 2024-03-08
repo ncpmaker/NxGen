@@ -45,10 +45,13 @@ onMounted(async () => {
     isLoading.value = true
     await axios({
       method: 'get',
-      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category.split('/')[0]}/${route.params.id}`,
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.id}`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
         Role: 'admin'
+      },
+      params: {
+        category: route.params.category
       }
     })
       .then((res) => {
@@ -170,7 +173,7 @@ async function create() {
       Role: 'admin'
     },
     data: {
-      category: route.params.category.split('/')[0],
+      category: route.params.category,
       scenario: scenario.value,
       image_link: imageLink.value,
       audio_link: audioLink.value,
@@ -216,13 +219,15 @@ async function save() {
   isSaving.value = true
   await axios({
     method: 'put',
-    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}/${route.params.id}`,
+    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.id}`,
     headers: {
       Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
       Role: 'admin'
     },
+    params: {
+      category: route.params.category
+    },
     data: {
-      category: route.params.category,
       scenario: scenario.value,
       image_link: imageLink.value,
       audio_link: audioLink.value,

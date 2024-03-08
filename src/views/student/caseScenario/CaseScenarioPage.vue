@@ -121,10 +121,13 @@ onMounted(async () => {
 
   await axios({
     method: 'get',
-    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}/${route.params.id}`,
+    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.id}`,
     headers: {
       Authorization: `Bearer ${localStorage.getItem('ncp_token')}`,
       Role: 'student'
+    },
+    params: {
+      category: route.params.category
     }
   })
     .then((res) => {

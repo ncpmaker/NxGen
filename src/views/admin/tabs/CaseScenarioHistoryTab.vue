@@ -21,6 +21,8 @@ const search = ref({
   category: 'All'
 })
 
+const categoryOptions = ['All', 'Activity/Rest', 'Elimination', 'Food/Fluid', 'Pain/Discomfort', 'Respiration', 'Safety', 'Teaching/Learning']
+
 const getHistory = debounce(async (text, section, category) => {
   if (lastFetch.value.length === 50 || lastFetch.value.length === 0) {
     await axios({
@@ -98,10 +100,13 @@ const answersData = reactive({
     this.isLoading = true
     await axios({
       method: 'get',
-      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${category}/${id}`,
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios//${id}`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
         Role: 'admin'
+      },
+      params: {
+        category: category
       }
     })
       .then((res) => {
@@ -297,7 +302,7 @@ async function beforeGeneratePDF(id, name, category, caseId, timesTaken, dateTak
 
       <div class="flex flex-row items-center gap-2">
         <span class="text-sm text-neutral-600 lg:text-base">Category</span>
-        <VSelect v-model="search.category" :options="['All', 'Neuro', 'Etc.']" class="w-40" />
+        <VSelect v-model="search.category" :options="categoryOptions" class="w-40" />
       </div>
     </div>
 

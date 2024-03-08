@@ -11,10 +11,14 @@ const isLoading = ref(true)
 onMounted(async () => {
   await axios({
     method: 'get',
-    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category.split('/')[0]}`,
+    /*     url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}`, */
+    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios`,
     headers: {
       Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
       Role: 'admin'
+    },
+    params: {
+      category: route.params.category
     }
   })
     .then((res) => {
@@ -55,10 +59,13 @@ const deleteDialog = ref({
 
     await axios({
       method: 'delete',
-      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}/${this.id}`,
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${this.id}`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
         Role: 'admin'
+      },
+      params: {
+        category: route.params.category
       }
     })
       .then(() => {
