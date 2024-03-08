@@ -254,8 +254,8 @@ const deleteDialog = ref({
   <VModal v-model:go-open="modals.postTestModal" :click-outside="false">
     <div class="flex flex-col gap-2 p-4">
       <div class="relative w-full overflow-hidden rounded-2xl pt-[56.25%]">
-        <video class="absolute left-0 top-0 h-full w-full" controls>
-          <source src="https://www.dropbox.com/scl/fi/jv0trq3adbrybt603a52d/Research-Vid.mp4?rlkey=v866vd2z3c59rhenf4ei2u1c7&raw=1" type="video/mp4" />
+        <video v-if="modals.postTestModal" class="absolute left-0 top-0 h-full w-full" controls>
+          <source src="https://www.dropbox.com/scl/fi/yic6lbu6jpay1sx0pcn7h/Research-Vid.mp4?rlkey=dbt81fvib6dpy1nbp6406ca44&raw=1" type="video/mp4" />
           Your browser does not support HTML video.
         </video>
       </div>
