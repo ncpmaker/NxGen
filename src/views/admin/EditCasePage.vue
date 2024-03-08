@@ -45,7 +45,7 @@ onMounted(async () => {
     isLoading.value = true
     await axios({
       method: 'get',
-      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}/${route.params.id}`,
+      url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category.split('/')[0]}/${route.params.id}`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
         Role: 'admin'
@@ -170,7 +170,7 @@ async function create() {
       Role: 'admin'
     },
     data: {
-      category: route.params.category,
+      category: route.params.category.split('/')[0],
       scenario: scenario.value,
       image_link: imageLink.value,
       audio_link: audioLink.value,
@@ -192,7 +192,7 @@ async function create() {
     }
   })
     .then(() => {
-      router.push({ name: 'admin case scenarios', params: { category: 'neuro' } })
+      router.push({ name: 'admin case scenarios', params: { category: route.params.category } })
       toastStore.add({
         msg: 'Case created',
         duration: 4000

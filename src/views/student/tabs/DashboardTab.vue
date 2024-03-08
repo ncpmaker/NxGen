@@ -92,7 +92,7 @@ const postTestDialog = ref({
     <button
       @click="postTestDialog.toggle()"
       :disabled="!postTestEnabled || postTestFinished"
-      class="group col-span-8 h-96 overflow-hidden rounded-2xl bg-[url('https://www.ucl.ac.uk/ioe/sites/ioe/files/styles/large_image/public/lilac-blouse-school-uniform.png?itok=KGavEVWp')] bg-cover bg-top shadow-lg sm:h-[560px] lg:h-full lg:basis-1/2"
+      class="group col-span-8 h-96 overflow-hidden rounded-2xl bg-[url('https://www.dropbox.com/scl/fi/v06heus2icb18jpibd1gj/POST-TEST-1.webp?rlkey=m4fosoeu7ppcwzfhxfsdqsgf7&raw=1')] bg-cover bg-top shadow-lg sm:h-[560px] lg:h-full lg:basis-1/2"
     >
       <div
         v-if="isLoading"

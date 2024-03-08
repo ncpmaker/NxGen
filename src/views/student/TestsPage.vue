@@ -9,8 +9,8 @@ const router = useRouter()
 
 const questionsAndAnswers = JSON.parse(import.meta.env.VITE_TEST_QUESTIONS)
 
+console.log(questionsAndAnswers)
 function testScore(answers) {
-  console.log(answers)
   let totalCorrectItems = 0
   let correctAnswers = 0
 
@@ -51,6 +51,9 @@ function testScore(answers) {
       }
     }
   })
+
+  console.log(correctAnswers)
+  console.log(totalCorrectItems)
 
   return `${correctAnswers}/${totalCorrectItems}`
 }

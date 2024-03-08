@@ -159,10 +159,10 @@ async function submit() {
           <div>
             <h3><b>1. Acceptance of Terms</b></h3>
             <p class="pl-5">
-              By accessing and utilizing the NCP WISE Web Application, you explicitly acknowledge and agree to adhere to the terms and conditions
-              outlined herein. Your continued use of the NCP WISE web app indicates your acceptance and understanding of these terms, forming a legally
-              binding agreement between you and the service provider. It is imperative that you carefully read and comprehend the terms before accessing
-              or using the application.
+              By accessing and utilizing the NxGen Web Application, you explicitly acknowledge and agree to adhere to the terms and conditions outlined
+              herein. Your continued use of the NxGen web app indicates your acceptance and understanding of these terms, forming a legally binding
+              agreement between you and the service provider. It is imperative that you carefully read and comprehend the terms before accessing or
+              using the application.
             </p>
           </div>
           <div>
@@ -181,7 +181,7 @@ async function submit() {
                 Our privacy policy outlines how we collect, use, and protect your personal information. Please review it to understand our practices.
               </p>
               <p class="pl-5">
-                Welcome to our NCP WISE web app's Privacy Policy. This document aims to explain, in clear terms, how we collect, use, and safeguard your
+                Welcome to our NxGen web app's Privacy Policy. This document aims to explain, in clear terms, how we collect, use, and safeguard your
                 personal information. We value your privacy, and by using our app, you are agreeing to the practices outlined below.
               </p>
               <ul class="list-disc pl-10">
@@ -240,7 +240,7 @@ async function submit() {
                     You have control over the personal information you provide. You can update, correct, or delete your information by accessing your
                     account settings. If you have any concerns, please contact us through the provided channels.
                     <br /><br />
-                    By using our NCP WISE web app, you acknowledge that you have read and understood this Privacy Policy. If you have any questions or
+                    By using our NxGen web app, you acknowledge that you have read and understood this Privacy Policy. If you have any questions or
                     concerns, please contact us at [contact email]. Your privacy is of utmost importance to us, and we are committed to maintaining the
                     trust you place in our services.
                   </p>

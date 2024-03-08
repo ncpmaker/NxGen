@@ -158,7 +158,7 @@ async function logout() {
     .finally(() => (isLoggingOut.value = false))
 }
 
-const isDeleting = ref(false)
+/* const isDeleting = ref(false)
 const deleteDialog = ref({
   state: false,
   toggle() {
@@ -214,7 +214,7 @@ const deleteDialog = ref({
         isDeleting.value = false
       })
   }
-})
+}) */
 </script>
 
 <template>
@@ -222,7 +222,7 @@ const deleteDialog = ref({
     <div class="flex grow flex-col overflow-y-scroll">
       <div class="sticky top-0 flex flex-row items-center justify-between bg-blue-50/70 px-4 pb-4 pt-6 backdrop-blur-xl">
         <div class="flex flex-col leading-none">
-          <h1>NCP</h1>
+          <h1>NxGen</h1>
           <p>Hello, {{ userName }}</p>
         </div>
 
@@ -255,10 +255,7 @@ const deleteDialog = ref({
     <div class="flex flex-col gap-2 p-4">
       <div class="relative w-full overflow-hidden rounded-2xl pt-[56.25%]">
         <video class="absolute left-0 top-0 h-full w-full" controls>
-          <source
-            src="https://www.dropbox.com/scl/fi/ilr9358x8bgmo65usni4h/Mobile-App-Presentation-_-Video-Template.mp4?rlkey=ddsds9sbx2w970vpz7c3g7nk2&raw=1"
-            type="video/mp4"
-          />
+          <source src="https://www.dropbox.com/scl/fi/jv0trq3adbrybt603a52d/Research-Vid.mp4?rlkey=v866vd2z3c59rhenf4ei2u1c7&raw=1" type="video/mp4" />
           Your browser does not support HTML video.
         </video>
       </div>
@@ -281,24 +278,25 @@ const deleteDialog = ref({
         <span v-else>Update Password</span>
       </VButton>
 
+      <hr class="my-4 border-neutral-300" />
+
       <VButton @click="logout()" :disabled="isLoggingOut" color="warning" class="justify-center">
         <VLoader v-if="isLoggingOut" size="16px" thickness="2px" />
         <span v-else>Logout</span>
       </VButton>
-      <hr class="my-4 border-neutral-300" />
 
-      <VButton @click="deleteDialog.toggle()" :disabled="isDeleting" color="error" class="justify-center">
+      <!-- <VButton @click="deleteDialog.toggle()" :disabled="isDeleting" color="error" class="justify-center">
         <VLoader v-if="isDeleting" size="16px" thickness="2px" />
         <span v-else>Delete Account</span>
       </VButton>
       <p class="flex flex-row items-center gap-1 text-sm text-neutral-500">
         <span class="material-icons-round text-[16px]"> warning </span>
         This will delete all of the data related to you including your test and case scenario histories
-      </p>
+      </p> -->
     </div>
   </VModal>
 
-  <VDialog
+  <!-- <VDialog
     v-model:go-open="deleteDialog.state"
     header="Account Deletion"
     body="Do you really want to delete your account?"
@@ -306,7 +304,7 @@ const deleteDialog = ref({
     confirm-label="Yes"
     confirm-state="error"
     @confirm="deleteDialog.confirm()"
-  />
+  /> -->
 </template>
 
 <style scoped>

@@ -11,7 +11,7 @@ const isLoading = ref(true)
 onMounted(async () => {
   await axios({
     method: 'get',
-    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category}`,
+    url: `${import.meta.env.VITE_API_DOMAIN}/case-scenarios/${route.params.category.split('/')[0]}`,
     headers: {
       Authorization: `Bearer ${localStorage.getItem('ncpadmin_token')}`,
       Role: 'admin'
@@ -94,12 +94,12 @@ const deleteDialog = ref({
   <div class="flex w-full flex-col gap-2 px-64 pb-4">
     <div class="my-4 flex h-96 flex-row items-end justify-between rounded-2xl bg-gradient-to-b from-blue-300 to-blue-400 p-8 shadow-xl">
       <div class="flex flex-col">
-        <span class="text-4xl font-semibold leading-none">Neuro</span>
-        <span class="text-xl font-medium leading-none">Description here</span>
+        <span class="text-4xl font-semibold leading-none">{{ $route.params.category.charAt().toUpperCase() + $route.params.category.slice(1) }}</span>
+        <!--         <span class="text-xl font-medium leading-none">Description here</span> -->
       </div>
 
       <button
-        @click="$router.push({ name: 'admin create case', params: { category: 'neuro' } })"
+        @click="$router.push({ name: 'admin create case', params: { category: $route.params.category } })"
         class="rounded-full px-4 py-2 text-2xl font-medium transition-colors hover:bg-blue-950/10"
       >
         + New Case
@@ -121,7 +121,7 @@ const deleteDialog = ref({
       class="flex flex-row items-center rounded-2xl border border-neutral-400 pr-10 transition-colors hover:bg-neutral-400/20"
     >
       <router-link
-        :to="{ name: 'admin edit case', params: { number: index + 1, id: item.id, category: 'neuro' } }"
+        :to="{ name: 'admin edit case', params: { number: index + 1, id: item.id, category: $route.params.category } }"
         class="grow py-4 pl-10 text-xl font-medium"
         >Case Scenario {{ index + 1 }}</router-link
       >

@@ -100,7 +100,7 @@ async function submit() {
 <template>
   <div class="flex h-[100svh] flex-col justify-end bg-gradient-to-b from-blue-300 to-blue-500 sm:items-center sm:justify-center">
     <div class="flex w-full flex-col gap-2 sm:max-w-[600px] sm:p-4">
-      <h1 class="px-4 drop-shadow-xl">Welcome to NCP</h1>
+      <h1 class="px-4 drop-shadow-xl">Welcome to NxGen</h1>
 
       <!-- login form -->
       <form @submit.prevent="submit()" class="flex w-full flex-col gap-2 rounded-t-2xl bg-blue-50 px-4 py-4 sm:rounded-2xl">

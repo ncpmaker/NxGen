@@ -18,7 +18,7 @@ defineEmits(['update:goOpen'])
     <div v-if="clickOutside" @click="$emit('update:goOpen', !props.goOpen)" class="absolute top-0 h-full w-full bg-neutral-950/25"></div>
     <div v-else class="absolute top-0 h-full w-full bg-neutral-950/25"></div>
     <div
-      class="z-10 max-h-[calc(100svh-32px)] w-full overflow-hidden rounded-2xl bg-blue-50 transition-transform duration-150 ease-in-out md:w-auto md:min-w-[560px] md:max-w-[720px]"
+      class="z-10 max-h-[calc(100svh-32px)] w-full overflow-hidden rounded-2xl bg-blue-50 transition-transform duration-150 ease-in-out md:min-w-[560px] md:max-w-[900px]"
       :class="[props.goOpen ? 'scale-100' : 'scale-95']"
     >
       <slot></slot>
