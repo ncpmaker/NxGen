@@ -480,7 +480,8 @@ async function submit() {
       interventionScore: score4,
       evaluationScore: score5,
       overallScore: totalScore
-    }
+    },
+    timeout: 7000
   })
     .then((res) => {
       localStorage.setItem('ncp_case_scenario_category', undefined)
@@ -512,7 +513,12 @@ async function submit() {
       router.push({ name: 'evaluation', params: { id: res.data.historyId } })
     })
     .catch((err) => {
-      if (err.response.status == 401) {
+      if (err.code === 'ECONNABORTED') {
+        toastStore.add({
+          msg: 'Request timed out',
+          duration: 2000
+        })
+      } else if (err.response.status == 401) {
         Object.keys(localStorage).forEach(function (key) {
           if (/^ncp_/.test(key)) {
             localStorage.removeItem(key)
