@@ -368,7 +368,7 @@ function interventionScore(depAnswer, indepAnswer, collabAnswer) {
       correctAnswers--
     }
 
-    if (ansDependent !== dependents[index].text) {
+    if (dependents[index] && ansDependent !== dependents[index].text) {
       correctAnswers -= 0.25
     }
   })
@@ -386,7 +386,7 @@ function interventionScore(depAnswer, indepAnswer, collabAnswer) {
       correctAnswers--
     }
 
-    if (ansIndependent !== independents[index].text) {
+    if (independents[index] && ansIndependent !== independents[index].text) {
       correctAnswers -= 0.25
     }
   })
